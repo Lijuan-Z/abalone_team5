@@ -2,19 +2,73 @@ import math
 import tkinter as tk
 from tkinter import ttk
 
+#temp
+LARGEFONT = ("Verdana", 35)
 
-class GameGUI:
-    def __init__(self, master):
-        self.master = master
-        master.title("Abalone")
+
+class GameApp(tk.Tk):
+    def __init__(self, *args, **kwargs):
+        tk.Tk.__init__(self, *args, **kwargs)
 
         # Game Board Frame
-        self.board_frame = tk.Frame(master, width=400, height=400, bg="white")
-        self.board_frame.grid(row=0, column=1, rowspan=3)
+        board_frame = tk.Frame(self, width=400, height=400, bg="white")
+        board_frame.grid(row=0, column=1, rowspan=3)
 
-        # Create a canvas widget
-        self.canvas = tk.Canvas(self.board_frame, width=600, height=600, bg="lightgrey")
-        self.canvas.pack()
+        self.frames = {}
+        for F in (ConfigGUI, TestGUI):
+            frame = F(board_frame, self)
+            self.frames[F] = frame
+            frame.grid(row=0, column=0, sticky="nsew")
+
+        self.show_frame(ConfigGUI)
+
+    def show_frame(self, gui):
+        frame = self.frames[gui]
+        frame.tkraise()
+
+
+class ConfigGUI(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        # label of frame Layout 2
+        label = ttk.Label(self, text="Config page", font=LARGEFONT)
+
+        # putting the grid in its place by using
+        # grid
+        label.grid(row=0, column=4, padx=10, pady=10)
+
+        button1 = ttk.Button(self, text="Page 1",
+                             command=lambda: controller.show_frame(TestGUI))
+
+        # putting the button in its place by
+        # using grid
+        button1.grid(row=1, column=1, padx=10, pady=10)
+
+
+class TestGUI(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, parent)
+
+        # label of frame Layout 2
+        label = ttk.Label(self, text="test gui")
+
+        # putting the grid in its place by using
+        # grid
+        label.grid(row=0, column=4, padx=10, pady=10)
+
+        button1 = ttk.Button(self, text="Page 1",
+                             command=lambda: controller.show_frame(ConfigGUI))
+
+        # putting the button in its place by
+        # using grid
+        button1.grid(row=1, column=1, padx=10, pady=10)
+
+
+class GameGUI:
+    def __init__(self, master, controller):
+        self.master = master
+        master.title("Abalone")
 
         # Draw circles based on configuration
         # todo: pass configurations
@@ -39,11 +93,13 @@ class GameGUI:
         self.button_frame.grid(row=3, column=1, columnspan=2, pady=10)
 
         # Reset Button
-        self.reset_button = tk.Button(self.button_frame, text="Reset", command=self.reset_game)
+        self.reset_button = tk.Button(self.button_frame, text="Reset",
+                                      command=self.reset_game)
         self.reset_button.grid(row=0, column=0, padx=5)
 
         # Undo Button
-        self.undo_button = tk.Button(self.button_frame, text="Undo Last Move", command=self.undo_last_move)
+        self.undo_button = tk.Button(self.button_frame, text="Undo Last Move",
+                                     command=self.undo_last_move)
         self.undo_button.grid(row=0, column=1, padx=5)
 
         # Input Action Label
@@ -73,7 +129,9 @@ class GameGUI:
         # Dropdown
         self.dropdown_var = tk.StringVar(master)
         self.dropdown_var.set(self.options[0])
-        self.dropdown_menu = ttk.Combobox(master, textvariable=self.dropdown_var, values=self.options)
+        self.dropdown_menu = ttk.Combobox(master,
+                                          textvariable=self.dropdown_var,
+                                          values=self.options)
         self.dropdown_menu.grid(row=3, column=0)
 
         # Start Button
@@ -119,9 +177,11 @@ class GameGUI:
                     key = f'{cols[j + 4]}{i + 1}'  # Construct the key string
                     # Set the values for x0, x1, y0, y1, and color for each key
                     color_value = "lightgrey"
-                    if cols[j + 4] == 'a' or cols[j + 4] == 'b' or key == 'c3' or key == 'c4' or key == 'c5':
+                    if cols[j + 4] == 'a' or cols[
+                        j + 4] == 'b' or key == 'c3' or key == 'c4' or key == 'c5':
                         color_value = 'black'
-                    if cols[j + 4] == 'h' or cols[j + 4] == 'i' or key == 'g3' or key == 'g4' or key == 'g5':
+                    if cols[j + 4] == 'h' or cols[
+                        j + 4] == 'i' or key == 'g3' or key == 'g4' or key == 'g5':
                         color_value = 'white'
                     self.positions[key] = {
                         'x0': x - r,
@@ -135,7 +195,11 @@ class GameGUI:
         for key in self.positions:
             x0, y0 = self.positions[key]['x0'], self.positions[key]['y0']
             x1, y1 = self.positions[key]['x1'], self.positions[key]['y1']
-            self.positions[key]['id'] = self.canvas.create_oval(x0, y0,x1, y1, fill= self.positions[key]['color'])
+            self.positions[key]['id'] = self.canvas.create_oval(x0, y0, x1, y1,
+                                                                fill=
+                                                                self.positions[
+                                                                    key][
+                                                                    'color'])
 
     def start(self):
         try:
@@ -149,9 +213,12 @@ class GameGUI:
 
         selected_option = self.dropdown_var.get()
         # self.log_text.insert(tk.END, f"Selected option: {selected_option}\n")
-        print( f"Selected option: {selected_option}\n")
+        print(f"Selected option: {selected_option}\n")
 
 
-root = tk.Tk()
-game_gui = GameGUI(root)
-root.mainloop()
+# root = tk.Tk()
+# game_gui = GameGUI(root)
+# root.mainloop()
+
+app = GameApp()
+app.mainloop()
