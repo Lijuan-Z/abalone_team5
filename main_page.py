@@ -106,15 +106,19 @@ class GameGUI(tk.Frame):
         # Set the action on user input
         input_action = self.action_entry.get()
         source, destination = input_action.split("-")
-
-        color = self.positions[source]['color']
-        # Update the color of the destination and the source
-        self.positions[destination]['color'] = color
-        self.positions[source]['color'] = "lightgrey"
-
-        # Update the color of the circle on the canvas
-        self.canvas.itemconfig(self.positions[source]['id'], fill="lightgrey")
-        self.canvas.itemconfig(self.positions[destination]['id'], fill=color)
+        source_key_list = []
+        for i in range(int(len(source) / 2), 0, -1):
+            source_key = source[(i - 1) * 2:2 * i]
+            source_key_list.append(source_key)
+            destination_key = destination[(i - 1) * 2:2 * i]
+            color = self.positions[source_key]['color']
+            # Update the color of the destination and the source
+            self.positions[destination_key]['color'] = color
+            self.canvas.itemconfig(self.positions[destination_key]['id'], fill=color)
+        for source_key in source_key_list:
+            if source_key not in destination:
+                self.positions[source_key]['color'] = "lightgrey"
+                self.canvas.itemconfig(self.positions[source_key]['id'], fill="lightgrey")
 
         # Update log information with action entered by the user
         self.log_text.insert(tk.END, f"Action: {input_action}\n")
