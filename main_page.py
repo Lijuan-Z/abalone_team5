@@ -20,7 +20,7 @@ class GameGUI(tk.Frame):
                       'b1', 'b2', 'b3', 'b4', 'b5', 'b6',
                       'c3', 'c4', 'c5'],
         },
-        'german daisy': {
+        'belgian daisy': {
             'white': [
                 'i1', 'i2',
                 'h1', 'h2', 'h3',
@@ -36,7 +36,7 @@ class GameGUI(tk.Frame):
                 'b1', 'b2', 'b3',
                 'c2', 'c3'],
         },
-        'belgian daisy': {
+        'german daisy': {
             'white': [
                 'h1', 'h2',
                 'g1', 'g2', 'g3',

@@ -13,7 +13,7 @@ class ConfigGUI(tk.Frame):
         # Layout selection dropdown
         layout_selection_label = tk.Label(self, text="Layout Selection:")
         layout_selection_label.grid(row=1, column=0)
-        layout_selection_options = ['Standard', 'German daisy', 'Belgian daisy']
+        layout_selection_options = ['Standard', 'Belgian daisy', 'German daisy']
 
         layout_dropdown = tk.StringVar(self)
         layout_dropdown.set(layout_selection_options[0])
