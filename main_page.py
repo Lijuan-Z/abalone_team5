@@ -161,7 +161,9 @@ class GameGUI(tk.Frame):
         content = self.log_text.get("1.0", tk.END)
         lines = content.split("\n")
         last_log = ""
+        last_line_index = 0
         for line in reversed(lines):
+            last_line_index += 1
             # Check if the line is not empty
             if line.strip():
                 last_log = line.strip()
@@ -171,7 +173,9 @@ class GameGUI(tk.Frame):
         input_action = f"{destination}-{source}"
         self.move_marbles(input_action)
         # Delete the last log from the text widget
-        self.log_text.delete("end-2l", tk.END)
+        if last_line_index > 0:
+            self.log_text.delete(f"end-{last_line_index-1}l",tk.END)
+            self.log_text.insert(tk.END,"\n")
         # Reset turns
         self.player_turn = "black" if self.player_turn == "white" else "white"
         self.num_moves[self.player_turn] += 1
