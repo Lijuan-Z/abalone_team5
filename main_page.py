@@ -69,53 +69,25 @@ class GameGUI(tk.Frame):
         # Draw the GUI
         self.draw_gui()
 
-    def undo_last_move(self):
-        print("undo_last_move")
-        # Update log information
-        # self.log_text.insert(tk.END, "Undo?\n")
-
-    def reset_game(self):
-        # Reset
-
-        # Clear log information
-        self.log_text.delete(1.0, tk.END)
-
-    def set_action(self, event):
-        # Set the action on user input
-        input_action = self.action_entry.get()
-        source, destination = input_action.split("-")
-        source_key_list = []
-        for i in range(int(len(source) / 2), 0, -1):
-            source_key = source[(i - 1) * 2:2 * i]
-            source_key_list.append(source_key)
-            destination_key = destination[(i - 1) * 2:2 * i]
-            color = self.positions[source_key]['color']
-            # Update the color of the destination and the source
-            self.positions[destination_key]['color'] = color
-            self.canvas.itemconfig(self.positions[destination_key]['id'],
-                                   fill=color)
-        for source_key in source_key_list:
-            if source_key not in destination:
-                self.positions[source_key]['color'] = "lightgrey"
-                self.canvas.itemconfig(self.positions[source_key]['id'],
-                                       fill="lightgrey")
-
-        # Update log information with action entered by the user
-        self.log_text.insert(tk.END, f"Action: {input_action}\n")
-
     def draw_gui(self):
         # Game Board Frame
         self.board_frame = tk.Frame(self, width=400, height=400, bg="white")
-        self.board_frame.grid(row=0, column=1, rowspan=3)
+        self.board_frame.grid(row=1, column=1, rowspan=3)
 
         # Create a canvas widget
         self.canvas = tk.Canvas(self.board_frame, width=600, height=600,
                                 bg="lightgrey")
         self.canvas.pack()
 
+        # Player turn label
+        self.turn_var = tk.StringVar()
+        self.turn_var.set("Player turn: " + self.player_turn)
+        self.turn_label = tk.Label(self, textvariable=self.turn_var)
+        self.turn_label.grid(row=0, column=1)
+
         # Log Information Frame
         self.log_frame = tk.Frame(self, width=100, height=400, bg="lightgrey")
-        self.log_frame.grid(row=0, column=2, rowspan=3)
+        self.log_frame.grid(row=1, column=2, rowspan=3)
 
         # Log Label
         self.log_label = tk.Label(self.log_frame, text="Logs")
@@ -127,7 +99,7 @@ class GameGUI(tk.Frame):
 
         # Button Frame
         self.button_frame = tk.Frame(self)
-        self.button_frame.grid(row=3, column=1, columnspan=2, pady=10)
+        self.button_frame.grid(row=4, column=1, columnspan=2, pady=10)
 
         # Reset Button
         self.reset_button = tk.Button(self.button_frame, text="Reset",
@@ -179,7 +151,6 @@ class GameGUI(tk.Frame):
         self.move_marbles(input_action)
         # Delete the last log from the text widget
         self.log_text.delete("end-2l", tk.END)
-
 
     def set_action(self, event):
         # Set the action on user input
