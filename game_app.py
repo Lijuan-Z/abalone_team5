@@ -18,8 +18,8 @@ class GameApp(tk.Tk):
         config_gui.grid(row=0, column=0, sticky="nsew")
         config_gui.tkraise()
 
-    def display_game(self):
-        game_gui = GameGUI(self.container, self)
+    def display_game(self, config_options=None):
+        game_gui = GameGUI(self.container, self, config_options)
         game_gui.grid(row=0, column=0)
         game_gui.tkraise()
 

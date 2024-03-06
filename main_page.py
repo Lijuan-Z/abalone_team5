@@ -1,10 +1,9 @@
 import math
 import tkinter as tk
-from tkinter import ttk
 
 
 class GameGUI(tk.Frame):
-    def __init__(self, parent, controller):
+    def __init__(self, parent, controller, config_options):
         tk.Frame.__init__(self, parent)
 
         # Game Board Frame
@@ -18,10 +17,9 @@ class GameGUI(tk.Frame):
 
         # Draw circles based on configuration
         # todo: pass configurations
+        print(config_options)
         # Initialize an empty dictionary
         self.positions = {}
-        self.update_positions()
-        self.draw_game_board()
 
         # Log Information Frame
         self.log_frame = tk.Frame(self, width=100, height=400, bg="lightgrey")
@@ -66,21 +64,6 @@ class GameGUI(tk.Frame):
         self.config_entry = tk.Entry(self)
         self.config_entry.grid(row=1, column=0, pady=10)
 
-        # Dropdown Label
-        self.config_label = tk.Label(self, text="Layout Selection:")
-        self.config_label.grid(row=2, column=0)
-
-        # Dropdown Options
-        self.options = ['Standard', 'German daisy', 'Belgian daisy']
-
-        # Dropdown
-        self.dropdown_var = tk.StringVar(self)
-        self.dropdown_var.set(self.options[0])
-        self.dropdown_menu = ttk.Combobox(self,
-                                          textvariable=self.dropdown_var,
-                                          values=self.options)
-        self.dropdown_menu.grid(row=3, column=0)
-
         # Start Button
         self.start_button = tk.Button(self, text="Start", command=self.start)
         self.start_button.grid(row=4, column=0, pady=5)
@@ -122,7 +105,7 @@ class GameGUI(tk.Frame):
         # Update log information with action entered by the user
         self.log_text.insert(tk.END, f"Action: {input_action}\n")
 
-    def update_positions(self):
+    def draw_game_board(self):
         r = 30
         cols = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
         for i in range(9):
@@ -143,28 +126,18 @@ class GameGUI(tk.Frame):
                         'x': x,
                         'y': y,
                         'color': color_value,
+                        'id': self.canvas.create_oval(
+                            x - r, y - r, x + r, y + r,
+                            fill=color_value
+                        )
                     }
-                    # self.canvas.create_text(x, y, text=key)
-
-    def draw_game_board(self):
-        r = 30
-        for key in self.positions:
-            x, y = self.positions[key]['x'], self.positions[key]['y']
-            self.positions[key]['id'] = self.canvas.create_oval(
-                x - r, y - r, x + r, y + r, fill=self.positions[key]['color']
-            )
 
     def start(self):
         try:
             move_limit = int(self.config_entry.get())
             if move_limit > 0:
-                self.update_positions()
                 self.draw_game_board()
             else:
                 raise ValueError("Number of move must be positive")
         except ValueError:
             self.log_text.insert(tk.END, "Invalid input for number of move!\n")
-
-        selected_option = self.dropdown_var.get()
-        # self.log_text.insert(tk.END, f"Selected option: {selected_option}\n")
-        print(f"Selected option: {selected_option}\n")
