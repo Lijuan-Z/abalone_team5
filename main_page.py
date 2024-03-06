@@ -3,9 +3,62 @@ import tkinter as tk
 
 
 class GameGUI(tk.Frame):
+    DEFAULT_CONFIG = {
+        'board_layout': 'standard',
+        'color_selection': 'black',
+    }
+    CIRCLE_RADIUS = 30
+    COLUMNS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
+
     def __init__(self, parent, controller, config_options):
         tk.Frame.__init__(self, parent)
+        self.controller = controller
 
+        # Game info
+        self.positions = {}
+        self.player_turn = 'black'
+
+        # Config setup
+        self.config = config_options if config_options is not None else (
+            GameGUI.DEFAULT_CONFIG)
+        print(self.config)
+
+        # Draw the GUI
+        self.draw_gui()
+
+    def undo_last_move(self):
+        print("undo_last_move")
+        # Update log information
+        # self.log_text.insert(tk.END, "Undo?\n")
+
+    def reset_game(self):
+        # Reset
+
+        # Clear log information
+        self.log_text.delete(1.0, tk.END)
+
+    def set_action(self, event):
+        # Set the action on user input
+        input_action = self.action_entry.get()
+        source, destination = input_action.split("-")
+        source_key_list = []
+        for i in range(int(len(source) / 2), 0, -1):
+            source_key = source[(i - 1) * 2:2 * i]
+            source_key_list.append(source_key)
+            destination_key = destination[(i - 1) * 2:2 * i]
+            color = self.positions[source_key]['color']
+            # Update the color of the destination and the source
+            self.positions[destination_key]['color'] = color
+            self.canvas.itemconfig(self.positions[destination_key]['id'], fill=color)
+        for source_key in source_key_list:
+            if source_key not in destination:
+                self.positions[source_key]['color'] = "lightgrey"
+                self.canvas.itemconfig(self.positions[source_key]['id'], fill="lightgrey")
+
+        # Update log information with action entered by the user
+        self.log_text.insert(tk.END, f"Action: {input_action}\n")
+
+    def draw_gui(self):
         # Game Board Frame
         self.board_frame = tk.Frame(self, width=400, height=400, bg="white")
         self.board_frame.grid(row=0, column=1, rowspan=3)
@@ -14,12 +67,6 @@ class GameGUI(tk.Frame):
         self.canvas = tk.Canvas(self.board_frame, width=600, height=600,
                                 bg="lightgrey")
         self.canvas.pack()
-
-        # Draw circles based on configuration
-        # todo: pass configurations
-        print(config_options)
-        # Initialize an empty dictionary
-        self.positions = {}
 
         # Log Information Frame
         self.log_frame = tk.Frame(self, width=100, height=400, bg="lightgrey")
@@ -56,58 +103,18 @@ class GameGUI(tk.Frame):
         self.action_entry.grid(row=1, column=1, padx=5)
         self.action_entry.bind("<Return>", self.set_action)
 
-        # Configuration Label
-        self.config_label = tk.Label(self, text="Move Limit:")
-        self.config_label.grid(row=0, column=0)
-
-        # Configuration Entry
-        self.config_entry = tk.Entry(self)
-        self.config_entry.grid(row=1, column=0, pady=10)
-
         # Start Button
         self.start_button = tk.Button(self, text="Start", command=self.start)
         self.start_button.grid(row=4, column=0, pady=5)
 
         # Back Button
         back_button = tk.Button(self, text="Back",
-                                command=lambda: controller.display_config())
+                            command=lambda: self.controller.display_config())
         back_button.grid(row=4, column=2, pady=5)
 
-    def reset_game(self):
-        # Reset
-
-        # Clear log information
-        self.log_text.delete(1.0, tk.END)
-
-    def undo_last_move(self):
-        print("undo_last_move")
-        # Update log information
-        # self.log_text.insert(tk.END, "Undo?\n")
-
-    def set_action(self, event):
-        # Set the action on user input
-        input_action = self.action_entry.get()
-        source, destination = input_action.split("-")
-        source_key_list = []
-        for i in range(int(len(source) / 2), 0, -1):
-            source_key = source[(i - 1) * 2:2 * i]
-            source_key_list.append(source_key)
-            destination_key = destination[(i - 1) * 2:2 * i]
-            color = self.positions[source_key]['color']
-            # Update the color of the destination and the source
-            self.positions[destination_key]['color'] = color
-            self.canvas.itemconfig(self.positions[destination_key]['id'], fill=color)
-        for source_key in source_key_list:
-            if source_key not in destination:
-                self.positions[source_key]['color'] = "lightgrey"
-                self.canvas.itemconfig(self.positions[source_key]['id'], fill="lightgrey")
-
-        # Update log information with action entered by the user
-        self.log_text.insert(tk.END, f"Action: {input_action}\n")
-
     def draw_game_board(self):
-        r = 30
-        cols = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
+        r = GameGUI.CIRCLE_RADIUS
+        cols = GameGUI.COLUMNS
         for i in range(9):
             for j in range(-4, 5):
                 if (abs(j) >= i or i < 9 - abs(j)):
@@ -133,11 +140,4 @@ class GameGUI(tk.Frame):
                     }
 
     def start(self):
-        try:
-            move_limit = int(self.config_entry.get())
-            if move_limit > 0:
-                self.draw_game_board()
-            else:
-                raise ValueError("Number of move must be positive")
-        except ValueError:
-            self.log_text.insert(tk.END, "Invalid input for number of move!\n")
+        self.draw_game_board()
