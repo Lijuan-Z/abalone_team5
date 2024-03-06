@@ -41,6 +41,7 @@ class ConfigGUI(tk.Frame):
         config_label.grid(row=5, column=0)
 
         config_entry = tk.Entry(self)
+        config_entry.insert(0, '10')
         config_entry.grid(row=6, column=0)
 
         # Start Game

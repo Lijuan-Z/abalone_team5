@@ -6,9 +6,52 @@ class GameGUI(tk.Frame):
     DEFAULT_CONFIG = {
         'board_layout': 'standard',
         'color_selection': 'black',
+        'game_move_limit': 10,
     }
     CIRCLE_RADIUS = 30
     COLUMNS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
+    BOARD_LAYOUTS = {
+        'standard': {
+            'white': ['i1', 'i2', 'i3', 'i4', 'i5',
+                      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+                      'g3', 'g4', 'g5'],
+            'black': ['a1', 'a2', 'a3', 'a4', 'a5',
+                      'b1', 'b2', 'b3', 'b4', 'b5', 'b6',
+                      'c3', 'c4', 'c5'],
+        },
+        'german daisy': {
+            'white': [
+                'i1', 'i2',
+                'h1', 'h2', 'h3',
+                'g2', 'g3',
+                'a4', 'a5',
+                'b4', 'b5', 'b6',
+                'c5', 'c6'],
+            'black': [
+                'i4', 'i5',
+                'h4', 'h5', 'h6',
+                'g5', 'g6',
+                'a1', 'a2',
+                'b1', 'b2', 'b3',
+                'c2', 'c3'],
+        },
+        'belgian daisy': {
+            'white': [
+                'h1', 'h2',
+                'g1', 'g2', 'g3',
+                'f2', 'f3',
+                'b5', 'b6',
+                'c5', 'c6', 'c7',
+                'd6', 'd7'],
+            'black': [
+                'h5', 'h6',
+                'g5', 'g6', 'g7',
+                'f6', 'f7',
+                'b1', 'b2',
+                'c1', 'c2', 'c3',
+                'd2', 'd3'],
+        },
+    }
 
     def __init__(self, parent, controller, config_options):
         tk.Frame.__init__(self, parent)
@@ -49,11 +92,13 @@ class GameGUI(tk.Frame):
             color = self.positions[source_key]['color']
             # Update the color of the destination and the source
             self.positions[destination_key]['color'] = color
-            self.canvas.itemconfig(self.positions[destination_key]['id'], fill=color)
+            self.canvas.itemconfig(self.positions[destination_key]['id'],
+                                   fill=color)
         for source_key in source_key_list:
             if source_key not in destination:
                 self.positions[source_key]['color'] = "lightgrey"
-                self.canvas.itemconfig(self.positions[source_key]['id'], fill="lightgrey")
+                self.canvas.itemconfig(self.positions[source_key]['id'],
+                                       fill="lightgrey")
 
         # Update log information with action entered by the user
         self.log_text.insert(tk.END, f"Action: {input_action}\n")
@@ -109,7 +154,7 @@ class GameGUI(tk.Frame):
 
         # Back Button
         back_button = tk.Button(self, text="Back",
-                            command=lambda: self.controller.display_config())
+                                command=lambda: self.controller.display_config())
         back_button.grid(row=4, column=2, pady=5)
 
     def draw_game_board(self):
@@ -123,11 +168,9 @@ class GameGUI(tk.Frame):
                     key = f'{cols[j + 4]}{i + 1}'  # Construct the key string
                     # Set the values for x0, x1, y0, y1, and color for each key
                     color_value = "lightgrey"
-                    if cols[j + 4] == 'a' or cols[
-                        j + 4] == 'b' or key == 'c3' or key == 'c4' or key == 'c5':
+                    if key in GameGUI.BOARD_LAYOUTS[self.config['board_layout']]['black']:
                         color_value = 'black'
-                    if cols[j + 4] == 'h' or cols[
-                        j + 4] == 'i' or key == 'g3' or key == 'g4' or key == 'g5':
+                    elif key in GameGUI.BOARD_LAYOUTS[self.config['board_layout']]['white']:
                         color_value = 'white'
                     self.positions[key] = {
                         'x': x,
@@ -138,6 +181,7 @@ class GameGUI(tk.Frame):
                             fill=color_value
                         )
                     }
+                    self.canvas.create_text(x, y, text=key)
 
     def start(self):
         self.draw_game_board()
