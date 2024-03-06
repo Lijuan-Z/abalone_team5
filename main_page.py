@@ -7,6 +7,7 @@ class GameGUI(tk.Frame):
         'board_layout': 'standard',
         'color_selection': 'black',
         'game_move_limit': 10,
+        'move_time_limit': 30,
     }
     CIRCLE_RADIUS = 30
     COLUMNS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
@@ -57,17 +58,26 @@ class GameGUI(tk.Frame):
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
-        # Game info
-        self.positions = {}
-        self.player_turn = 'black'
-
         # Config setup
         self.config = config_options if config_options is not None else (
             GameGUI.DEFAULT_CONFIG)
         print(self.config)
 
+        # Game info
+        self.positions = {}
+        self.player_turn = 'black'
+        self.num_moves = {
+            'white': self.config['game_move_limit'],
+            'black': self.config['game_move_limit']
+        }
+
         # Draw the GUI
         self.draw_gui()
+
+    def update_display(self):
+        self.turn_var.set("Player turn: " + self.player_turn)
+        self.move_var.set(f"Moves left: {self.num_moves[self.player_turn]}")
+        self.time_var.set("Time left: " + "TODO")
 
     def draw_gui(self):
         # Game Board Frame
@@ -81,9 +91,21 @@ class GameGUI(tk.Frame):
 
         # Player turn label
         self.turn_var = tk.StringVar()
-        self.turn_var.set("Player turn: " + self.player_turn)
+        self.turn_var.set("Player turn:")
         self.turn_label = tk.Label(self, textvariable=self.turn_var)
-        self.turn_label.grid(row=0, column=1)
+        self.turn_label.grid(row=0, column=0)
+
+        # Player game move limit label
+        self.move_var = tk.StringVar()
+        self.move_var.set(f"Moves left:")
+        self.move_label = tk.Label(self, textvariable=self.move_var)
+        self.move_label.grid(row=0, column=1)
+
+        # Player time limit label
+        self.time_var = tk.StringVar()
+        self.time_var.set("Time left:")
+        self.time_label = tk.Label(self, textvariable=self.time_var)
+        self.time_label.grid(row=0, column=2)
 
         # Log Information Frame
         self.log_frame = tk.Frame(self, width=100, height=400, bg="lightgrey")
@@ -136,7 +158,6 @@ class GameGUI(tk.Frame):
         self.log_text.delete(1.0, tk.END)
 
     def undo_last_move(self):
-
         content = self.log_text.get("1.0", tk.END)
         lines = content.split("\n")
         last_log = ""
@@ -151,6 +172,10 @@ class GameGUI(tk.Frame):
         self.move_marbles(input_action)
         # Delete the last log from the text widget
         self.log_text.delete("end-2l", tk.END)
+        # Reset turns
+        self.player_turn = "black" if self.player_turn == "white" else "white"
+        self.num_moves[self.player_turn] += 1
+        self.update_display()
 
     def set_action(self, event):
         # Set the action on user input
@@ -158,6 +183,11 @@ class GameGUI(tk.Frame):
         self.move_marbles(input_action)
         # Update log information with action entered by the user
         self.log_text.insert(tk.END, f"Action:{input_action}\n")
+        # Complete turn
+        self.num_moves[self.player_turn] -= 1
+        self.player_turn = "black" if self.player_turn == "white" else "white"
+        self.update_display()
+        self.action_entry.delete(0, tk.END)
 
     def move_marbles(self,input_action):
         source, destination = input_action.split("-")
@@ -175,33 +205,34 @@ class GameGUI(tk.Frame):
                 self.positions[source_key]['color'] = "lightgrey"
                 self.canvas.itemconfig(self.positions[source_key]['id'], fill="lightgrey")
 
-
     def draw_game_board(self):
-        r = GameGUI.CIRCLE_RADIUS
-        cols = GameGUI.COLUMNS
-        for i in range(9):
-            for j in range(-4, 5):
-                if (abs(j) >= i or i < 9 - abs(j)):
-                    x = 40 + (2 * i + 1) * r + abs(j) * r
-                    y = 300 - r * j * math.sqrt(3)
-                    key = f'{cols[j + 4]}{i + 1}'  # Construct the key string
-                    # Set the values for x0, x1, y0, y1, and color for each key
-                    color_value = "lightgrey"
-                    if key in GameGUI.BOARD_LAYOUTS[self.config['board_layout']]['black']:
-                        color_value = 'black'
-                    elif key in GameGUI.BOARD_LAYOUTS[self.config['board_layout']]['white']:
-                        color_value = 'white'
-                    self.positions[key] = {
-                        'x': x,
-                        'y': y,
-                        'color': color_value,
-                        'id': self.canvas.create_oval(
-                            x - r, y - r, x + r, y + r,
-                            fill=color_value
-                        )
-                    }
-                    self.canvas.create_text(x, y, text=key)
-
+            r = GameGUI.CIRCLE_RADIUS
+            cols = GameGUI.COLUMNS
+            for i in range(9):
+                for j in range(-4, 5):
+                    if (abs(j) >= i or i < 9 - abs(j)):
+                        x = 40 + (2 * i + 1) * r + abs(j) * r
+                        y = 300 - r * j * math.sqrt(3)
+                        key = f'{cols[j + 4]}{i + 1}'  # Construct the key string
+                        # Set the values for x0, x1, y0, y1, and color for each key
+                        color_value = "lightgrey"
+                        if key in GameGUI.BOARD_LAYOUTS[self.config['board_layout']]['black']:
+                            color_value = 'black'
+                        elif key in GameGUI.BOARD_LAYOUTS[self.config['board_layout']]['white']:
+                            color_value = 'white'
+                        self.positions[key] = {
+                            'x': x,
+                            'y': y,
+                            'color': color_value,
+                            'id': self.canvas.create_oval(
+                                x - r, y - r, x + r, y + r,
+                                fill=color_value
+                            )
+                        }
+                        self.canvas.create_text(x, y, text=key)
 
     def start(self):
+        self.turn_var.set("Player turn: " + self.player_turn)
+        self.move_var.set(f"Moves left: {self.num_moves[self.player_turn]}")
+        self.time_var.set("Time left: " + "TODO")
         self.draw_game_board()

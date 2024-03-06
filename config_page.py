@@ -37,18 +37,27 @@ class ConfigGUI(tk.Frame):
         color_dropdown_menu.grid(row=4, column=0)
 
         # Game move limit label
-        config_label = tk.Label(self, text="Move Limit:")
-        config_label.grid(row=5, column=0)
+        move_limit_label = tk.Label(self, text="Move Limit:")
+        move_limit_label.grid(row=5, column=0)
 
-        config_entry = tk.Entry(self)
-        config_entry.insert(0, '10')
-        config_entry.grid(row=6, column=0)
+        move_limit_entry = tk.Entry(self)
+        move_limit_entry.insert(0, '10')
+        move_limit_entry.grid(row=6, column=0)
+
+        # Time move limit label
+        time_limit_label = tk.Label(self, text="Time Limit per Move:")
+        time_limit_label.grid(row=5, column=0)
+
+        time_limit_entry = tk.Entry(self)
+        time_limit_entry.insert(0, '30')
+        time_limit_entry.grid(row=6, column=0)
 
         # Start Game
         start_game_button = tk.Button(self, text="Start Game", command=
         lambda: controller.display_game({
             'board_layout': layout_dropdown.get().lower(),
             'color_selection': color_dropdown.get().lower(),
-            'game_move_limit': int(config_entry.get().lower()),
+            'game_move_limit': int(move_limit_entry.get()),
+            'move_time_limit': int(time_limit_entry.get())
         }))
         start_game_button.grid(row=7, column=0, pady=5)

@@ -20,7 +20,7 @@ class GameApp(tk.Tk):
 
     def display_game(self, config_options=None):
         game_gui = GameGUI(self.container, self, config_options)
-        game_gui.grid(row=0, column=0)
+        game_gui.grid(row=0, column=0, sticky="nsew")
         game_gui.tkraise()
 
 
