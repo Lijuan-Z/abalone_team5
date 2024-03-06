@@ -87,8 +87,7 @@ class GameGUI(tk.Frame):
 
         # Back Button
         back_button = tk.Button(self, text="Back",
-                                command=lambda: controller.show_frame(
-                                    config_page.ConfigGUI))
+                                command=lambda: controller.display_config())
         back_button.grid(row=4, column=2, pady=5)
 
     def reset_game(self):

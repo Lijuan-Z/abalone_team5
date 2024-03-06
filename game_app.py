@@ -7,20 +7,21 @@ class GameApp(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
 
-        board_frame = tk.Frame(self, width=400, height=400, bg="white")
-        board_frame.grid(row=0, column=1, rowspan=3)
+        self.container = tk.Frame(self, bg="white")
+        self.container.grid(row=0, column=0)
 
-        self.frames = {}
-        for F in (ConfigGUI, GameGUI):
-            frame = F(board_frame, self)
-            self.frames[F] = frame
-            frame.grid(row=0, column=0, sticky="nsew")
+        self.display_game()  # to set the window height/width
+        self.display_config()
 
-        self.show_frame(ConfigGUI)
+    def display_config(self):
+        config_gui = ConfigGUI(self.container, self)
+        config_gui.grid(row=0, column=0, sticky="nsew")
+        config_gui.tkraise()
 
-    def show_frame(self, gui):
-        frame = self.frames[gui]
-        frame.tkraise()
+    def display_game(self):
+        game_gui = GameGUI(self.container, self)
+        game_gui.grid(row=0, column=0)
+        game_gui.tkraise()
 
 
 app = GameApp()
