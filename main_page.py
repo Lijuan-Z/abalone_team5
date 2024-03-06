@@ -54,6 +54,19 @@ class GameGUI(tk.Frame):
         },
     }
 
+    ai_test_action = {
+        'standard': {
+            'white': ['h4-g4','g5h5i5-f5g5h5', 'g6h6i6-f6g6h6','h8h9-g8g9', 'i8i9-h8h9'],
+            'black': ['b1-c2','a2b2c2-b2c2d2','c3c4c5-d4d5d6','b2b3b4-c3c4c5','b3b4b5-c3c4c5'],
+        },'belgian daisy': {
+            'white': ['g4g5-f4f5','h4h5h6-g4g5g6','i5i6-h5h6','c5b5a5-d5b5a5','a4b4-b4c4'],
+            'black': ['c2c3-d3d4','b1b2b3-c2c3c4','a1a2-b2b3','g7g8-f6f7','h9-g8'],
+        },'german daisy':{
+            'white': ['f3f4-f4f5','g3g4g5-g4g5g6','h4h5-h5h6','d6-e6','d7-e7'],
+            'black': ['d3-d4','d2-d3','c1c2c3-c2c3c4','b2-b3','b1-b2'],
+        }
+    }
+
     def __init__(self, parent, controller, config_options):
         tk.Frame.__init__(self, parent)
         self.controller = controller
@@ -69,9 +82,16 @@ class GameGUI(tk.Frame):
             'white': self.config['game_move_limit'],
             'black': self.config['game_move_limit']
         }
+        self.total_move_number = self.config['game_move_limit']
 
+        # hard code AI moves: only for test purpose
+        self.actions = self.ai_test_action[self.config['board_layout']][self.config['color_selection']]
+        self.current_action_index = 0
+
+        # not updated yet
         self.white_loss = 0
         self.black_loss = 0
+
         # Draw the GUI
         self.draw_gui()
 
@@ -141,7 +161,7 @@ class GameGUI(tk.Frame):
         self.undo_button.grid(row=0, column=1, padx=5)
 
         # Input Action Label
-        self.input_label = tk.Label(self.button_frame, text="Input Action:")
+        self.input_label = tk.Label(self.button_frame, text="Input Action:", state="disabled")
         self.input_label.grid(row=1, column=0, padx=5)
 
         # Action Entry
@@ -157,6 +177,8 @@ class GameGUI(tk.Frame):
         back_button = tk.Button(self, text="Back",
                                 command=lambda: self.controller.display_config())
         back_button.grid(row=4, column=2, pady=5)
+        self.draw_game_board()
+
 
     def reset_game(self):
         # Reset
@@ -187,6 +209,9 @@ class GameGUI(tk.Frame):
         self.player_turn = "black" if self.player_turn == "white" else "white"
         self.num_moves[self.player_turn] += 1
         self.update_display()
+        # if self.config['color_selection'] != self.player_turn:
+        #     self.current_action_index -= 1
+        self.start_turn()
 
     def set_action(self, event):
         # Set the action on user input
@@ -199,6 +224,14 @@ class GameGUI(tk.Frame):
         self.player_turn = "black" if self.player_turn == "white" else "white"
         self.update_display()
         self.action_entry.delete(0, tk.END)
+        self.start_turn()
+
+    def ai_action(self, action):
+        self.move_marbles(action)
+        self.log_text.insert(tk.END, f"{self.player_turn.title()}:{action}\n")
+        self.player_turn = "black" if self.player_turn == "white" else "white"
+        self.update_display()
+        self.start_turn()
 
     def move_marbles(self,input_action):
         source, destination = input_action.split("-")
@@ -247,4 +280,17 @@ class GameGUI(tk.Frame):
         self.turn_var.set("Player turn: " + self.player_turn)
         self.move_var.set(f"Moves left: {self.num_moves[self.player_turn]}")
         self.time_var.set("Time left: " + "TODO")
-        self.draw_game_board()
+        # self.draw_game_board()
+        self.start_turn()
+
+    def start_turn(self):
+        if self.total_move_number > 0:
+            if self.config['color_selection'] == self.player_turn:
+                print('Computer turn')
+                self.action_entry.config(state="disabled")
+                action = self.actions[self.current_action_index]
+                self.current_action_index += 1
+                self.ai_action(action)
+            else:
+                print('Human turn')
+                self.action_entry.config(state="normal")
