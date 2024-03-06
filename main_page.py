@@ -57,7 +57,6 @@ class GameGUI(tk.Frame):
     def __init__(self, parent, controller, config_options):
         tk.Frame.__init__(self, parent)
         self.controller = controller
-
         # Config setup
         self.config = config_options if config_options is not None else (
             GameGUI.DEFAULT_CONFIG)
@@ -71,6 +70,8 @@ class GameGUI(tk.Frame):
             'black': self.config['game_move_limit']
         }
 
+        self.white_loss = 0
+        self.black_loss = 0
         # Draw the GUI
         self.draw_gui()
 
@@ -108,15 +109,21 @@ class GameGUI(tk.Frame):
         self.time_label.grid(row=0, column=2)
 
         # Log Information Frame
-        self.log_frame = tk.Frame(self, width=100, height=400, bg="lightgrey")
+        self.log_frame = tk.Frame(self, width=100, height=400)
         self.log_frame.grid(row=1, column=2, rowspan=3)
 
+        #Score Label
+        self.white_score_label = tk.Label(self.log_frame, text=f"White Loss: {self.white_loss}")
+        self.white_score_label.pack(side=tk.TOP, anchor=tk.W)
+        self.black_score_label = tk.Label(self.log_frame, text=f"Black Loss: {self.black_loss}")
+        self.black_score_label.pack(side=tk.TOP, anchor=tk.W)
+
         # Log Label
-        self.log_label = tk.Label(self.log_frame, text="Logs")
-        self.log_label.pack()
+        self.log_label = tk.Label(self.log_frame, text="Logs:")
+        self.log_label.pack(side=tk.TOP, anchor=tk.W)
 
         # Log Information Text
-        self.log_text = tk.Text(self.log_frame, height=10, width=20)
+        self.log_text = tk.Text(self.log_frame, height=40, width=20)
         self.log_text.pack()
 
         # Button Frame
@@ -186,7 +193,7 @@ class GameGUI(tk.Frame):
         input_action = self.action_entry.get()
         self.move_marbles(input_action)
         # Update log information with action entered by the user
-        self.log_text.insert(tk.END, f"Action:{input_action}\n")
+        self.log_text.insert(tk.END, f"{self.player_turn.title()}:{input_action}\n")
         # Complete turn
         self.num_moves[self.player_turn] -= 1
         self.player_turn = "black" if self.player_turn == "white" else "white"
