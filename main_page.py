@@ -157,6 +157,54 @@ class GameGUI(tk.Frame):
                                 command=lambda: self.controller.display_config())
         back_button.grid(row=4, column=2, pady=5)
 
+    def reset_game(self):
+        # Reset
+
+        # Clear log information
+        self.log_text.delete(1.0, tk.END)
+
+    def undo_last_move(self):
+
+        content = self.log_text.get("1.0", tk.END)
+        lines = content.split("\n")
+        last_log = ""
+        for line in reversed(lines):
+            # Check if the line is not empty
+            if line.strip():
+                last_log = line.strip()
+                break
+        a,last_action = last_log.split(":")
+        source, destination = last_action.split("-")
+        input_action = f"{destination}-{source}"
+        self.move_marbles(input_action)
+        # Delete the last log from the text widget
+        self.log_text.delete("end-2l", tk.END)
+
+
+    def set_action(self, event):
+        # Set the action on user input
+        input_action = self.action_entry.get()
+        self.move_marbles(input_action)
+        # Update log information with action entered by the user
+        self.log_text.insert(tk.END, f"Action:{input_action}\n")
+
+    def move_marbles(self,input_action):
+        source, destination = input_action.split("-")
+        source_key_list = []
+        for i in range(int(len(source) / 2), 0, -1):
+            source_key = source[(i - 1) * 2:2 * i]
+            source_key_list.append(source_key)
+            destination_key = destination[(i - 1) * 2:2 * i]
+            color = self.positions[source_key]['color']
+            # Update the color of the destination and the source
+            self.positions[destination_key]['color'] = color
+            self.canvas.itemconfig(self.positions[destination_key]['id'], fill=color)
+        for source_key in source_key_list:
+            if source_key not in destination:
+                self.positions[source_key]['color'] = "lightgrey"
+                self.canvas.itemconfig(self.positions[source_key]['id'], fill="lightgrey")
+
+
     def draw_game_board(self):
         r = GameGUI.CIRCLE_RADIUS
         cols = GameGUI.COLUMNS
@@ -182,6 +230,7 @@ class GameGUI(tk.Frame):
                         )
                     }
                     self.canvas.create_text(x, y, text=key)
+
 
     def start(self):
         self.draw_game_board()
