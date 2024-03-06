@@ -1,7 +1,6 @@
 import math
 import tkinter as tk
 from tkinter import ttk
-import config_page
 
 
 class GameGUI(tk.Frame):
@@ -21,6 +20,7 @@ class GameGUI(tk.Frame):
         # todo: pass configurations
         # Initialize an empty dictionary
         self.positions = {}
+        self.update_positions()
         self.draw_game_board()
 
         # Log Information Frame
@@ -122,7 +122,7 @@ class GameGUI(tk.Frame):
         # Update log information with action entered by the user
         self.log_text.insert(tk.END, f"Action: {input_action}\n")
 
-    def draw_game_board(self):
+    def update_positions(self):
         r = 30
         cols = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
         for i in range(9):
@@ -140,27 +140,25 @@ class GameGUI(tk.Frame):
                         j + 4] == 'i' or key == 'g3' or key == 'g4' or key == 'g5':
                         color_value = 'white'
                     self.positions[key] = {
-                        'x0': x - r,
-                        'x1': x + r,
-                        'y0': y - r,
-                        'y1': y + r,
-                        'color': color_value
+                        'x': x,
+                        'y': y,
+                        'color': color_value,
                     }
                     # self.canvas.create_text(x, y, text=key)
 
+    def draw_game_board(self):
+        r = 30
         for key in self.positions:
-            x0, y0 = self.positions[key]['x0'], self.positions[key]['y0']
-            x1, y1 = self.positions[key]['x1'], self.positions[key]['y1']
-            self.positions[key]['id'] = self.canvas.create_oval(x0, y0, x1, y1,
-                                                                fill=
-                                                                self.positions[
-                                                                    key][
-                                                                    'color'])
+            x, y = self.positions[key]['x'], self.positions[key]['y']
+            self.positions[key]['id'] = self.canvas.create_oval(
+                x - r, y - r, x + r, y + r, fill=self.positions[key]['color']
+            )
 
     def start(self):
         try:
             move_limit = int(self.config_entry.get())
             if move_limit > 0:
+                self.update_positions()
                 self.draw_game_board()
             else:
                 raise ValueError("Number of move must be positive")
