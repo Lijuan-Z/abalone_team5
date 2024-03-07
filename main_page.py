@@ -237,8 +237,7 @@ class GameGUI(tk.Frame):
         # AI Aggregate Time Label
         self.ai_agg_time_var = tk.StringVar()
         self.ai_agg_time_var.set(f"Total aggregate time: "
-                                 f"{sum(ai_rec[1] 
-                            for ai_rec in self.ai_recommendation_history)}s")
+        f"{sum(ai_rec[1] for ai_rec in self.ai_recommendation_history)}s")
         self.ai_agg_time_label = tk.Label(self.ai_recs_frame,
                                       textvariable=self.ai_agg_time_var)
         self.ai_agg_time_label.pack(side=tk.TOP, anchor=tk.W)
@@ -450,8 +449,8 @@ class GameGUI(tk.Frame):
         """Updates the AI next recommendation and AI recommendation history."""
         self.ai_next_var.set(f"<{action}>")
         self.update_ai_recommendations()
-        self.ai_agg_time_var.set(f"Total aggregate time: {sum(ai_rec[1] 
-                            for ai_rec in self.ai_recommendation_history)}")
+        self.ai_agg_time_var.set(f"Total aggregate time: "
+        f"{sum(ai_rec[1]for ai_rec in self.ai_recommendation_history)}")
         self.action_entry.config(state="normal")
         self.pause_button.config(state="normal")
 
