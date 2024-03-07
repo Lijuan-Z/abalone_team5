@@ -291,7 +291,14 @@ class GameGUI(tk.Frame):
 
     def reset_game(self):
         # Reset
-
+        self.player_turn = 'black'
+        self.num_moves = {
+            'white': self.config['game_move_limit'],
+            'black': self.config['game_move_limit']
+        }
+        self.total_move_number = self.config['game_move_limit']
+        self.draw_gui()
+        self.update_display()
         # Clear log information
         self.log_text.delete(1.0, tk.END)
 
