@@ -269,7 +269,7 @@ class GameGUI(tk.Frame):
 
         # Resume Button
         self.resume_button = tk.Button(self.button_subframe, text="Resume",
-                                       command=self.start_turn,
+                                       command=self.unpause,
                                        state="disabled")
         self.resume_button.pack(side="left", padx=5)
 
@@ -395,8 +395,9 @@ class GameGUI(tk.Frame):
         """Starts the game as new, resetting the UI then starting a turn."""
         self.state_var.set("PLAYING")
         self.start_button.config(state="disabled")
-        self.reset_button.config(state="normal")
-        self.undo_button.config(state="normal")
+        self.pause_button.config(state="normal")
+        self.reset_button.config(state="disabled")
+        self.undo_button.config(state="disabled")
         self.update_display()
         self.start_turn()
 
@@ -404,7 +405,8 @@ class GameGUI(tk.Frame):
         """Starts a new turn, executing logic based on if human or computer."""
         if self.total_move_number > 0:
             print("starting turn")
-            self.unpause()
+            if self.paused is True:
+                self.unpause()
             self.display_time(owner=self.player_turn)
             if self.config['color_selection'] != self.player_turn:
                 print('Computer turn')
@@ -413,6 +415,11 @@ class GameGUI(tk.Frame):
                 self.ai_next_var.set("Calculating...")
                 calculation_time = random.randint(1, 8)
                 self.ai_recommendation_history.append((action, calculation_time))
+                self.action_entry.config(state="disabled")
+                self.pause_button.config(state="disabled")
+                self.resume_button.config(state="disabled")
+                self.reset_button.config(state="disabled")
+                self.undo_button.config(state="disabled")
                 timer = threading.Timer(calculation_time, lambda: self.ai_next_move_callback(action))
                 timer.start()
             else:
@@ -423,18 +430,20 @@ class GameGUI(tk.Frame):
         """Updates the AI next recommendation and AI recommendation history."""
         self.ai_next_var.set(f"<{action}>")
         self.update_ai_recommendations()
+        self.action_entry.config(state="normal")
+        self.pause_button.config(state="normal")
 
     def update_ai_recommendations(self):
         self.ai_recs_text.delete('1.0', 'end')
         for ai_recommendation in self.ai_recommendation_history:
-            self.ai_recs_text.insert(tk.END, f"{ai_recommendation[0]}: {ai_recommendation[1]}\n")
+            self.ai_recs_text.insert(tk.END, f"{ai_recommendation[0]}: {ai_recommendation[1]}s\n")
 
     def execute_action(self, action):
         """Inputs action by moving marbles, updating log, and ending turn."""
         # Move marbles
         self.display_moved_marbles(action)
         # Update log information with action
-        self.log_text.insert(tk.END, f"{self.player_turn.title()}:{action}s\n")
+        self.log_text.insert(tk.END, f"{self.player_turn.title()}:{action}\n")
         # Complete turn
         self.num_moves[self.player_turn] -= 1
         print("end turn")
@@ -464,11 +473,13 @@ class GameGUI(tk.Frame):
     def unpause(self):
         """Unpauses the game and the timer."""
         self.state_var.set("PLAYING")
+        self.action_entry.config(state="normal")
         self.pause_button.config(state="normal")
         self.resume_button.config(state="disabled")
         self.undo_button.config(state="disabled")
         self.reset_button.config(state="disabled")
         self.paused = False
+        self.display_time(owner=self.player_turn)
 
     def undo_last_move(self):
         """Undoes the last move from the log."""
@@ -490,10 +501,10 @@ class GameGUI(tk.Frame):
         if last_line_index > 0:
             self.log_text.delete(f"end-{last_line_index - 1}l", tk.END)
             self.log_text.insert(tk.END, "\n")
-        # If AI action, remove from recommended history
-        if self.config['color_selection'] == self.player_turn:
+        self.ai_next_var.set("Awaiting AI turn.")
+        if (len(self.ai_recommendation_history) > 0):
             self.ai_recommendation_history.pop()
-            self.update_ai_recommendations()
+        self.update_ai_recommendations()
         # Reset turns
         self.player_turn = "black" if self.player_turn == "white" else "white"
         self.num_moves[self.player_turn] += 1
@@ -502,7 +513,6 @@ class GameGUI(tk.Frame):
 
         if self.config['color_selection'] != self.player_turn:
             self.current_action_index -= 1
-            self.action_entry.config(state="disabled")
 
     def reset_game(self):
         """Clears the board, the log, and the game variables."""
