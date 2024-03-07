@@ -56,14 +56,19 @@ class GameGUI(tk.Frame):
     }
     ai_test_action = {
         'standard': {
-            'white': ['h4-g4','g5h5i5-f5g5h5', 'g6h6i6-f6g6h6','h8h9-g8g9', 'i8i9-h8h9'],
-            'black': ['b1-c2','a2b2c2-b2c2d2','c3c4c5-d4d5d6','b2b3b4-c3c4c5','b3b4b5-c3c4c5'],
-        },'belgian daisy': {
-            'white': ['g4g5-f4f5','h4h5h6-g4g5g6','i5i6-h5h6','c5b5a5-d5b5a5','a4b4-b4c4'],
-            'black': ['c2c3-d3d4','b1b2b3-c2c3c4','a1a2-b2b3','g7g8-f6f7','h9-g8'],
-        },'german daisy':{
-            'white': ['f3f4-f4f5','g3g4g5-g4g5g6','h4h5-h5h6','d6-e6','d7-e7'],
-            'black': ['d3-d4','d2-d3','c1c2c3-c2c3c4','b2-b3','b1-b2'],
+            'white': ['h4-g4', 'g5h5i5-f5g5h5', 'g6h6i6-f6g6h6', 'h8h9-g8g9',
+                      'i8i9-h8h9'],
+            'black': ['b1-c2', 'a2b2c2-b2c2d2', 'c3c4c5-d4d5d6',
+                      'b2b3b4-c3c4c5', 'b3b4b5-c3c4c5'],
+        }, 'belgian daisy': {
+            'white': ['g4g5-f4f5', 'h4h5h6-g4g5g6', 'i5i6-h5h6',
+                      'c5b5a5-d5b5a5', 'a4b4-b4c4'],
+            'black': ['c2c3-d3d4', 'b1b2b3-c2c3c4', 'a1a2-b2b3', 'g7g8-f6f7',
+                      'h9-g8'],
+        }, 'german daisy': {
+            'white': ['f3f4-f4f5', 'g3g4g5-g4g5g6', 'h4h5-h5h6', 'd6-e6',
+                      'd7-e7'],
+            'black': ['d3-d4', 'd2-d3', 'c1c2c3-c2c3c4', 'b2-b3', 'b1-b2'],
         }
     }
 
@@ -78,6 +83,7 @@ class GameGUI(tk.Frame):
         # Game info
         self.positions = {}
         self.player_turn = 'black'
+        self.paused = False
         self.num_moves = {
             'white': self.config['game_move_limit'],
             'black': self.config['game_move_limit']
@@ -91,7 +97,8 @@ class GameGUI(tk.Frame):
         # hard code AI moves: only for test purpose
         player_color = self.config['color_selection']
         ai_color = 'black' if player_color == 'white' else 'white'
-        self.actions = self.ai_test_action[self.config['board_layout']][ai_color]
+        self.actions = self.ai_test_action[self.config['board_layout']][
+            ai_color]
         self.current_action_index = 0
 
         # not updated yet
@@ -134,9 +141,11 @@ class GameGUI(tk.Frame):
         self.log_frame.grid(row=1, column=2, rowspan=3)
 
         # Score Label
-        self.white_score_label = tk.Label(self.log_frame, text=f"White Loss: {self.white_loss}")
+        self.white_score_label = tk.Label(self.log_frame,
+                                          text=f"White Loss: {self.white_loss}")
         self.white_score_label.pack(side=tk.TOP, anchor=tk.W)
-        self.black_score_label = tk.Label(self.log_frame, text=f"Black Loss: {self.black_loss}")
+        self.black_score_label = tk.Label(self.log_frame,
+                                          text=f"Black Loss: {self.black_loss}")
         self.black_score_label.pack(side=tk.TOP, anchor=tk.W)
 
         # Log Label
@@ -153,18 +162,25 @@ class GameGUI(tk.Frame):
 
         # Reset Button
         self.reset_button = tk.Button(self.button_frame, text="Reset",
-                                      command=self.reset_game)
+                                      command=self.reset_game, state="disabled")
         self.reset_button.grid(row=0, column=0, padx=5)
 
         # Undo Button
         self.undo_button = tk.Button(self.button_frame, text="Undo Last Move",
-                                     command=self.undo_last_move)
+                                     command=self.undo_last_move, state="disabled")
         self.undo_button.grid(row=0, column=1, padx=5)
+
+        # Pause Button
+        self.pause_button = tk.Button(self.button_frame, text="Pause",
+                                      command=self.pause,
+                                      state="disabled")
+        self.pause_button.grid(row=0, column=2, padx=5)
 
         # Resume Button
         self.resume_button = tk.Button(self.button_frame, text="Resume",
-                                     command=self.start_turn, state="disabled")
-        self.resume_button.grid(row=0, column=2, padx=5)
+                                       command=self.start_turn,
+                                       state="disabled")
+        self.resume_button.grid(row=0, column=3, padx=5)
 
         # Input Action Label
         self.input_label = tk.Label(self.button_frame, text="Input Action:")
@@ -173,16 +189,17 @@ class GameGUI(tk.Frame):
         # Action Entry
         self.action_entry = tk.Entry(self.button_frame, state="disabled")
         self.action_entry.grid(row=1, column=1, padx=5)
-        self.action_entry.bind("<Return>", lambda _: self.action_entry_callback())
+        self.action_entry.bind("<Return>",
+                               lambda _: self.action_entry_callback())
 
         # Start Button
         self.start_button = tk.Button(self, text="Start", command=self.start)
         self.start_button.grid(row=4, column=0, pady=5)
 
-        # Back Button
-        back_button = tk.Button(self, text="Back",
+        # Stop Button
+        stop_button = tk.Button(self, text="Stop",
                                 command=lambda: self.controller.display_config())
-        back_button.grid(row=4, column=2, pady=5)
+        stop_button.grid(row=4, column=2, pady=5)
         self.draw_game_board()
 
     def action_entry_callback(self):
@@ -203,10 +220,14 @@ class GameGUI(tk.Frame):
                     # Set the values for x0, x1, y0, y1, and color for each key
                     color_value = 'lightgrey'
                     text_color = 'black'
-                    if key in GameGUI.BOARD_LAYOUTS[self.config['board_layout']]['black']:
+                    if key in \
+                            GameGUI.BOARD_LAYOUTS[self.config['board_layout']][
+                                'black']:
                         color_value = 'black'
                         text_color = 'white'
-                    elif key in GameGUI.BOARD_LAYOUTS[self.config['board_layout']]['white']:
+                    elif key in \
+                            GameGUI.BOARD_LAYOUTS[self.config['board_layout']][
+                                'white']:
                         color_value = 'white'
                     self.positions[key] = {
                         'x': x,
@@ -230,15 +251,17 @@ class GameGUI(tk.Frame):
             # Update the color of the destination and the source
             self.positions[destination_key]['color'] = source_color
             destination_text_color = 'white' if source_color == 'black' else 'black'
-            self.canvas.itemconfig(self.positions[destination_key]['id'], fill=source_color)
+            self.canvas.itemconfig(self.positions[destination_key]['id'],
+                                   fill=source_color)
             self.canvas.create_text(self.positions[destination_key]['x'],
-                                self.positions[destination_key]['y'],
-                                text=destination_key,
-                                fill=destination_text_color)
+                                    self.positions[destination_key]['y'],
+                                    text=destination_key,
+                                    fill=destination_text_color)
         for source_key in source_key_list:
             if source_key not in destination:
                 self.positions[source_key]['color'] = "lightgrey"
-                self.canvas.itemconfig(self.positions[source_key]['id'], fill="lightgrey")
+                self.canvas.itemconfig(self.positions[source_key]['id'],
+                                       fill="lightgrey")
                 self.canvas.create_text(self.positions[source_key]['x'],
                                         self.positions[source_key]['y'],
                                         text=source_key,
@@ -249,22 +272,24 @@ class GameGUI(tk.Frame):
         self.move_var.set(f"Moves left: {self.num_moves[self.player_turn]}")
 
     def display_time(self, *args, owner):
-        print(f"updating time display for {self.player_turn}")
-        if self.player_turn == owner and self.time_left[self.player_turn] > 0:
+        if self.paused == False and self.player_turn == owner and \
+                self.time_left[self.player_turn] > 0:
             self.after(1000, lambda: self.display_time(owner=owner))
             self.time_left[self.player_turn] -= 1
-            self.time_var.set(f"Time left: {self.time_left[self.player_turn]} {self.player_turn}")
+            self.time_var.set(
+                f"Time left: {self.time_left[self.player_turn]}")
 
     def start(self):
+        self.reset_button.config(state="normal")
+        self.undo_button.config(state="normal")
         self.update_display()
         self.start_turn()
 
     def start_turn(self):
-        self.resume_button.config(state="disabled")
         if self.total_move_number > 0:
             print("starting turn")
+            self.unpause()
             self.display_time(owner=self.player_turn)
-
             if self.config['color_selection'] != self.player_turn:
                 print('Computer turn')
                 self.action_entry.config(state="disabled")
@@ -288,6 +313,17 @@ class GameGUI(tk.Frame):
         self.update_display()
         self.start_turn()
 
+    def pause(self):
+        self.resume_button.config(state="normal")
+        self.pause_button.config(state="disabled")
+        self.action_entry.config(state="disabled")
+        self.paused = True
+
+    def unpause(self):
+        self.pause_button.config(state="normal")
+        self.resume_button.config(state="disabled")
+        self.paused = False
+
     def undo_last_move(self):
         content = self.log_text.get("1.0", tk.END)
         lines = content.split("\n")
@@ -299,19 +335,19 @@ class GameGUI(tk.Frame):
             if line.strip():
                 last_log = line.strip()
                 break
-        a,last_action = last_log.split(":")
+        a, last_action = last_log.split(":")
         source, destination = last_action.split("-")
         input_action = f"{destination}-{source}"
         self.display_moved_marbles(input_action)
         # Delete the last log from the text widget
         if last_line_index > 0:
-            self.log_text.delete(f"end-{last_line_index-1}l",tk.END)
-            self.log_text.insert(tk.END,"\n")
+            self.log_text.delete(f"end-{last_line_index - 1}l", tk.END)
+            self.log_text.insert(tk.END, "\n")
         # Reset turns
         self.player_turn = "black" if self.player_turn == "white" else "white"
         self.num_moves[self.player_turn] += 1
         self.update_display()
-        self.resume_button.config(state="normal")
+        self.pause()
 
         if self.config['color_selection'] != self.player_turn:
             self.current_action_index -= 1
@@ -329,4 +365,3 @@ class GameGUI(tk.Frame):
         self.update_display()
         # Clear log information
         self.log_text.delete(1.0, tk.END)
-
