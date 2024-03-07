@@ -403,10 +403,8 @@ class GameGUI(tk.Frame):
             elif self.player_turn == 'white':
                 self.white_time_var.set(
                     f"White time left: {self.time_left['white']}")
-        elif self.paused == False and self.player_turn == owner and self.time_left[self.player_turn] == 0:
-            winner = 'white' if self.player_turn == 'black' else 'black'
+        elif self.paused is False and self.player_turn == owner and self.time_left[self.player_turn] == 0:
             self.reset_game()
-            self.state_var.set(f"GAME OVER! {winner.upper()} WINS")
 
     def start(self):
         """Starts the game as new, resetting the UI then starting a turn."""
@@ -538,24 +536,5 @@ class GameGUI(tk.Frame):
         self.start_turn()
 
     def reset_game(self):
-        """Clears the board, the log, and the game variables."""
-        # Reset
-        self.start_button.config(state="normal")
-        self.player_turn = 'black'
-        self.paused = True
-        self.ai_recommendation_history = list()
-        self.update_ai_recommendations()
-        self.num_moves = {
-            'white': self.config['game_move_limit'],
-            'black': self.config['game_move_limit']
-        }
-        self.time_left = {
-            'white': self.config['white_move_time_limit'],
-            'black': self.config['black_move_time_limit']
-        }
-        self.total_move_number = self.config['game_move_limit']
-        self.current_action_index = 0
-        self.draw_gui()
-        self.draw_game_board()
-        # Clear log information
-        self.log_text.delete(1.0, tk.END)
+        """Transitions to a fresh GameGUI."""
+        self.controller.display_game(self.config)
