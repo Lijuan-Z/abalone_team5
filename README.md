@@ -52,7 +52,7 @@ The executable will be placed in
 # Running The Game
 1. navigate to the executables directory
 
-> abalone_team5/dist/game_app/
+> abalone_team5/dist/
 
 2. Execute `game_app.exe`
 
