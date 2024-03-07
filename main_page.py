@@ -8,6 +8,7 @@ import tkinter as tk
 class GameGUI(tk.Frame):
     """GameGUI displays the game board and executes game logic."""
 
+    SESSION_ID = 0
     DEFAULT_CONFIG = {
         'board_layout': 'standard',
         'color_selection': 'black',
@@ -98,6 +99,7 @@ class GameGUI(tk.Frame):
         print(self.config)
 
         # Game info
+        GameGUI.SESSION_ID += 1
         self.positions = {}
         self.player_turn = 'black'
         self.paused = False
@@ -394,15 +396,20 @@ class GameGUI(tk.Frame):
         self.black_score_label.config(text=f"Black Score: {self.white_loss}")
         self.white_score_label.config(text=f"White Score: {self.black_loss}")
 
-    def display_time(self, *args, owner):
+    def display_time(self, *args, owner, session_id):
         """A recursive function that decrements the given player's timer.
 
         :param args: any additional arguments
         :param owner: the player this function was called for
         """
-        if self.paused is False and self.player_turn == owner and \
-                self.time_left[self.player_turn] > 0:
-            self.after(1000, lambda: self.display_time(owner=owner))
+        print("current session: ", GameGUI.SESSION_ID)
+        print("timer's session: ", session_id)
+        print("")
+        if (self.paused is False and self.player_turn == owner and
+                self.time_left[self.player_turn] > 0 and
+                GameGUI.SESSION_ID == session_id):
+            self.after(1000, lambda: self.display_time(owner=owner,
+                                                       session_id=session_id))
             self.time_left[self.player_turn] -= 1
             if self.player_turn == 'black':
                 self.black_time_var.set(
@@ -410,8 +417,10 @@ class GameGUI(tk.Frame):
             elif self.player_turn == 'white':
                 self.white_time_var.set(
                     f"White time left: {self.time_left['white']}")
-        elif (self.paused is False and self.player_turn == owner and
-              self.time_left[self.player_turn] == 0):
+        elif ((self.paused is False and self.player_turn == owner and
+              self.time_left[self.player_turn] == 0) and
+              GameGUI.SESSION_ID == session_id):
+            print('reached')
             self.reset_game()
 
     def start(self):
@@ -430,7 +439,8 @@ class GameGUI(tk.Frame):
             print("starting turn")
             if self.paused is True:
                 self.unpause()
-            self.display_time(owner=self.player_turn)
+            self.display_time(owner=self.player_turn,
+                              session_id=GameGUI.SESSION_ID)
             if self.config['color_selection'] != self.player_turn:
                 print('Computer turn')
                 action = self.actions[self.current_action_index]
@@ -512,7 +522,8 @@ class GameGUI(tk.Frame):
         self.undo_button.config(state="disabled")
         self.reset_button.config(state="disabled")
         self.paused = False
-        self.display_time(owner=self.player_turn)
+        self.display_time(owner=self.player_turn,
+                          session_id=GameGUI.SESSION_ID)
 
     def undo_last_move(self):
         """Undoes the last move from the log."""
