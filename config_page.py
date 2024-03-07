@@ -37,7 +37,7 @@ class ConfigGUI(tk.Frame):
         label.grid(row=0, column=0, pady=(0, 5))
 
         # Layout selection dropdown
-        layout_selection_label = tk.Label(content, text="Layout Selection:")
+        layout_selection_label = tk.Label(content, text="Board Layout:")
         layout_selection_label.grid(row=1, column=0, pady=5)
         layout_selection_options = ['Standard', 'Belgian daisy',
                                     'German daisy']
@@ -51,7 +51,7 @@ class ConfigGUI(tk.Frame):
         layout_dropdown_menu.grid(row=2, column=0, pady=5)
 
         # Color selection dropdown
-        color_selection_label = tk.Label(content, text="Color Selection:")
+        color_selection_label = tk.Label(content, text="Human Player Color:")
         color_selection_label.grid(row=3, column=0, pady=5)
         color_selection_options = ['Black', 'White']
 
@@ -65,7 +65,7 @@ class ConfigGUI(tk.Frame):
 
         # Game mode selection dropdown
         game_mode_selection_label = tk.Label(content,
-                                             text="Game Mode Selection:")
+                                             text="Game Mode:")
         game_mode_selection_label.grid(row=5, column=0, pady=5)
         game_mode_selection_options = ['Human vs. Computer']
 

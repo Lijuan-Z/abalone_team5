@@ -333,7 +333,8 @@ class GameGUI(tk.Frame):
 
     def update_display(self):
         """Updates the UI with the changes to the game variables."""
-        self.turn_var.set("Player turn: " + self.player_turn.capitalize())
+        curr_player = 'human' if self.player_turn == self.config['color_selection'] else 'ai'
+        self.turn_var.set(f"Player turn: {self.player_turn.capitalize()} ({curr_player.upper()})")
         self.black_move_var.set(f"Black moves left: {self.num_moves['black']}")
         self.white_move_var.set(f"White moves left: {self.num_moves['white']}")
         self.black_score_label.config(text=f"Black Score: {self.white_loss}")
@@ -370,21 +371,12 @@ class GameGUI(tk.Frame):
         self.start_turn()
 
     def start_turn(self):
-        """Starts a new turn, executing logic based on if human or computer."""
+        """Starts a new turn."""
         if self.total_move_number > 0:
             print("starting turn")
             self.unpause()
             self.display_time(owner=self.player_turn)
-            if self.config['color_selection'] != self.player_turn:
-                print('Computer turn')
-                self.action_entry.config(state="disabled")
-                action = self.actions[self.current_action_index]
-                self.current_action_index += 1
-                timer = threading.Timer(3, lambda: self.execute_action(action))
-                timer.start()
-            else:
-                print('Human turn')
-                self.action_entry.config(state="normal")
+            self.action_entry.config(state="normal")
 
     def execute_action(self, action):
         """Inputs action by moving marbles, updating log, and ending turn."""
