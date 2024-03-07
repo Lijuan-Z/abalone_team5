@@ -78,6 +78,10 @@ class GameGUI(tk.Frame):
         # Game info
         self.positions = {}
         self.player_turn = 'black'
+        self.timer_running = {
+            'white': False,
+            'black': False,
+        }
         self.num_moves = {
             'white': self.config['game_move_limit'],
             'black': self.config['game_move_limit']
@@ -125,7 +129,7 @@ class GameGUI(tk.Frame):
 
         # Player time limit label
         self.time_var = tk.StringVar()
-        self.time_var.set(self.time_left[self.player_turn])
+        self.time_var.set(f"Time left: {self.time_left[self.player_turn]}")
         self.time_label = tk.Label(self, textvariable=self.time_var)
         self.time_label.grid(row=0, column=2)
 
@@ -236,21 +240,29 @@ class GameGUI(tk.Frame):
         self.turn_var.set("Player turn: " + self.player_turn)
         self.move_var.set(f"Moves left: {self.num_moves[self.player_turn]}")
 
+    def start_timer(self):
+        self.timer_running[self.player_turn] = True
+        self.display_time()
+
     def display_time(self, *args):
-        print("updating time display")
-        print(self.time_var.get())
-        if int(self.time_var.get()) > 0:
-            self.after(1000, self.display_time, self.time_var.set(str(int(self.time_var.get()) - 1)))
+        print(f"updating time display for {self.player_turn}")
+        if self.timer_running[self.player_turn] and self.time_left[self.player_turn] > 0:
+            self.after(1000, self.display_time)
+            self.time_left[self.player_turn] -= 1
+            self.time_var.set(f"Time left: {self.time_left[self.player_turn]}")
+
+    def stop_timer(self):
+        self.timer_running[self.player_turn] = False
 
     def start(self):
         self.update_display()
         self.start_turn()
-        self.display_time()
 
     def start_turn(self):
-        print("starting turn")
         self.resume_button.config(state="disabled")
         if self.total_move_number > 0:
+            print("starting turn")
+            self.start_timer()
 
             if self.config['color_selection'] != self.player_turn:
                 print('Computer turn')
@@ -270,9 +282,10 @@ class GameGUI(tk.Frame):
         self.log_text.insert(tk.END, f"{self.player_turn.title()}:{action}\n")
         # Complete turn
         self.num_moves[self.player_turn] -= 1
+        print("end turn")
+        self.stop_timer()
         self.player_turn = "black" if self.player_turn == "white" else "white"
         self.update_display()
-        print("end turn")
         self.start_turn()
 
     def undo_last_move(self):
