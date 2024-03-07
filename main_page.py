@@ -78,10 +78,6 @@ class GameGUI(tk.Frame):
         # Game info
         self.positions = {}
         self.player_turn = 'black'
-        self.timer_running = {
-            'white': False,
-            'black': False,
-        }
         self.num_moves = {
             'white': self.config['game_move_limit'],
             'black': self.config['game_move_limit']
@@ -240,19 +236,12 @@ class GameGUI(tk.Frame):
         self.turn_var.set("Player turn: " + self.player_turn)
         self.move_var.set(f"Moves left: {self.num_moves[self.player_turn]}")
 
-    def start_timer(self):
-        self.timer_running[self.player_turn] = True
-        self.display_time()
-
-    def display_time(self, *args):
+    def display_time(self, *args, owner):
         print(f"updating time display for {self.player_turn}")
-        if self.timer_running[self.player_turn] and self.time_left[self.player_turn] > 0:
-            self.after(1000, self.display_time)
+        if self.player_turn == owner and self.time_left[self.player_turn] > 0:
+            self.after(1000, lambda: self.display_time(owner=owner))
             self.time_left[self.player_turn] -= 1
-            self.time_var.set(f"Time left: {self.time_left[self.player_turn]}")
-
-    def stop_timer(self):
-        self.timer_running[self.player_turn] = False
+            self.time_var.set(f"Time left: {self.time_left[self.player_turn]} {self.player_turn}")
 
     def start(self):
         self.update_display()
@@ -262,7 +251,7 @@ class GameGUI(tk.Frame):
         self.resume_button.config(state="disabled")
         if self.total_move_number > 0:
             print("starting turn")
-            self.start_timer()
+            self.display_time(owner=self.player_turn)
 
             if self.config['color_selection'] != self.player_turn:
                 print('Computer turn')
@@ -283,7 +272,6 @@ class GameGUI(tk.Frame):
         # Complete turn
         self.num_moves[self.player_turn] -= 1
         print("end turn")
-        self.stop_timer()
         self.player_turn = "black" if self.player_turn == "white" else "white"
         self.update_display()
         self.start_turn()
