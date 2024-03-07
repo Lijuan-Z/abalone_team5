@@ -182,6 +182,7 @@ class GameGUI(tk.Frame):
 
     def action_entry_callback(self):
         self.execute_action(self.action_entry.get())
+        self.action_entry.delete(0, tk.END)
 
     def draw_game_board(self):
         r = GameGUI.CIRCLE_RADIUS
