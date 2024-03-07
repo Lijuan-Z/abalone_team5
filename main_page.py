@@ -422,6 +422,9 @@ class GameGUI(tk.Frame):
     def ai_next_move_callback(self, action):
         """Updates the AI next recommendation and AI recommendation history."""
         self.ai_next_var.set(f"<{action}>")
+        self.update_ai_recommendations()
+
+    def update_ai_recommendations(self):
         self.ai_recs_text.delete('1.0', 'end')
         for ai_recommendation in self.ai_recommendation_history:
             self.ai_recs_text.insert(tk.END, f"{ai_recommendation[0]}: {ai_recommendation[1]}\n")
@@ -431,7 +434,7 @@ class GameGUI(tk.Frame):
         # Move marbles
         self.display_moved_marbles(action)
         # Update log information with action
-        self.log_text.insert(tk.END, f"{self.player_turn.title()}:{action}\n")
+        self.log_text.insert(tk.END, f"{self.player_turn.title()}:{action}s\n")
         # Complete turn
         self.num_moves[self.player_turn] -= 1
         print("end turn")
@@ -487,6 +490,10 @@ class GameGUI(tk.Frame):
         if last_line_index > 0:
             self.log_text.delete(f"end-{last_line_index - 1}l", tk.END)
             self.log_text.insert(tk.END, "\n")
+        # If AI action, remove from recommended history
+        if self.config['color_selection'] == self.player_turn:
+            self.ai_recommendation_history.pop()
+            self.update_ai_recommendations()
         # Reset turns
         self.player_turn = "black" if self.player_turn == "white" else "white"
         self.num_moves[self.player_turn] += 1
