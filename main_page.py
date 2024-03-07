@@ -53,7 +53,6 @@ class GameGUI(tk.Frame):
                 'd2', 'd3'],
         },
     }
-
     ai_test_action = {
         'standard': {
             'white': ['h4-g4','g5h5i5-f5g5h5', 'g6h6i6-f6g6h6','h8h9-g8g9', 'i8i9-h8h9'],
@@ -70,10 +69,10 @@ class GameGUI(tk.Frame):
     def __init__(self, parent, controller, config_options):
         tk.Frame.__init__(self, parent)
         self.controller = controller
+
         # Config setup
         self.config = config_options if config_options is not None else (
             GameGUI.DEFAULT_CONFIG)
-        print(self.config)
 
         # Game info
         self.positions = {}
@@ -96,11 +95,6 @@ class GameGUI(tk.Frame):
 
         # Draw the GUI
         self.draw_gui()
-
-    def update_display(self):
-        self.turn_var.set("Player turn: " + self.player_turn)
-        self.move_var.set(f"Moves left: {self.num_moves[self.player_turn]}")
-        self.time_var.set("Time left: " + "TODO")
 
     def draw_gui(self):
         # Game Board Frame
@@ -134,7 +128,7 @@ class GameGUI(tk.Frame):
         self.log_frame = tk.Frame(self, width=100, height=400)
         self.log_frame.grid(row=1, column=2, rowspan=3)
 
-        #Score Label
+        # Score Label
         self.white_score_label = tk.Label(self.log_frame, text=f"White Loss: {self.white_loss}")
         self.white_score_label.pack(side=tk.TOP, anchor=tk.W)
         self.black_score_label = tk.Label(self.log_frame, text=f"Black Loss: {self.black_loss}")
@@ -169,7 +163,7 @@ class GameGUI(tk.Frame):
         # Action Entry
         self.action_entry = tk.Entry(self.button_frame)
         self.action_entry.grid(row=1, column=1, padx=5)
-        self.action_entry.bind("<Return>", self.set_action)
+        self.action_entry.bind("<Return>", lambda _: self.action_entry_callback())
 
         # Start Button
         self.start_button = tk.Button(self, text="Start", command=self.start)
@@ -181,75 +175,9 @@ class GameGUI(tk.Frame):
         back_button.grid(row=4, column=2, pady=5)
         self.draw_game_board()
 
-
-    def reset_game(self):
-        # Reset
-
-        # Clear log information
-        self.log_text.delete(1.0, tk.END)
-
-    def undo_last_move(self):
-        content = self.log_text.get("1.0", tk.END)
-        lines = content.split("\n")
-        last_log = ""
-        last_line_index = 0
-        for line in reversed(lines):
-            last_line_index += 1
-            # Check if the line is not empty
-            if line.strip():
-                last_log = line.strip()
-                break
-        a,last_action = last_log.split(":")
-        source, destination = last_action.split("-")
-        input_action = f"{destination}-{source}"
-        self.move_marbles(input_action)
-        # Delete the last log from the text widget
-        if last_line_index > 0:
-            self.log_text.delete(f"end-{last_line_index-1}l",tk.END)
-            self.log_text.insert(tk.END,"\n")
-        # Reset turns
-        self.player_turn = "black" if self.player_turn == "white" else "white"
-        self.num_moves[self.player_turn] += 1
-        self.update_display()
-        # if self.config['color_selection'] != self.player_turn:
-        #     self.current_action_index -= 1
-        # self.start_turn()
-
-    def set_action(self, event):
-        # Set the action on user input
-        input_action = self.action_entry.get()
-        self.move_marbles(input_action)
-        # Update log information with action entered by the user
-        self.log_text.insert(tk.END, f"{self.player_turn.title()}:{input_action}\n")
-        # Complete turn
-        self.num_moves[self.player_turn] -= 1
-        self.player_turn = "black" if self.player_turn == "white" else "white"
-        self.update_display()
+    def action_entry_callback(self):
+        self.execute_action(self.action_entry.get())
         self.action_entry.delete(0, tk.END)
-        self.start_turn()
-
-    def ai_action(self, action):
-        self.move_marbles(action)
-        self.log_text.insert(tk.END, f"{self.player_turn.title()}:{action}\n")
-        self.player_turn = "black" if self.player_turn == "white" else "white"
-        self.update_display()
-        self.start_turn()
-
-    def move_marbles(self,input_action):
-        source, destination = input_action.split("-")
-        source_key_list = []
-        for i in range(int(len(source) / 2), 0, -1):
-            source_key = source[(i - 1) * 2:2 * i]
-            source_key_list.append(source_key)
-            destination_key = destination[(i - 1) * 2:2 * i]
-            color = self.positions[source_key]['color']
-            # Update the color of the destination and the source
-            self.positions[destination_key]['color'] = color
-            self.canvas.itemconfig(self.positions[destination_key]['id'], fill=color)
-        for source_key in source_key_list:
-            if source_key not in destination:
-                self.positions[source_key]['color'] = "lightgrey"
-                self.canvas.itemconfig(self.positions[source_key]['id'], fill="lightgrey")
 
     def draw_game_board(self):
         r = GameGUI.CIRCLE_RADIUS
@@ -278,11 +206,29 @@ class GameGUI(tk.Frame):
                     }
                     self.canvas.create_text(x, y, text=key)
 
-    def start(self):
+    def display_moved_marbles(self, input_action):
+        source, destination = input_action.split("-")
+        source_key_list = []
+        for i in range(int(len(source) / 2), 0, -1):
+            source_key = source[(i - 1) * 2:2 * i]
+            source_key_list.append(source_key)
+            destination_key = destination[(i - 1) * 2:2 * i]
+            color = self.positions[source_key]['color']
+            # Update the color of the destination and the source
+            self.positions[destination_key]['color'] = color
+            self.canvas.itemconfig(self.positions[destination_key]['id'], fill=color)
+        for source_key in source_key_list:
+            if source_key not in destination:
+                self.positions[source_key]['color'] = "lightgrey"
+                self.canvas.itemconfig(self.positions[source_key]['id'], fill="lightgrey")
+
+    def update_display(self):
         self.turn_var.set("Player turn: " + self.player_turn)
         self.move_var.set(f"Moves left: {self.num_moves[self.player_turn]}")
         self.time_var.set("Time left: " + "TODO")
-        # self.draw_game_board()
+
+    def start(self):
+        self.update_display()
         self.start_turn()
 
     def start_turn(self):
@@ -292,7 +238,52 @@ class GameGUI(tk.Frame):
                 self.action_entry.config(state="disabled")
                 action = self.actions[self.current_action_index]
                 self.current_action_index += 1
-                self.ai_action(action)
+                self.execute_action(action)
             else:
                 print('Human turn')
                 self.action_entry.config(state="normal")
+
+    def execute_action(self, action):
+        # Move marbles
+        self.display_moved_marbles(action)
+        # Update log information with action
+        self.log_text.insert(tk.END, f"{self.player_turn.title()}:{action}\n")
+        # Complete turn
+        self.num_moves[self.player_turn] -= 1
+        self.player_turn = "black" if self.player_turn == "white" else "white"
+        self.update_display()
+        self.start_turn()
+
+    def undo_last_move(self):
+        content = self.log_text.get("1.0", tk.END)
+        lines = content.split("\n")
+        last_log = ""
+        last_line_index = 0
+        for line in reversed(lines):
+            last_line_index += 1
+            # Check if the line is not empty
+            if line.strip():
+                last_log = line.strip()
+                break
+        a,last_action = last_log.split(":")
+        source, destination = last_action.split("-")
+        input_action = f"{destination}-{source}"
+        self.display_moved_marbles(input_action)
+        # Delete the last log from the text widget
+        if last_line_index > 0:
+            self.log_text.delete(f"end-{last_line_index-1}l",tk.END)
+            self.log_text.insert(tk.END,"\n")
+        # Reset turns
+        self.player_turn = "black" if self.player_turn == "white" else "white"
+        self.num_moves[self.player_turn] += 1
+        self.update_display()
+        # if self.config['color_selection'] != self.player_turn:
+        #     self.current_action_index -= 1
+        # self.start_turn()
+
+    def reset_game(self):
+        # Reset
+
+        # Clear log information
+        self.log_text.delete(1.0, tk.END)
+
