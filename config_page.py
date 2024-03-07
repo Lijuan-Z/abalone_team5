@@ -46,11 +46,11 @@ class ConfigGUI(tk.Frame):
 
         # Time move limit label
         time_limit_label = tk.Label(self, text="Time Limit per Move:")
-        time_limit_label.grid(row=5, column=0)
+        time_limit_label.grid(row=7, column=0)
 
         time_limit_entry = tk.Entry(self)
         time_limit_entry.insert(0, '30')
-        time_limit_entry.grid(row=6, column=0)
+        time_limit_entry.grid(row=8, column=0)
 
         # Start Game
         start_game_button = tk.Button(self, text="Start Game", command=
@@ -60,4 +60,4 @@ class ConfigGUI(tk.Frame):
             'game_move_limit': int(move_limit_entry.get()),
             'move_time_limit': int(time_limit_entry.get())
         }))
-        start_game_button.grid(row=7, column=0, pady=5)
+        start_game_button.grid(row=9, column=0, pady=5)
