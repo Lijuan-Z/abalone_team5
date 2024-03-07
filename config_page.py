@@ -71,10 +71,12 @@ class ConfigGUI(tk.Frame):
 
         game_mode_dropdown = tk.StringVar(content)
         game_mode_dropdown.set(game_mode_selection_options[0])
-        game_mode_dropdown_menu = ttk.Combobox(content,
-                                               textvariable=game_mode_dropdown,
-                                               values=game_mode_selection_options,
-                                               state='readonly')
+        game_mode_dropdown_menu = ttk.Combobox(
+            content,
+            textvariable=game_mode_dropdown,
+            values=game_mode_selection_options,
+            state='readonly'
+        )
         game_mode_dropdown_menu.grid(row=6, column=0, pady=5)
 
         # Game move limit label
@@ -86,14 +88,16 @@ class ConfigGUI(tk.Frame):
         move_limit_entry.grid(row=8, column=0, pady=5)
 
         # Time move limit label
-        white_time_limit_label = tk.Label(content, text="White Time Limit per Move:")
+        white_time_limit_label = tk.Label(content,
+                                          text="White Time Limit per Move:")
         white_time_limit_label.grid(row=9, column=0, pady=5)
 
         white_time_limit_entry = tk.Entry(content)
         white_time_limit_entry.insert(0, '30')
         white_time_limit_entry.grid(row=10, column=0, pady=5)
 
-        black_time_limit_label = tk.Label(content, text="Black Time Limit per Move:")
+        black_time_limit_label = tk.Label(content,
+                                          text="Black Time Limit per Move:")
         black_time_limit_label.grid(row=11, column=0, pady=5)
 
         black_time_limit_entry = tk.Entry(content)
