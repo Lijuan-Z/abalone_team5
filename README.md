@@ -76,7 +76,9 @@ The executable will be placed in
 
 2. Hit `enter` to confirm move
 
-3. Wait for AI to make it's move
+3. Wait for AI to make it's suggestion
 
-4. Repeat
+4. Input a move for the AI 
+
+5. Repeat
 
