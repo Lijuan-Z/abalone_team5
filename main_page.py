@@ -105,102 +105,140 @@ class GameGUI(tk.Frame):
         self.white_loss = 0
         self.black_loss = 0
 
-        # Draw the GUI
+        # Draw the GUI and game board
         self.draw_gui()
+        self.draw_game_board()
 
     def draw_gui(self):
         # Game Board Frame
         self.board_frame = tk.Frame(self, width=400, height=400, bg="white")
-        self.board_frame.grid(row=1, column=1, rowspan=3)
+        self.board_frame.grid(row=1, column=1, rowspan=3, padx=20)
 
-        # Create a canvas widget
+        # Canvas widget
         self.canvas = tk.Canvas(self.board_frame, width=600, height=600,
                                 bg="lightgrey")
         self.canvas.pack()
 
+        # Info frame
+        self.info_frame = tk.Frame(self)
+        self.info_frame.grid(row=0, column=1, pady=20, columnspan=2)
+
+        # Game state frame
+        self.state_frame = tk.Frame(self.info_frame)
+        self.state_frame.pack(side="left", padx=20)
+
         # Player turn label
         self.turn_var = tk.StringVar()
         self.turn_var.set("Player turn:")
-        self.turn_label = tk.Label(self, textvariable=self.turn_var)
-        self.turn_label.grid(row=0, column=0)
+        self.turn_label = tk.Label(self.state_frame, textvariable=self.turn_var)
+        self.turn_label.pack(side=tk.TOP, anchor=tk.W)
+
+        # State label
+        self.state_var = tk.StringVar()
+        self.state_var.set("NO GAME STARTED")
+        self.state_label = tk.Label(self.state_frame, textvariable=self.state_var)
+        self.state_label.pack(side=tk.TOP, anchor=tk.W)
 
         # Player game move limit label
-        self.move_var = tk.StringVar()
-        self.move_var.set(f"Moves left:")
-        self.move_label = tk.Label(self, textvariable=self.move_var)
-        self.move_label.grid(row=0, column=1)
+        self.move_frame = tk.Frame(self.info_frame)
+        self.move_frame.pack(side="left", padx=20)
 
-        # Player time limit label
-        self.time_var = tk.StringVar()
-        self.time_var.set(f"Time left: {self.time_left[self.player_turn]}")
-        self.time_label = tk.Label(self, textvariable=self.time_var)
-        self.time_label.grid(row=0, column=2)
+        self.black_move_var = tk.StringVar()
+        self.black_move_var.set(f"Black moves left:")
+        self.black_move_label = tk.Label(self.move_frame, textvariable=self.black_move_var)
+        self.black_move_label.pack(side=tk.TOP, anchor=tk.W)
 
-        # Log Information Frame
-        self.log_frame = tk.Frame(self, width=100, height=400)
-        self.log_frame.grid(row=1, column=2, rowspan=3)
+        self.white_move_var = tk.StringVar()
+        self.white_move_var.set(f"White moves left:")
+        self.white_move_label = tk.Label(self.move_frame, textvariable=self.white_move_var)
+        self.white_move_label.pack(side=tk.TOP, anchor=tk.W)
 
         # Score Label
-        self.white_score_label = tk.Label(self.log_frame,
-                                          text=f"White Loss: {self.white_loss}")
+        self.score_frame = tk.Frame(self.info_frame)
+        self.score_frame.pack(side="left", padx=20)
+
+        self.white_score_label = tk.Label(self.score_frame,
+                                          text=f"Black score: ")
         self.white_score_label.pack(side=tk.TOP, anchor=tk.W)
-        self.black_score_label = tk.Label(self.log_frame,
-                                          text=f"Black Loss: {self.black_loss}")
+        self.black_score_label = tk.Label(self.score_frame,
+                                          text=f"White score: ")
         self.black_score_label.pack(side=tk.TOP, anchor=tk.W)
+
+        # Player time limit label
+        self.time_frame = tk.Frame(self.info_frame)
+        self.time_frame.pack(side="left", padx=20)
+
+        self.black_time_var = tk.StringVar()
+        self.black_time_var.set(f"Black time left: ")
+        self.time_label = tk.Label(self.time_frame, textvariable=self.black_time_var)
+        self.time_label.pack(side=tk.TOP, anchor=tk.W)
+
+        self.white_time_var = tk.StringVar()
+        self.white_time_var.set(f"White time left: ")
+        self.time_label = tk.Label(self.time_frame, textvariable=self.white_time_var)
+        self.time_label.pack(side=tk.TOP, anchor=tk.W)
+
+        # Log Information Frame
+        self.log_frame = tk.Frame(self, width=100, height=300)
+        self.log_frame.grid(row=1, column=2, rowspan=3, padx=20)
 
         # Log Label
         self.log_label = tk.Label(self.log_frame, text="Logs:")
         self.log_label.pack(side=tk.TOP, anchor=tk.W)
 
         # Log Information Text
-        self.log_text = tk.Text(self.log_frame, height=40, width=20)
+        self.log_text = tk.Text(self.log_frame, height=35, width=20)
         self.log_text.pack()
 
         # Button Frame
         self.button_frame = tk.Frame(self)
         self.button_frame.grid(row=4, column=1, columnspan=2, pady=10)
 
-        # Reset Button
-        self.reset_button = tk.Button(self.button_frame, text="Reset",
-                                      command=self.reset_game, state="disabled")
-        self.reset_button.grid(row=0, column=0, padx=5)
+        # Start Button
+        self.start_button = tk.Button(self.button_frame, text="Start",
+                                      command=self.start)
+        self.start_button.pack(side="left", padx=50)
 
-        # Undo Button
-        self.undo_button = tk.Button(self.button_frame, text="Undo Last Move",
-                                     command=self.undo_last_move, state="disabled")
-        self.undo_button.grid(row=0, column=1, padx=5)
-
-        # Pause Button
-        self.pause_button = tk.Button(self.button_frame, text="Pause",
-                                      command=self.pause,
-                                      state="disabled")
-        self.pause_button.grid(row=0, column=2, padx=5)
-
-        # Resume Button
-        self.resume_button = tk.Button(self.button_frame, text="Resume",
-                                       command=self.start_turn,
-                                       state="disabled")
-        self.resume_button.grid(row=0, column=3, padx=5)
+        # Button Sub frame
+        self.button_subframe = tk.Frame(self.button_frame)
+        self.button_subframe.pack(side="left", padx=20, pady=20)
 
         # Input Action Label
-        self.input_label = tk.Label(self.button_frame, text="Input Action:")
-        self.input_label.grid(row=1, column=0, padx=5)
+        self.input_label = tk.Label(self.button_subframe, text="Input Action:")
+        self.input_label.pack(side="left", padx=(20, 0))
 
         # Action Entry
-        self.action_entry = tk.Entry(self.button_frame, state="disabled")
-        self.action_entry.grid(row=1, column=1, padx=5)
+        self.action_entry = tk.Entry(self.button_subframe, state="disabled")
+        self.action_entry.pack(side="left", padx=(0, 20))
         self.action_entry.bind("<Return>",
                                lambda _: self.action_entry_callback())
 
-        # Start Button
-        self.start_button = tk.Button(self, text="Start", command=self.start)
-        self.start_button.grid(row=4, column=0, pady=5)
+        # Reset Button
+        self.reset_button = tk.Button(self.button_subframe, text="Reset",
+                                      command=self.reset_game, state="disabled")
+        self.reset_button.pack(side="left", padx=5)
+
+        # Undo Button
+        self.undo_button = tk.Button(self.button_subframe, text="Undo Last Move",
+                                     command=self.undo_last_move, state="disabled")
+        self.undo_button.pack(side="left", padx=5)
+
+        # Pause Button
+        self.pause_button = tk.Button(self.button_subframe, text="Pause",
+                                      command=self.pause,
+                                      state="disabled")
+        self.pause_button.pack(side="left", padx=5)
+
+        # Resume Button
+        self.resume_button = tk.Button(self.button_subframe, text="Resume",
+                                       command=self.start_turn,
+                                       state="disabled")
+        self.resume_button.pack(side="left", padx=5)
 
         # Stop Button
-        stop_button = tk.Button(self, text="Stop",
+        stop_button = tk.Button(self.button_frame, text="Stop",
                                 command=lambda: self.controller.display_config())
-        stop_button.grid(row=4, column=2, pady=5)
-        self.draw_game_board()
+        stop_button.pack(side="left", padx=50)
 
     def action_entry_callback(self):
         action = self.action_entry.get()
@@ -268,20 +306,30 @@ class GameGUI(tk.Frame):
                                         fill="black")
 
     def update_display(self):
-        self.turn_var.set("Player turn: " + self.player_turn)
-        self.move_var.set(f"Moves left: {self.num_moves[self.player_turn]}")
+        self.turn_var.set("Player turn: " + self.player_turn.capitalize())
+        self.black_move_var.set(f"Black moves left: {self.num_moves['black']}")
+        self.white_move_var.set(f"White moves left: {self.num_moves['white']}")
+        self.black_score_label.config(text=f"Black Score: {self.white_loss}")
+        self.white_score_label.config(text=f"White Score: {self.black_loss}")
 
     def display_time(self, *args, owner):
         if self.paused == False and self.player_turn == owner and \
                 self.time_left[self.player_turn] > 0:
             self.after(1000, lambda: self.display_time(owner=owner))
             self.time_left[self.player_turn] -= 1
-            self.time_var.set(
-                f"Time left: {self.time_left[self.player_turn]}")
+            if self.player_turn == 'black':
+                self.black_time_var.set(
+                    f"Black time left: {self.time_left['black']}")
+            elif self.player_turn == 'white':
+                self.white_time_var.set(
+                    f"White time left: {self.time_left['white']}")
 
     def start(self):
+        self.state_var.set("PLAYING")
         self.reset_button.config(state="normal")
         self.undo_button.config(state="normal")
+        self.black_time_var.set(f"Black time left: {self.time_left['black']}")
+        self.white_time_var.set(f"White time left: {self.time_left['white']}")
         self.update_display()
         self.start_turn()
 
@@ -314,12 +362,14 @@ class GameGUI(tk.Frame):
         self.start_turn()
 
     def pause(self):
+        self.state_var.set("PAUSED")
         self.resume_button.config(state="normal")
         self.pause_button.config(state="disabled")
         self.action_entry.config(state="disabled")
         self.paused = True
 
     def unpause(self):
+        self.state_var.set("PLAYING")
         self.pause_button.config(state="normal")
         self.resume_button.config(state="disabled")
         self.paused = False
