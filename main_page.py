@@ -1,9 +1,12 @@
+"""This module holds the Game GUI."""
 import math
 import threading
 import tkinter as tk
 
 
 class GameGUI(tk.Frame):
+    """GameGUI displays the game board and executes game logic."""
+
     DEFAULT_CONFIG = {
         'board_layout': 'standard',
         'color_selection': 'black',
@@ -73,6 +76,16 @@ class GameGUI(tk.Frame):
     }
 
     def __init__(self, parent, controller, config_options):
+        """Initializes a new GameGUI and starts the game.
+
+        Prepares the game with the given configuration options and the base
+        game info, then displays the board and the necessary buttons for
+        starting the game.
+        :param parent: the parent frame this GUI will reside in
+        :param controller: the GameApp that manages GUIs
+        :param config_options: the config options to load the game with
+        """
+
         tk.Frame.__init__(self, parent)
         self.controller = controller
 
@@ -110,6 +123,8 @@ class GameGUI(tk.Frame):
         self.draw_game_board()
 
     def draw_gui(self):
+        """Draws all the elements on the screen, excluding the game board."""
+
         # Game Board Frame
         self.board_frame = tk.Frame(self, width=400, height=400, bg="white")
         self.board_frame.grid(row=1, column=1, rowspan=3, padx=20)
@@ -241,11 +256,13 @@ class GameGUI(tk.Frame):
         stop_button.pack(side="left", padx=50)
 
     def action_entry_callback(self):
+        """Executes the action from the action entry then clears it."""
         action = self.action_entry.get()
         self.action_entry.delete(0, tk.END)
         self.execute_action(action)
 
     def draw_game_board(self):
+        """Draws the game board with the given initial board layout."""
         r = GameGUI.CIRCLE_RADIUS
         cols = GameGUI.COLUMNS
         for i in range(9):
@@ -279,6 +296,11 @@ class GameGUI(tk.Frame):
                     self.canvas.create_text(x, y, text=key, fill=text_color)
 
     def display_moved_marbles(self, input_action):
+        """Updates the positions of marbles then displays it on the screen.
+
+        :param input_action: a string of the old and new pos of the marbles
+        """
+
         source, destination = input_action.split("-")
         source_key_list = []
         for i in range(int(len(source) / 2), 0, -1):
@@ -306,6 +328,7 @@ class GameGUI(tk.Frame):
                                         fill="black")
 
     def update_display(self):
+        """Updates the UI with the changes to the game variables."""
         self.turn_var.set("Player turn: " + self.player_turn.capitalize())
         self.black_move_var.set(f"Black moves left: {self.num_moves['black']}")
         self.white_move_var.set(f"White moves left: {self.num_moves['white']}")
@@ -313,6 +336,11 @@ class GameGUI(tk.Frame):
         self.white_score_label.config(text=f"White Score: {self.black_loss}")
 
     def display_time(self, *args, owner):
+        """A recursive function that decrements the given player's timer.
+
+        :param args: any additional arguments
+        :param owner: the player this function was called for
+        """
         if self.paused == False and self.player_turn == owner and \
                 self.time_left[self.player_turn] > 0:
             self.after(1000, lambda: self.display_time(owner=owner))
@@ -329,6 +357,7 @@ class GameGUI(tk.Frame):
             self.state_var.set(f"GAME OVER! {winner.upper()} WINS")
 
     def start(self):
+        """Starts the game as new, resetting the UI then starting a turn."""
         self.state_var.set("PLAYING")
         self.reset_button.config(state="normal")
         self.undo_button.config(state="normal")
@@ -338,6 +367,7 @@ class GameGUI(tk.Frame):
         self.start_turn()
 
     def start_turn(self):
+        """Starts a new turn, executing logic based on if human or computer."""
         if self.total_move_number > 0:
             print("starting turn")
             self.unpause()
@@ -354,6 +384,7 @@ class GameGUI(tk.Frame):
                 self.action_entry.config(state="normal")
 
     def execute_action(self, action):
+        """Inputs action by moving marbles, updating log, and ending turn."""
         # Move marbles
         self.display_moved_marbles(action)
         # Update log information with action
@@ -366,6 +397,7 @@ class GameGUI(tk.Frame):
         self.start_turn()
 
     def pause(self):
+        """Pauses the game and the timer."""
         self.state_var.set("PAUSED")
         self.resume_button.config(state="normal")
         self.pause_button.config(state="disabled")
@@ -373,12 +405,14 @@ class GameGUI(tk.Frame):
         self.paused = True
 
     def unpause(self):
+        """Unpauses the game and the timer."""
         self.state_var.set("PLAYING")
         self.pause_button.config(state="normal")
         self.resume_button.config(state="disabled")
         self.paused = False
 
     def undo_last_move(self):
+        """Undoes the last move from the log."""
         content = self.log_text.get("1.0", tk.END)
         lines = content.split("\n")
         last_log = ""
@@ -408,6 +442,7 @@ class GameGUI(tk.Frame):
             self.action_entry.config(state="disabled")
 
     def reset_game(self):
+        """Clears the board, the log, and the game variables."""
         # Reset
         self.player_turn = 'black'
         self.num_moves = {

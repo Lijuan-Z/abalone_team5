@@ -1,8 +1,11 @@
+"""This module holds the Config GUI."""
 import tkinter as tk
 from tkinter import ttk
 
 
 class ConfigGUI(tk.Frame):
+    """ConfigGUI allows user to enter configs before they begin the game."""
+
     ASCII = """
            _           _                  
      /\\   | |         | |                 
@@ -14,6 +17,13 @@ class ConfigGUI(tk.Frame):
     """
 
     def __init__(self, parent, controller):
+        """Initializes a new ConfigUI.
+
+        Displays a title, configuration options, and a start game button.
+        :param parent: the parent frame this GUI will reside in
+        :param controller: the GameApp that manages GUIs
+        """
+
         tk.Frame.__init__(self, parent)
 
         content = tk.Frame(self, width=100, height=100)
