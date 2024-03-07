@@ -162,11 +162,11 @@ class GameGUI(tk.Frame):
         self.resume_button.grid(row=0, column=2, padx=5)
 
         # Input Action Label
-        self.input_label = tk.Label(self.button_frame, text="Input Action:", state="disabled")
+        self.input_label = tk.Label(self.button_frame, text="Input Action:")
         self.input_label.grid(row=1, column=0, padx=5)
 
         # Action Entry
-        self.action_entry = tk.Entry(self.button_frame)
+        self.action_entry = tk.Entry(self.button_frame, state="disabled")
         self.action_entry.grid(row=1, column=1, padx=5)
         self.action_entry.bind("<Return>", lambda _: self.action_entry_callback())
 
@@ -284,9 +284,10 @@ class GameGUI(tk.Frame):
         self.num_moves[self.player_turn] += 1
         self.update_display()
         self.resume_button.config(state="normal")
-        # if self.config['color_selection'] != self.player_turn:
-        #     self.current_action_index -= 1
-        # self.start_turn()
+
+        if self.config['color_selection'] != self.player_turn:
+            self.current_action_index -= 1
+            self.action_entry.config(state="disabled")
 
     def reset_game(self):
         # Reset
