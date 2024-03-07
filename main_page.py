@@ -451,6 +451,7 @@ class GameGUI(tk.Frame):
         self.update_ai_recommendations()
         self.ai_agg_time_var.set(f"Total aggregate time: "
         f"{sum(ai_rec[1]for ai_rec in self.ai_recommendation_history)}")
+        self.execute_action(action)
         self.action_entry.config(state="normal")
         self.pause_button.config(state="normal")
 
