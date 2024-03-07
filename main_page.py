@@ -117,6 +117,7 @@ class GameGUI(tk.Frame):
         self.actions = self.ai_test_action[self.config['board_layout']][
             ai_color]
         self.current_action_index = 0
+        self.ai_recommendation_history = list()
 
         # not updated yet
         self.white_loss = 0
@@ -411,16 +412,19 @@ class GameGUI(tk.Frame):
                 self.current_action_index += 1
                 self.ai_next_var.set("Calculating...")
                 calculation_time = random.randint(1, 8)
-                timer = threading.Timer(calculation_time, lambda: self.ai_next_move_callback(action, calculation_time))
+                self.ai_recommendation_history.append((action, calculation_time))
+                timer = threading.Timer(calculation_time, lambda: self.ai_next_move_callback(action))
                 timer.start()
             else:
                 print('Human turn')
                 self.action_entry.config(state="normal")
 
-    def ai_next_move_callback(self, action, calculation_time):
+    def ai_next_move_callback(self, action):
         """Updates the AI next recommendation and AI recommendation history."""
         self.ai_next_var.set(f"<{action}>")
-        self.ai_recs_text.insert(tk.END, f"{action}: {calculation_time}s\n")
+        self.ai_recs_text.delete('1.0', 'end')
+        for ai_recommendation in self.ai_recommendation_history:
+            self.ai_recs_text.insert(tk.END, f"{ai_recommendation[0]}: {ai_recommendation[1]}\n")
 
     def execute_action(self, action):
         """Inputs action by moving marbles, updating log, and ending turn."""
