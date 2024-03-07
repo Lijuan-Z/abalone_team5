@@ -2,8 +2,6 @@ import math
 import threading
 import tkinter as tk
 
-from timer import Timer
-
 
 class GameGUI(tk.Frame):
     DEFAULT_CONFIG = {
@@ -85,8 +83,8 @@ class GameGUI(tk.Frame):
             'black': self.config['game_move_limit']
         }
         self.time_left = {
-            'white': Timer(self.config['move_time_limit']),
-            'black': Timer(self.config['move_time_limit'])
+            'white': self.config['move_time_limit'],
+            'black': self.config['move_time_limit']
         }
         self.total_move_number = self.config['game_move_limit']
 
@@ -127,8 +125,8 @@ class GameGUI(tk.Frame):
 
         # Player time limit label
         self.time_var = tk.StringVar()
-        self.time_var.trace_add('write', self.display_time)
-        self.time_label = tk.Label(self, text="Time left:")
+        self.time_var.set(self.time_left[self.player_turn])
+        self.time_label = tk.Label(self, textvariable=self.time_var)
         self.time_label.grid(row=0, column=2)
 
         # Log Information Frame
@@ -241,12 +239,13 @@ class GameGUI(tk.Frame):
     def display_time(self, *args):
         print("updating time display")
         print(self.time_var.get())
-        new_label = f"Time left: {self.time_left[self.player_turn].get_time()}"
-        self.time_label.config(text=new_label)
+        if int(self.time_var.get()) > 0:
+            self.after(1000, self.display_time, self.time_var.set(str(int(self.time_var.get()) - 1)))
 
     def start(self):
         self.update_display()
         self.start_turn()
+        self.display_time()
 
     def start_turn(self):
         print("starting turn")
