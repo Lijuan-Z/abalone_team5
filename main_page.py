@@ -85,7 +85,9 @@ class GameGUI(tk.Frame):
         self.total_move_number = self.config['game_move_limit']
 
         # hard code AI moves: only for test purpose
-        self.actions = self.ai_test_action[self.config['board_layout']][self.config['color_selection']]
+        player_color = self.config['color_selection']
+        ai_color = 'black' if player_color == 'white' else 'white'
+        self.actions = self.ai_test_action[self.config['board_layout']][ai_color]
         self.current_action_index = 0
 
         # not updated yet
@@ -211,7 +213,7 @@ class GameGUI(tk.Frame):
         self.update_display()
         # if self.config['color_selection'] != self.player_turn:
         #     self.current_action_index -= 1
-        self.start_turn()
+        # self.start_turn()
 
     def set_action(self, event):
         # Set the action on user input
@@ -285,7 +287,7 @@ class GameGUI(tk.Frame):
 
     def start_turn(self):
         if self.total_move_number > 0:
-            if self.config['color_selection'] == self.player_turn:
+            if self.config['color_selection'] != self.player_turn:
                 print('Computer turn')
                 self.action_entry.config(state="disabled")
                 action = self.actions[self.current_action_index]
