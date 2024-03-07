@@ -186,8 +186,9 @@ class GameGUI(tk.Frame):
         self.draw_game_board()
 
     def action_entry_callback(self):
-        self.execute_action(self.action_entry.get())
+        action = self.action_entry.get()
         self.action_entry.delete(0, tk.END)
+        self.execute_action(action)
 
     def draw_game_board(self):
         r = GameGUI.CIRCLE_RADIUS
@@ -200,9 +201,11 @@ class GameGUI(tk.Frame):
                     k = j if j > 0 else 0
                     key = f'{cols[j + 4]}{i + 1 + k}'  # Construct the key string
                     # Set the values for x0, x1, y0, y1, and color for each key
-                    color_value = "lightgrey"
+                    color_value = 'lightgrey'
+                    text_color = 'black'
                     if key in GameGUI.BOARD_LAYOUTS[self.config['board_layout']]['black']:
                         color_value = 'black'
+                        text_color = 'white'
                     elif key in GameGUI.BOARD_LAYOUTS[self.config['board_layout']]['white']:
                         color_value = 'white'
                     self.positions[key] = {
@@ -214,7 +217,7 @@ class GameGUI(tk.Frame):
                             fill=color_value
                         )
                     }
-                    self.canvas.create_text(x, y, text=key)
+                    self.canvas.create_text(x, y, text=key, fill=text_color)
 
     def display_moved_marbles(self, input_action):
         source, destination = input_action.split("-")
@@ -223,14 +226,23 @@ class GameGUI(tk.Frame):
             source_key = source[(i - 1) * 2:2 * i]
             source_key_list.append(source_key)
             destination_key = destination[(i - 1) * 2:2 * i]
-            color = self.positions[source_key]['color']
+            source_color = self.positions[source_key]['color']
             # Update the color of the destination and the source
-            self.positions[destination_key]['color'] = color
-            self.canvas.itemconfig(self.positions[destination_key]['id'], fill=color)
+            self.positions[destination_key]['color'] = source_color
+            destination_text_color = 'white' if source_color == 'black' else 'black'
+            self.canvas.itemconfig(self.positions[destination_key]['id'], fill=source_color)
+            self.canvas.create_text(self.positions[destination_key]['x'],
+                                self.positions[destination_key]['y'],
+                                text=destination_key,
+                                fill=destination_text_color)
         for source_key in source_key_list:
             if source_key not in destination:
                 self.positions[source_key]['color'] = "lightgrey"
                 self.canvas.itemconfig(self.positions[source_key]['id'], fill="lightgrey")
+                self.canvas.create_text(self.positions[source_key]['x'],
+                                        self.positions[source_key]['y'],
+                                        text=source_key,
+                                        fill="black")
 
     def update_display(self):
         self.turn_var.set("Player turn: " + self.player_turn)
