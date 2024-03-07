@@ -1,5 +1,6 @@
 """This module holds the Game GUI."""
 import math
+import random
 import threading
 import tkinter as tk
 
@@ -196,17 +197,45 @@ class GameGUI(tk.Frame):
         self.time_label = tk.Label(self.time_frame, textvariable=self.white_time_var)
         self.time_label.pack(side=tk.TOP, anchor=tk.W)
 
+        # History Column
+        self.history_column = tk.Frame(self)
+        self.history_column.grid(row=1, column=2, rowspan=3, padx=(20, 30))
+
         # Log Information Frame
-        self.log_frame = tk.Frame(self, width=100, height=300)
-        self.log_frame.grid(row=1, column=2, rowspan=3, padx=20)
+        self.log_frame = tk.Frame(self.history_column, width=100, height=100)
+        self.log_frame.pack(side=tk.TOP, anchor=tk.W, pady=(0, 10))
 
         # Log Label
         self.log_label = tk.Label(self.log_frame, text="Logs:")
         self.log_label.pack(side=tk.TOP, anchor=tk.W)
 
         # Log Information Text
-        self.log_text = tk.Text(self.log_frame, height=35, width=20)
+        self.log_text = tk.Text(self.log_frame, height=10, width=20)
         self.log_text.pack()
+
+        # AI Recommendations Frame
+        self.ai_recs_frame = tk.Frame(self.history_column, width=100, height=100)
+        self.ai_recs_frame.pack(side=tk.TOP, anchor=tk.W, pady=10)
+
+        # AI Recommendations Label
+        self.ai_recs_label = tk.Label(self.ai_recs_frame, text="AI Recommendation History:")
+        self.ai_recs_label.pack(side=tk.TOP, anchor=tk.W)
+
+        # AI Recommendations Text
+        self.ai_recs_text = tk.Text(self.ai_recs_frame, height=10, width=20)
+        self.ai_recs_text.pack(side=tk.TOP, anchor=tk.W)
+
+        # AI Next Recommendation Label
+        self.ai_next_label = tk.Label(self.ai_recs_frame,
+                                      text="AI Next Recommendation:")
+        self.ai_next_label.pack(side=tk.TOP, anchor=tk.W, pady=(30, 5))
+
+        # AI Next Recommendation Text
+        self.ai_next_var = tk.StringVar()
+        self.ai_next_var.set("Awaiting AI turn.")
+        self.ai_next_label = tk.Label(self.ai_recs_frame,
+                                   textvariable=self.ai_next_var)
+        self.ai_next_label.pack(side=tk.TOP, anchor=tk.W)
 
         # Button Frame
         self.button_frame = tk.Frame(self)
@@ -371,12 +400,27 @@ class GameGUI(tk.Frame):
         self.start_turn()
 
     def start_turn(self):
-        """Starts a new turn."""
+        """Starts a new turn, executing logic based on if human or computer."""
         if self.total_move_number > 0:
             print("starting turn")
             self.unpause()
             self.display_time(owner=self.player_turn)
-            self.action_entry.config(state="normal")
+            if self.config['color_selection'] != self.player_turn:
+                print('Computer turn')
+                action = self.actions[self.current_action_index]
+                self.current_action_index += 1
+                self.ai_next_var.set("Calculating...")
+                calculation_time = random.randint(1, 8)
+                timer = threading.Timer(calculation_time, lambda: self.ai_next_move_callback(action, calculation_time))
+                timer.start()
+            else:
+                print('Human turn')
+                self.action_entry.config(state="normal")
+
+    def ai_next_move_callback(self, action, calculation_time):
+        """Updates the AI next recommendation and AI recommendation history."""
+        self.ai_next_var.set(f"<{action}>")
+        self.ai_recs_text.insert(tk.END, f"{action}: {calculation_time}s\n")
 
     def execute_action(self, action):
         """Inputs action by moving marbles, updating log, and ending turn."""
@@ -387,6 +431,7 @@ class GameGUI(tk.Frame):
         # Complete turn
         self.num_moves[self.player_turn] -= 1
         print("end turn")
+        self.ai_next_var.set("Awaiting AI turn.")
         if self.player_turn == 'black':
             self.time_left[self.player_turn] = self.config["black_move_time_limit"]
             self.black_time_var.set(
@@ -462,6 +507,7 @@ class GameGUI(tk.Frame):
             'black': self.config['white_move_time_limit']
         }
         self.total_move_number = self.config['game_move_limit']
+        self.current_action_index = 0
         self.draw_gui()
         self.draw_game_board()
         # Clear log information
