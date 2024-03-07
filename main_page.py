@@ -387,6 +387,14 @@ class GameGUI(tk.Frame):
         # Complete turn
         self.num_moves[self.player_turn] -= 1
         print("end turn")
+        if self.player_turn == 'black':
+            self.time_left[self.player_turn] = self.config["black_move_time_limit"]
+            self.black_time_var.set(
+                f"Black time left: {self.time_left['black']}")
+        elif self.player_turn == 'white':
+            self.time_left[self.player_turn] = self.config['white_move_time_limit']
+            self.white_time_var.set(
+                f"White time left: {self.time_left['white']}")
         self.player_turn = "black" if self.player_turn == "white" else "white"
         self.update_display()
         self.start_turn()
