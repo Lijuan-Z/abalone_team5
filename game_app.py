@@ -9,7 +9,7 @@ class GameApp(tk.Tk):
 
         self.container = tk.Frame(self, bg="white")
         self.container.grid(row=0, column=0)
-
+        self.title("Abalone")
         self.display_game()  # to set the window height/width
         self.display_config()
 
