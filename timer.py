@@ -19,6 +19,9 @@ class Timer:
         self.time = self.start_time
 
     async def start_timer(self):
+        self.task = asyncio.create_task(self.run_timer())
+
+    async def run_timer(self):
         if not self.running:
             self.running = True
             self.stop_event.clear()
@@ -27,24 +30,19 @@ class Timer:
                 self.time -= 1
                 await asyncio.sleep(1)
 
-    def stop_timer(self):
+    async def stop_timer(self):
         self.stop_event.set()
         self.running = False
-        return self.time
-
-async def timer_loop(timer):
-    task = asyncio.create_task(timer.start_timer())
-
-    # Let the timer run for a few seconds for demonstration
-    await asyncio.sleep(5)
-
-    time_left = timer.stop_timer()
-    await task  # Ensure the timer task completes
+        await self.task
 
 async def main():
     timer = Timer(30)
-    await timer_loop(timer)
-    await timer_loop(timer)
+    await timer.start_timer()
+    await asyncio.sleep(5)
+    await timer.stop_timer()
+    await timer.start_timer()
+    await asyncio.sleep(5)
+    await timer.stop_timer()
 
 if __name__ == "__main__":
     asyncio.run(main())
