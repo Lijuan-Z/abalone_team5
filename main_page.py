@@ -156,6 +156,11 @@ class GameGUI(tk.Frame):
                                      command=self.undo_last_move)
         self.undo_button.grid(row=0, column=1, padx=5)
 
+        # Resume Button
+        self.resume_button = tk.Button(self.button_frame, text="Resume",
+                                     command=self.start_turn, state="disabled")
+        self.resume_button.grid(row=0, column=2, padx=5)
+
         # Input Action Label
         self.input_label = tk.Label(self.button_frame, text="Input Action:", state="disabled")
         self.input_label.grid(row=1, column=0, padx=5)
@@ -177,7 +182,6 @@ class GameGUI(tk.Frame):
 
     def action_entry_callback(self):
         self.execute_action(self.action_entry.get())
-        self.action_entry.delete(0, tk.END)
 
     def draw_game_board(self):
         r = GameGUI.CIRCLE_RADIUS
@@ -232,6 +236,7 @@ class GameGUI(tk.Frame):
         self.start_turn()
 
     def start_turn(self):
+        self.resume_button.config(state="disabled")
         if self.total_move_number > 0:
             if self.config['color_selection'] != self.player_turn:
                 print('Computer turn')
@@ -277,6 +282,7 @@ class GameGUI(tk.Frame):
         self.player_turn = "black" if self.player_turn == "white" else "white"
         self.num_moves[self.player_turn] += 1
         self.update_display()
+        self.resume_button.config(state="normal")
         # if self.config['color_selection'] != self.player_turn:
         #     self.current_action_index -= 1
         # self.start_turn()
