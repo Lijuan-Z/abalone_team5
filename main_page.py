@@ -495,6 +495,7 @@ class GameGUI(tk.Frame):
         lines = content.split("\n")
         last_log = ""
         last_line_index = 0
+        num_lines = len(lines)
         for line in reversed(lines):
             last_line_index += 1
             # Check if the line is not empty
@@ -510,18 +511,16 @@ class GameGUI(tk.Frame):
             self.log_text.delete(f"end-{last_line_index - 1}l", tk.END)
             self.log_text.insert(tk.END, "\n")
         self.ai_next_var.set("Awaiting AI turn.")
-        if (len(self.ai_recommendation_history) > 0):
+        if self.config['color_selection'] != self.player_turn or num_lines % 2 == 0:
             self.ai_recommendation_history.pop()
-        self.update_ai_recommendations()
-        self.ai_agg_time_var.set(f"Total aggregate time: {sum(ai_rec[1] for ai_rec in self.ai_recommendation_history)}s")
-        # Reset turns
+            self.current_action_index -= 1
+            self.update_ai_recommendations()
+            self.ai_agg_time_var.set(f"Total aggregate time: {sum(ai_rec[1] for ai_rec in self.ai_recommendation_history)}s")
         self.player_turn = "black" if self.player_turn == "white" else "white"
+        # Reset turns
         self.num_moves[self.player_turn] += 1
         self.update_display()
-        self.pause()
-
-        if self.config['color_selection'] != self.player_turn:
-            self.current_action_index -= 1
+        self.start_turn()
 
     def reset_game(self):
         """Clears the board, the log, and the game variables."""
