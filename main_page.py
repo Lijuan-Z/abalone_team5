@@ -1,4 +1,5 @@
 import math
+import threading
 import tkinter as tk
 
 
@@ -80,6 +81,10 @@ class GameGUI(tk.Frame):
         self.num_moves = {
             'white': self.config['game_move_limit'],
             'black': self.config['game_move_limit']
+        }
+        self.time_left = {
+            'white': self.config['move_time_limit'],
+            'black': self.config['move_time_limit']
         }
         self.total_move_number = self.config['game_move_limit']
 
@@ -230,21 +235,24 @@ class GameGUI(tk.Frame):
     def update_display(self):
         self.turn_var.set("Player turn: " + self.player_turn)
         self.move_var.set(f"Moves left: {self.num_moves[self.player_turn]}")
-        self.time_var.set("Time left: " + "TODO")
+        self.time_var.set(f"Time left: {self.time_left[self.player_turn]}")
 
     def start(self):
         self.update_display()
         self.start_turn()
 
     def start_turn(self):
+        print("starting turn")
         self.resume_button.config(state="disabled")
         if self.total_move_number > 0:
+
             if self.config['color_selection'] != self.player_turn:
                 print('Computer turn')
                 self.action_entry.config(state="disabled")
                 action = self.actions[self.current_action_index]
                 self.current_action_index += 1
-                self.execute_action(action)
+                timer = threading.Timer(3, lambda: self.execute_action(action))
+                timer.start()
             else:
                 print('Human turn')
                 self.action_entry.config(state="normal")
@@ -258,6 +266,7 @@ class GameGUI(tk.Frame):
         self.num_moves[self.player_turn] -= 1
         self.player_turn = "black" if self.player_turn == "white" else "white"
         self.update_display()
+        print("end turn")
         self.start_turn()
 
     def undo_last_move(self):
