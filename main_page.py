@@ -322,7 +322,7 @@ class GameGUI(tk.Frame):
                     x = 40 + (2 * i + 1) * r + abs(j) * r
                     y = 300 - r * j * math.sqrt(3)
                     k = j if j > 0 else 0
-                    key = f'{cols[j + 4]}{i + 1 + k}'  # Construct the key string
+                    key = f'{cols[j + 4]}{i + 1 + k}'
                     # Set the values for x0, x1, y0, y1, and color for each key
                     color_value = 'lightgrey'
                     text_color = 'black'
@@ -361,7 +361,8 @@ class GameGUI(tk.Frame):
             source_color = self.positions[source_key]['color']
             # Update the color of the destination and the source
             self.positions[destination_key]['color'] = source_color
-            destination_text_color = 'white' if source_color == 'black' else 'black'
+            destination_text_color = 'white' \
+                if source_color == 'black' else 'black'
             self.canvas.itemconfig(self.positions[destination_key]['id'],
                                    fill=source_color)
             self.canvas.create_text(self.positions[destination_key]['x'],
@@ -380,8 +381,10 @@ class GameGUI(tk.Frame):
 
     def update_display(self):
         """Updates the UI with the changes to the game variables."""
-        curr_player = 'human' if self.player_turn == self.config['color_selection'] else 'ai'
-        self.turn_var.set(f"Player turn: {self.player_turn.capitalize()} ({curr_player.upper()})")
+        curr_player = 'human' \
+            if self.player_turn == self.config['color_selection'] else 'ai'
+        self.turn_var.set(f"Player turn: {self.player_turn.capitalize()} "
+                          f"({curr_player.upper()})")
         self.black_move_var.set(f"Black moves left: {self.num_moves['black']}")
         self.white_move_var.set(f"White moves left: {self.num_moves['white']}")
         self.black_score_label.config(text=f"Black Score: {self.white_loss}")
@@ -403,7 +406,8 @@ class GameGUI(tk.Frame):
             elif self.player_turn == 'white':
                 self.white_time_var.set(
                     f"White time left: {self.time_left['white']}")
-        elif self.paused is False and self.player_turn == owner and self.time_left[self.player_turn] == 0:
+        elif (self.paused is False and self.player_turn == owner and
+              self.time_left[self.player_turn] == 0):
             self.reset_game()
 
     def start(self):
@@ -455,7 +459,8 @@ class GameGUI(tk.Frame):
     def update_ai_recommendations(self):
         self.ai_recs_text.delete('1.0', 'end')
         for ai_recommendation in self.ai_recommendation_history:
-            self.ai_recs_text.insert(tk.END, f"{ai_recommendation[0]}: {ai_recommendation[1]}s\n")
+            self.ai_recs_text.insert(tk.END, f"{ai_recommendation[0]}: "
+                                             f"{ai_recommendation[1]}s\n")
 
     def execute_action(self, action):
         """Inputs action by moving marbles, updating log, and ending turn."""
@@ -468,11 +473,13 @@ class GameGUI(tk.Frame):
         print("end turn")
         self.ai_next_var.set("Awaiting AI turn.")
         if self.player_turn == 'black':
-            self.time_left[self.player_turn] = self.config["black_move_time_limit"]
+            self.time_left[self.player_turn] = self.config[
+                "black_move_time_limit"]
             self.black_time_var.set(
                 f"Black time left: {self.time_left['black']}")
         elif self.player_turn == 'white':
-            self.time_left[self.player_turn] = self.config['white_move_time_limit']
+            self.time_left[self.player_turn] = self.config[
+                'white_move_time_limit']
             self.white_time_var.set(
                 f"White time left: {self.time_left['white']}")
         self.player_turn = "black" if self.player_turn == "white" else "white"
