@@ -157,12 +157,12 @@ class GameGUI(tk.Frame):
         self.score_frame = tk.Frame(self.info_frame)
         self.score_frame.pack(side="left", padx=20)
 
-        self.white_score_label = tk.Label(self.score_frame,
-                                          text=f"Black score: ")
-        self.white_score_label.pack(side=tk.TOP, anchor=tk.W)
         self.black_score_label = tk.Label(self.score_frame,
-                                          text=f"White score: ")
+                                          text=f"Black score: ")
         self.black_score_label.pack(side=tk.TOP, anchor=tk.W)
+        self.white_score_label = tk.Label(self.score_frame,
+                                          text=f"White score: ")
+        self.white_score_label.pack(side=tk.TOP, anchor=tk.W)
 
         # Player time limit label
         self.time_frame = tk.Frame(self.info_frame)
