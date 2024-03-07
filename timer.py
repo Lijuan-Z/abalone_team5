@@ -9,6 +9,9 @@ class Timer:
         self.running = False
         self.stop_event = asyncio.Event()
 
+    def get_time(self):
+        return self.time
+
     def set_time(self, new_time):
         self.time = new_time
 
