@@ -10,8 +10,10 @@ class GameGUI(tk.Frame):
     DEFAULT_CONFIG = {
         'board_layout': 'standard',
         'color_selection': 'black',
+        'game_mode': 'human vs. computer',
         'game_move_limit': 10,
-        'move_time_limit': 30,
+        'black_move_time_limit': 30,
+        'white_move_time_limit': 30,
     }
     CIRCLE_RADIUS = 30
     COLUMNS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
@@ -92,6 +94,7 @@ class GameGUI(tk.Frame):
         # Config setup
         self.config = config_options if config_options is not None else (
             GameGUI.DEFAULT_CONFIG)
+        print(self.config)
 
         # Game info
         self.positions = {}
@@ -102,8 +105,8 @@ class GameGUI(tk.Frame):
             'black': self.config['game_move_limit']
         }
         self.time_left = {
-            'white': self.config['move_time_limit'],
-            'black': self.config['move_time_limit']
+            'white': self.config['black_move_time_limit'],
+            'black': self.config['white_move_time_limit']
         }
         self.total_move_number = self.config['game_move_limit']
 
@@ -159,12 +162,12 @@ class GameGUI(tk.Frame):
         self.move_frame.pack(side="left", padx=20)
 
         self.black_move_var = tk.StringVar()
-        self.black_move_var.set(f"Black moves left:")
+        self.black_move_var.set(f"Black moves left: {self.num_moves['black']}")
         self.black_move_label = tk.Label(self.move_frame, textvariable=self.black_move_var)
         self.black_move_label.pack(side=tk.TOP, anchor=tk.W)
 
         self.white_move_var = tk.StringVar()
-        self.white_move_var.set(f"White moves left:")
+        self.white_move_var.set(f"White moves left: {self.num_moves['white']}")
         self.white_move_label = tk.Label(self.move_frame, textvariable=self.white_move_var)
         self.white_move_label.pack(side=tk.TOP, anchor=tk.W)
 
@@ -173,10 +176,10 @@ class GameGUI(tk.Frame):
         self.score_frame.pack(side="left", padx=20)
 
         self.black_score_label = tk.Label(self.score_frame,
-                                          text=f"Black score: ")
+                                          text=f"Black score: {self.white_loss}")
         self.black_score_label.pack(side=tk.TOP, anchor=tk.W)
         self.white_score_label = tk.Label(self.score_frame,
-                                          text=f"White score: ")
+                                          text=f"White score: {self.black_loss}")
         self.white_score_label.pack(side=tk.TOP, anchor=tk.W)
 
         # Player time limit label
@@ -184,12 +187,12 @@ class GameGUI(tk.Frame):
         self.time_frame.pack(side="left", padx=20)
 
         self.black_time_var = tk.StringVar()
-        self.black_time_var.set(f"Black time left: ")
+        self.black_time_var.set(f"Black time left: {self.time_left['black']}")
         self.time_label = tk.Label(self.time_frame, textvariable=self.black_time_var)
         self.time_label.pack(side=tk.TOP, anchor=tk.W)
 
         self.white_time_var = tk.StringVar()
-        self.white_time_var.set(f"White time left: ")
+        self.white_time_var.set(f"White time left: {self.time_left['white']}")
         self.time_label = tk.Label(self.time_frame, textvariable=self.white_time_var)
         self.time_label.pack(side=tk.TOP, anchor=tk.W)
 
@@ -228,16 +231,6 @@ class GameGUI(tk.Frame):
         self.action_entry.bind("<Return>",
                                lambda _: self.action_entry_callback())
 
-        # Reset Button
-        self.reset_button = tk.Button(self.button_subframe, text="Reset",
-                                      command=self.reset_game, state="disabled")
-        self.reset_button.pack(side="left", padx=5)
-
-        # Undo Button
-        self.undo_button = tk.Button(self.button_subframe, text="Undo Last Move",
-                                     command=self.undo_last_move, state="disabled")
-        self.undo_button.pack(side="left", padx=5)
-
         # Pause Button
         self.pause_button = tk.Button(self.button_subframe, text="Pause",
                                       command=self.pause,
@@ -249,6 +242,17 @@ class GameGUI(tk.Frame):
                                        command=self.start_turn,
                                        state="disabled")
         self.resume_button.pack(side="left", padx=5)
+
+        # Undo Button
+        self.undo_button = tk.Button(self.button_subframe, text="Undo Last Move",
+                                     command=self.undo_last_move, state="disabled")
+        self.undo_button.pack(side="left", padx=5)
+
+        # Reset Button
+        self.reset_button = tk.Button(self.button_subframe, text="Reset",
+                                      command=self.reset_game,
+                                      state="disabled")
+        self.reset_button.pack(side="left", padx=5)
 
         # Stop Button
         stop_button = tk.Button(self.button_frame, text="Stop",
@@ -359,10 +363,9 @@ class GameGUI(tk.Frame):
     def start(self):
         """Starts the game as new, resetting the UI then starting a turn."""
         self.state_var.set("PLAYING")
+        self.start_button.config(state="disabled")
         self.reset_button.config(state="normal")
         self.undo_button.config(state="normal")
-        self.black_time_var.set(f"Black time left: {self.time_left['black']}")
-        self.white_time_var.set(f"White time left: {self.time_left['white']}")
         self.update_display()
         self.start_turn()
 
@@ -399,9 +402,11 @@ class GameGUI(tk.Frame):
     def pause(self):
         """Pauses the game and the timer."""
         self.state_var.set("PAUSED")
-        self.resume_button.config(state="normal")
-        self.pause_button.config(state="disabled")
         self.action_entry.config(state="disabled")
+        self.pause_button.config(state="disabled")
+        self.resume_button.config(state="normal")
+        self.undo_button.config(state="normal")
+        self.reset_button.config(state="normal")
         self.paused = True
 
     def unpause(self):
@@ -409,6 +414,8 @@ class GameGUI(tk.Frame):
         self.state_var.set("PLAYING")
         self.pause_button.config(state="normal")
         self.resume_button.config(state="disabled")
+        self.undo_button.config(state="disabled")
+        self.reset_button.config(state="disabled")
         self.paused = False
 
     def undo_last_move(self):
@@ -444,10 +451,15 @@ class GameGUI(tk.Frame):
     def reset_game(self):
         """Clears the board, the log, and the game variables."""
         # Reset
+        self.start_button.config(state="normal")
         self.player_turn = 'black'
         self.num_moves = {
             'white': self.config['game_move_limit'],
             'black': self.config['game_move_limit']
+        }
+        self.time_left = {
+            'white': self.config['black_move_time_limit'],
+            'black': self.config['white_move_time_limit']
         }
         self.total_move_number = self.config['game_move_limit']
         self.draw_gui()
