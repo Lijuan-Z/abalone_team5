@@ -323,6 +323,10 @@ class GameGUI(tk.Frame):
             elif self.player_turn == 'white':
                 self.white_time_var.set(
                     f"White time left: {self.time_left['white']}")
+        elif self.paused == False and self.player_turn == owner and self.time_left[self.player_turn] == 0:
+            winner = 'white' if self.player_turn == 'black' else 'black'
+            self.reset_game()
+            self.state_var.set(f"GAME OVER! {winner.upper()} WINS")
 
     def start(self):
         self.state_var.set("PLAYING")
@@ -412,6 +416,6 @@ class GameGUI(tk.Frame):
         }
         self.total_move_number = self.config['game_move_limit']
         self.draw_gui()
-        self.update_display()
+        self.draw_game_board()
         # Clear log information
         self.log_text.delete(1.0, tk.END)
