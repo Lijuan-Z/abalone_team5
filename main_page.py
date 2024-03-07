@@ -226,12 +226,19 @@ class GameGUI(tk.Frame):
         self.ai_recs_text = tk.Text(self.ai_recs_frame, height=10, width=20)
         self.ai_recs_text.pack(side=tk.TOP, anchor=tk.W)
 
+        # AI Aggregate Time Label
+        self.ai_agg_time_var = tk.StringVar()
+        self.ai_agg_time_var.set(f"Total aggregate time: {sum(ai_rec[1] for ai_rec in self.ai_recommendation_history)}s")
+        self.ai_agg_time_label = tk.Label(self.ai_recs_frame,
+                                      textvariable=self.ai_agg_time_var)
+        self.ai_agg_time_label.pack(side=tk.TOP, anchor=tk.W)
+
         # AI Next Recommendation Label
         self.ai_next_label = tk.Label(self.ai_recs_frame,
                                       text="AI Next Recommendation:")
         self.ai_next_label.pack(side=tk.TOP, anchor=tk.W, pady=(30, 5))
 
-        # AI Next Recommendation Text
+        # AI Next Recommendation Variable Label
         self.ai_next_var = tk.StringVar()
         self.ai_next_var.set("Awaiting AI turn.")
         self.ai_next_label = tk.Label(self.ai_recs_frame,
@@ -430,6 +437,7 @@ class GameGUI(tk.Frame):
         """Updates the AI next recommendation and AI recommendation history."""
         self.ai_next_var.set(f"<{action}>")
         self.update_ai_recommendations()
+        self.ai_agg_time_var.set(f"Total aggregate time: {sum(ai_rec[1] for ai_rec in self.ai_recommendation_history)}")
         self.action_entry.config(state="normal")
         self.pause_button.config(state="normal")
 
@@ -505,6 +513,7 @@ class GameGUI(tk.Frame):
         if (len(self.ai_recommendation_history) > 0):
             self.ai_recommendation_history.pop()
         self.update_ai_recommendations()
+        self.ai_agg_time_var.set(f"Total aggregate time: {sum(ai_rec[1] for ai_rec in self.ai_recommendation_history)}s")
         # Reset turns
         self.player_turn = "black" if self.player_turn == "white" else "white"
         self.num_moves[self.player_turn] += 1
