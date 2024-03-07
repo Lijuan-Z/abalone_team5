@@ -106,8 +106,8 @@ class GameGUI(tk.Frame):
             'black': self.config['game_move_limit']
         }
         self.time_left = {
-            'white': self.config['black_move_time_limit'],
-            'black': self.config['white_move_time_limit']
+            'white': self.config['white_move_time_limit'],
+            'black': self.config['black_move_time_limit']
         }
         self.total_move_number = self.config['game_move_limit']
 
@@ -542,13 +542,16 @@ class GameGUI(tk.Frame):
         # Reset
         self.start_button.config(state="normal")
         self.player_turn = 'black'
+        self.paused = True
+        self.ai_recommendation_history = list()
+        self.update_ai_recommendations()
         self.num_moves = {
             'white': self.config['game_move_limit'],
             'black': self.config['game_move_limit']
         }
         self.time_left = {
-            'white': self.config['black_move_time_limit'],
-            'black': self.config['white_move_time_limit']
+            'white': self.config['white_move_time_limit'],
+            'black': self.config['black_move_time_limit']
         }
         self.total_move_number = self.config['game_move_limit']
         self.current_action_index = 0
