@@ -45,20 +45,21 @@ after making your changes, you can create an executable.
 
 <br></br>
 The executable will be placed in
->abalone_team5/dist/game_app/
+dist/
 
 \*will overwrite any previous builds in the directory
 
 # Running The Game
-1. navigate to the executables directory
+1. download the repo zip
 
-> abalone_team5/dist/
+2. navigate to the executables directory
+> dist/
 
-2. Execute `game_app.exe`
+3. Execute `game_app.exe`
 
-3. On the configuration page, set up the game parameters according to your preferences. Once configured, press the "Start Game" button to proceed to the game board.
+4. On the configuration page, set up the game parameters according to your preferences. Once configured, press the "Start Game" button to proceed to the game board.
 
-4. Click the "Start" button located at the bottom-left corner of the screen to initiate the game.
+5. Click the "Start" button located at the bottom-left corner of the screen to initiate the game.
 
 
 # How To Play
@@ -74,7 +75,9 @@ The executable will be placed in
 
 2. Hit `enter` to confirm move
 
-3. Wait for AI to make it's move
+3. Wait for AI to make it's suggestion
 
-4. Repeat
+4. Input a move for the AI 
+
+5. Repeat
 
