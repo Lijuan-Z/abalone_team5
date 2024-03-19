@@ -51,9 +51,7 @@ W --  ⎸  ⎹  -- E
      /     \
    SW       SE
 
-directions = [NE, E, SE, SW, W, NW]
-sidestep_candidate_directions = [NW, NE, E]
-non_sidestep_candidate_directions = [SE, SW, W]
+absolute_directions = [10, 11, 1]
 valid_inline_patterns = [
                             ...
                             lisa patterns
@@ -63,14 +61,13 @@ sidestep_groups = []
 inline_moves = []
 
 for marble in player_turn's color:
-    for directions in sidestep_candidate_directions:
+    for direction in absolute_directions:
         inline_moves_to_add, sidestep_groups = gen_sidesteps_and_inlines(marble, direction)
 
         inline_moves.append(inline_moves_to_add)
         sidestep_groups.append(sidestep_groups_to_add)
 
-    for directions in non_sidestep_candidate_directions:
-        inline_moves_to_add = gen_inlines(marble, direction)
+        inline_moves_to_add = gen_inlines(marble, -direction)
         inline_moves.append(inline_moves_to_add)
 
 def gen_sidesteps_and_inlines(marble, direction):
