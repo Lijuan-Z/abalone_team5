@@ -64,30 +64,65 @@ inline_moves = []
 
 for marble in player_turn's color:
     for directions in sidestep_candidate_directions:
-        sidestep_groups_to_add, inline_moves_to_add = gen_sidesteps_and_inlines(marble, direction)
+        inline_moves_to_add, sidestep_groups = gen_sidesteps_and_inlines(marble, direction)
 
-        sidestep_groups.append(sidestep_groups_to_add)
         inline_moves.append(inline_moves_to_add)
+        sidestep_groups.append(sidestep_groups_to_add)
 
     for directions in non_sidestep_candidate_directions:
         inline_moves_to_add = gen_inlines(marble, direction)
         inline_moves.append(inline_moves_to_add)
 
 def gen_sidesteps_and_inlines(marble, direction):
+    sidestep_groups = []
     cur_grouping = [marble]
     next = marble + direction
 
     num_players = 1
     num_enemies = 0
 
-    terminate = false
-    while not terminate:
+    while True:
+        # add sidestep logic later
+        if next == AVAILABLE:
+           or next == OUT_OF_BOUNDS
+           or num_players == num_enemies
+           or num_players > 3
+           break # terminate
+
+        cur_grouping.append(next)
+
+        if next == PLAYER:
+            sidestep_groups.append(cur_grouping)
+            num_players += 1
+        elif next == ENEMY:
+            num_enemies += 1
+
+        next += direction
+
+    if next == OUT_OF_BOUNDS and cur_grouping[-1] == PLAYER:
+        return None, sidestep_groups
+    elif num_players == 4:
+        return None, sidestep_groups
+    elif num_players > num_enemies:
+        return cur_grouping, sidestep_groups
+    else:
+        return None, sidestep_groups
+
+
+def gen_inlines(marble, direction):
+    cur_grouping = [marble]
+    next = marble + direction
+
+    num_players = 1
+    num_enemies = 0
+
+    while True:
         # add sidestep logic later
         if next == AVAILABLE
            or next == OUT_OF_BOUNDS
            or num_players == num_enemies
            or num_players > 3
-           terminate = true
+           break # terminate
 
         cur_grouping.append(next)
 
@@ -98,11 +133,16 @@ def gen_sidesteps_and_inlines(marble, direction):
 
         next += direction
 
+    if next == OUT_OF_BOUNDS and cur_grouping[-1] == PLAYER:
+        return None
+    elif num_players == 4:
+        return None
+    elif num_players > num_enemies:
+        return cur_grouping
+    else:
+        return None
 
 
-
-
-def gen_inlines(marble, direction):
 
 is_valid_sidestep_group(marble_group):
     # longer than 1
