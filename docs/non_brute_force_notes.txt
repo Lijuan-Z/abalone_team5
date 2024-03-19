@@ -56,9 +56,6 @@ valid_inline_patterns = [
                             ...
                             lisa patterns
                         ]
-
-sidestep_groups = []
-inline_moves = []
 bounds = {
     1: (1, 5)
     2: (1, 6)
@@ -78,17 +75,26 @@ bounds = {
 #   col = coord % 10 = 2
 #   out_of_bounds = col < bounds[row][0] or col > bounds[row][1]
 
-for marble in player_turn's color:
-    for direction in absolute_directions:
-        inline_move, sidestep_groups = gen_sidesteps_and_inlines(marble, direction)
+def gen_all_moves():
+    inline_moves, sidestep_groups = gen_all_sidegroups_inmoves()
 
-        inline_moves.append(inline_move)
-        sidestep_groups.append(sidestep_groups_to_add)
+def gen_all_sidegroups_inmoves():
+    sidestep_groups = []
+    inline_moves = []
 
-        inline_move = gen_inlines(marble, -direction)
-        inline_moves.append(inline_move)
+    for marble in player_turn's color:
+        for direction in absolute_directions:
+            inline_move, sidestep_groups = gen_sidesteps_and_inlines(marble, direction)
 
-def gen_sidesteps_and_inlines(marble, direction):
+            inline_moves.append(inline_move)
+            sidestep_groups.append(sidestep_groups_to_add)
+
+            inline_move = gen_inlines(marble, -direction)
+            inline_moves.append(inline_move)
+
+    return inline_moves, sidestep_groups
+
+def gen_single_sidegroups_and_inmove(marble, direction):
     sidestep_groups = []
     cur_grouping = [marble]
     next = marble + direction
@@ -124,7 +130,7 @@ def gen_sidesteps_and_inlines(marble, direction):
         return (None, sidestep_groups)
 
 
-def gen_inlines(marble, direction):
+def gen_single_inmove(marble, direction):
     cur_grouping = [marble]
     next = marble + direction
 
