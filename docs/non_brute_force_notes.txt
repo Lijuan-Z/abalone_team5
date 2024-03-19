@@ -185,3 +185,19 @@ def gen_single_inmove(marble, direction):
         return (cur_grouping, direction)
     else:
         return None
+
+def apply_move(board, player_color, groupdir):
+    for marble in groupdir[0]:
+        del board[marble]
+
+        new_coord = marble + delta
+        if is_out_of_bounds(new_coord):
+            continue
+
+        board[marble + delta] = player_color
+
+def is_out_of_bounds(marble):
+    # example marble: (82)
+    row = marble // 10 #  8
+    col = marble % 10  #  2
+    return col < bounds[row][0] or col > bounds[row][1]
