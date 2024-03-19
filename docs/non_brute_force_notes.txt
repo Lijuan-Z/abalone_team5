@@ -1,0 +1,122 @@
+P = Player marble
+E = Enemy marble
+A = Available
+O = Out of bounds
+
+P, E - terminate
+P, A - terminate, add
+P, O - terminate
+
+P, P, E
+P, P, E, E - terminate
+P, P, E, A - terminate, add (sumito)
+P, P, E, O - terminate, add (sumito, u-u-u-u-ultra kill)
+P, P, A - terminate, add
+P, P, O - terminate
+
+P, P, P, E
+P, P, P, E, E
+P, P, P, E, E, E - terminate
+P, P, P, E, E, A - terminate, add (sumito)
+P, P, P, E, E, O - terminate, add (sumito, mega kill)
+P, P, P, E, A - terminate, add (sumito)
+P, P, P, E, O - terminate, add (sumito, micro kill)
+P, P, P, A - terminate, add
+P, P, P, O - terminate
+
+P, P, P, P - terminate
+
+terminate:
+    next = A
+    next = O
+    num_players = num_enemies
+
+    num_players > 3
+
+when add:
+    terminate && (num_players > num_enemies)
+
+when sumito:
+    enemies > 1
+
+when kill:
+    next = O
+
+
+   NW       NE
+    \      /
+      ⟋  ⟍
+W --  ⎸  ⎹  -- E
+      ⟍  ⟋
+     /     \
+   SW       SE
+
+directions = [NE, E, SE, SW, W, NW]
+sidestep_candidate_directions = [NW, NE, E]
+non_sidestep_candidate_directions = [SE, SW, W]
+valid_inline_patterns = [
+                            ...
+                            lisa patterns
+                        ]
+
+sidestep_groups = []
+inline_moves = []
+
+for marble in player_turn's color:
+    for directions in sidestep_candidate_directions:
+        sidestep_groups_to_add, inline_moves_to_add = gen_sidesteps_and_inlines(marble, direction)
+
+        sidestep_groups.append(sidestep_groups_to_add)
+        inline_moves.append(inline_moves_to_add)
+
+    for directions in non_sidestep_candidate_directions:
+        inline_moves_to_add = gen_inlines(marble, direction)
+        inline_moves.append(inline_moves_to_add)
+
+def gen_sidesteps_and_inlines(marble, direction):
+    cur_grouping = [marble]
+    next = marble + direction
+
+    num_players = 1
+    num_enemies = 0
+
+    terminate = false
+    while not terminate:
+        # add sidestep logic later
+        if next == AVAILABLE
+           or next == OUT_OF_BOUNDS
+           or num_players == num_enemies
+           or num_players > 3
+           terminate = true
+
+        cur_grouping.append(next)
+
+        if next == PLAYER:
+            num_players += 1
+        elif next == ENEMY:
+            num_enemies += 1
+
+        next += direction
+
+
+
+
+
+def gen_inlines(marble, direction):
+
+is_valid_sidestep_group(marble_group):
+    # longer than 1
+
+
+
+
+
+
+
+
+
+
+
+if is_valid_sidestep_group(cur_grouping):
+    sidestep_groups.append(cur_grouping):
+
