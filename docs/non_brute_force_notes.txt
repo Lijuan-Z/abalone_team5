@@ -77,15 +77,29 @@ bounds = {
 
 def gen_all_moves():
     inline_moves, sidestep_groupdirs = gen_all_sidegroupdirs_inmoves()
-    sidestep_moves = (sidestep_groupdirs)
+    sidestep_moves = gen_sidemoves(sidestep_groupdirs)
     return inline_moves + sidestep_moves
 
 def gen_sidemoves(groupdirs):
-    for group_dir in groupdirs:
+    sidemoves = []
+
+    for groupdir in groupdirs:
         # example groupdir: ((34, 35, 36), 11)
         for direction in absolute_directions:
-            if direction groupdir[0]
+            if direction == groupdir[1]:
+                continue
 
+            if is_valid_sidemove(group_dir[0], direction):
+                sidemoves.append((group_dir[0], direction))
+
+            if is_valid_sidemove(group_dir[0], -direction):
+                sidemoves.append((group_dir[0], -direction))
+
+def is_valid_sidemove(group, direction):
+    for marble in group:
+        if marble + direction != AVAILABLE:
+            return False
+    return True
 
 def gen_all_sidegroupdirs_inmoves():
     sidestep_groupdirs = []
