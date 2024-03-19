@@ -76,26 +76,35 @@ bounds = {
 #   out_of_bounds = col < bounds[row][0] or col > bounds[row][1]
 
 def gen_all_moves():
-    inline_moves, sidestep_groups = gen_all_sidegroups_inmoves()
+    inline_moves, sidestep_groupdirs = gen_all_sidegroupdirs_inmoves()
+    sidestep_moves = (sidestep_groupdirs)
+    return inline_moves + sidestep_moves
 
-def gen_all_sidegroups_inmoves():
-    sidestep_groups = []
+def gen_sidemoves(groupdirs):
+    for group_dir in groupdirs:
+        # example groupdir: ((34, 35, 36), 11)
+        for direction in absolute_directions:
+            if direction groupdir[0]
+
+
+def gen_all_sidegroupdirs_inmoves():
+    sidestep_groupdirs = []
     inline_moves = []
 
     for marble in player_turn's color:
         for direction in absolute_directions:
-            inline_move, sidestep_groups = gen_sidesteps_and_inlines(marble, direction)
+            inline_move_to_add, sidestep_groupdirs_to_add = gen_sidesteps_and_inlines(marble, direction)
 
-            inline_moves.append(inline_move)
-            sidestep_groups.append(sidestep_groups_to_add)
+            inline_moves.append(inline_move_to_add)
+            sidestep_groupdirs.append(sidestep_groupdirs_to_add)
 
-            inline_move = gen_inlines(marble, -direction)
-            inline_moves.append(inline_move)
+            inline_move_to_add = gen_inlines(marble, -direction)
+            inline_moves.append(inline_move_to_add)
 
-    return inline_moves, sidestep_groups
+    return inline_moves, sidestep_groupdirs
 
-def gen_single_sidegroups_and_inmove(marble, direction):
-    sidestep_groups = []
+def gen_single_sidegroupdirs_and_inmove(marble, direction):
+    sidestep_groupdirs = []
     cur_grouping = [marble]
     next = marble + direction
 
@@ -113,7 +122,7 @@ def gen_single_sidegroups_and_inmove(marble, direction):
         cur_grouping.append(next)
 
         if next == PLAYER:
-            sidestep_groups.append((cur_grouping, direction))
+            sidestep_groupdirs.append((cur_grouping, direction))
             num_players += 1
         elif next == ENEMY:
             num_enemies += 1
@@ -121,13 +130,13 @@ def gen_single_sidegroups_and_inmove(marble, direction):
         next += direction
 
     if next == OUT_OF_BOUNDS and cur_grouping[-1] == PLAYER:
-        return (None, sidestep_groups)
+        return (None, sidestep_groupdirs)
     elif num_players == 4:
-        return (None, sidestep_groups)
+        return (None, sidestep_groupdirs)
     elif num_players > num_enemies:
-        return ((cur_grouping, direction), sidestep_groups)
+        return ((cur_grouping, direction), sidestep_groupdirs)
     else:
-        return (None, sidestep_groups)
+        return (None, sidestep_groupdirs)
 
 
 def gen_single_inmove(marble, direction):
@@ -162,22 +171,3 @@ def gen_single_inmove(marble, direction):
         return (cur_grouping, direction)
     else:
         return None
-
-
-
-is_valid_sidestep_group(marble_group):
-    # longer than 1
-
-
-
-
-
-
-
-
-
-
-
-if is_valid_sidestep_group(cur_grouping):
-    sidestep_groups.append(cur_grouping):
-
