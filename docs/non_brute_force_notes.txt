@@ -62,13 +62,13 @@ inline_moves = []
 
 for marble in player_turn's color:
     for direction in absolute_directions:
-        inline_moves_to_add, sidestep_groups = gen_sidesteps_and_inlines(marble, direction)
+        inline_move, sidestep_groups = gen_sidesteps_and_inlines(marble, direction)
 
-        inline_moves.append(inline_moves_to_add)
+        inline_moves.append(inline_move)
         sidestep_groups.append(sidestep_groups_to_add)
 
-        inline_moves_to_add = gen_inlines(marble, -direction)
-        inline_moves.append(inline_moves_to_add)
+        inline_move = gen_inlines(marble, -direction)
+        inline_moves.append(inline_move)
 
 def gen_sidesteps_and_inlines(marble, direction):
     sidestep_groups = []
@@ -89,7 +89,7 @@ def gen_sidesteps_and_inlines(marble, direction):
         cur_grouping.append(next)
 
         if next == PLAYER:
-            sidestep_groups.append(cur_grouping)
+            sidestep_groups.append((cur_grouping, direction))
             num_players += 1
         elif next == ENEMY:
             num_enemies += 1
@@ -97,13 +97,13 @@ def gen_sidesteps_and_inlines(marble, direction):
         next += direction
 
     if next == OUT_OF_BOUNDS and cur_grouping[-1] == PLAYER:
-        return None, sidestep_groups
+        return (None, sidestep_groups)
     elif num_players == 4:
-        return None, sidestep_groups
+        return (None, sidestep_groups)
     elif num_players > num_enemies:
-        return cur_grouping, sidestep_groups
+        return ((cur_grouping, direction), sidestep_groups)
     else:
-        return None, sidestep_groups
+        return (None, sidestep_groups)
 
 
 def gen_inlines(marble, direction):
@@ -135,7 +135,7 @@ def gen_inlines(marble, direction):
     elif num_players == 4:
         return None
     elif num_players > num_enemies:
-        return cur_grouping
+        return (cur_grouping, direction)
     else:
         return None
 
