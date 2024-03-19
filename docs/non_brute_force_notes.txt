@@ -59,6 +59,24 @@ valid_inline_patterns = [
 
 sidestep_groups = []
 inline_moves = []
+bounds = {
+    1: (1, 5)
+    2: (1, 6)
+    3: (1, 7)
+    4: (1, 8)
+    5: (1, 9)
+    6: (2, 9)
+    7: (3, 9)
+    8: (4, 9)
+    9: (5, 9)
+}
+
+# to figure out the bounds of a coordinate, div for row, check map, get min/max
+# e.g.
+#   coord = 82
+#   row = coord // 10 = 8
+#   col = coord % 10 = 2
+#   out_of_bounds = col < bounds[row][0] or col > bounds[row][1]
 
 for marble in player_turn's color:
     for direction in absolute_directions:
