@@ -75,6 +75,30 @@ bounds = {
 #   col = coord % 10 = 2
 #   out_of_bounds = col < bounds[row][0] or col > bounds[row][1]
 
+def in_to_dict():
+    pass
+
+def dict_to_out():
+    pass
+
+def move_to_out():
+    pass
+
+def gen_output_files(in_path, out_path_moves, out_path_board):
+    board = in_to_dict(in_path)
+    moves = gen_all_moves(board)
+
+    with open(out_path_moves, 'a+') as f_moves:
+        with open(out_path_board, 'a+') as f_board:
+            for move in moves:
+                out_formatted_move = move_to_out(move)
+                f_moves.write(out_formatted_move, out_path_moves)
+
+                resultant_board = apply_move(board)
+                out_formatted_board = dict_to_out(resultant_board)
+                f_board.write(out_formatted_board, move)
+
+
 def gen_all_moves():
     inline_moves, sidestep_groupdirs = gen_all_sidegroupdirs_inmoves()
     sidestep_moves = gen_sidemoves(sidestep_groupdirs)
