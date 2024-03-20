@@ -122,10 +122,46 @@ def genall_groupmove_resultboard(marbles: dict[int, int],
     # print("player_color:", player_color)
 
     player_marbles = filter_for_color(marbles, player_color)
-    pprint(player_marbles)
+    # print("player_marbles:")
+    # pprint(player_marbles)
+
+    all_groupmoves = genall_groupmoves()
+    print(all_groupmoves)
+    pprint(all_groupmoves)
 
 
-def filter_for_color(marbles: dict[int, int], color: int):
+def genall_groupmoves(marbles: dict[int, int]) \
+        -> list[tuple[tuple[tuple[int, int], ...], int]]:
+    """Generates all groupmoves given a dict of marbles.
+
+    return format explained:
+        list[groupmove]
+    """
+    inlinegroupmoves, sidestepgroupdirs = \
+        genall_inlinegroupmoves_sidestepgroupdirs()
+    # sidestep_moves = gen_sidemoves(sidestep_groupdirs)
+    # return inline_moves + sidestep_moves
+    return None
+
+
+def genall_inlinegroupmoves_sidestepgroupdirs(marbles: dict[int, int]) \
+        -> tuple[list[tuple[tuple[int, int], ...], int],
+                 list[tuple[tuple[int, int], ...], int]]:
+    """Generates all inline groupmoves and sidestep groupdirs.
+
+    outputs two lists due to optimization. We can generate these two
+    lists in one go, but it does make the code a little more complicated
+
+    return format explained:
+        list[inline_groupmoves, sidestep_groupdirs]
+
+        inline_groupmoves = list[groupmove]
+        sidestep_groupdirs = list[groupdirs]
+    """
+    return None, None
+
+def filter_for_color(marbles: dict[int, int],
+                     color: int) -> dict[int, int]:
     """filters the board out for the colors we are looking for."""
     return dict(filter(lambda marble: marble[1] == color, marbles.items()))
 
