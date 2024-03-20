@@ -131,7 +131,7 @@ def gen_all_sidegroupdirs_inmoves():
 
     for marble in player_turn's color:
         for direction in absolute_directions:
-            inline_move_to_add, sidestep_groupdirs_to_add = gen_sidesteps_and_inlines(marble, direction)
+            inline_move_to_add, sidestep_groupdirs_to_add = gen_single_sidegroupdirs_and_inmove(marble, direction)
 
             inline_moves.append(inline_move_to_add)
             sidestep_groupdirs.append(sidestep_groupdirs_to_add)
