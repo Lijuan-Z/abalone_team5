@@ -73,52 +73,51 @@ Informal Definition, and Conventions:
             derive_groupmove generates one or a small subset of groupmoves
 """
 from pprint import pprint
-import utils
+import debugutils
+import external
 
 
-def genall_movegroup_resultboard(in_path: str,
-                                 moves_path: str,
-                                 boardstates_path: str) -> None:
-    """Generates files for moves and board states given an input file."""
-    board, player_turn = in_to_marbles(in_path)
-    print("board: ")
-    pprint(board)
-    print(f"player_turn: {player_turn}")
-    utils.print_board(board)
+def genall_groupmove_resultboard(marbles: dict[int, int],
+                                 player_color: int)\
+        -> list[tuple[tuple[tuple[dict[int, int], ...], int], dict[int, int]]]:
+    """Generates all groupmoves and the resulting board from those moves.
 
+    return format explained:
+        output = list[(groupmove, resultant_board)]
 
-def in_to_marbles(in_path: str) -> tuple[dict[int, int], int]:
-    """Converts the input file into a dictionary of marbles and player turn.
+        groupmove = (group, direction)
+        resultant_board = list[marble]
 
-    The input format is described in the project outline documentation
-    and this function converts it into our desired board representation
-    as described in this module's docstring under "board dictionary format"
+        group = (marble, ...)
+        direction = int
+
+        marble = {coord : color, ...}
+
+        coord = int
+        color = int
     """
-    with open(in_path, 'r') as f:
-        player_turn = 0 if 'b' in f.readline() else 1
+    debugutils.print_board(marbles)
+    # print("marbles:")
+    # pprint(marbles)
+    # print("player_color:", player_color)
 
-        board = {}
-        for coord in f.readline().split(','):
-            column_digit = (ord(coord[0]) - 64)
-            row_digit = int(coord[1])
-            color = 0 if coord[2] == 'b' else 1
-            board[column_digit*10 + row_digit] = color
-
-    return board, player_turn
+    player_marbles = filter_for_color(marbles, player_color)
+    pprint(player_marbles)
 
 
-def filter_for_color(board: dict[int, int], color: int):
-    """In place, filters the board out for the colors we are looking for."""
-    return dict(filter(lambda x: x.value == color, board))
+def filter_for_color(marbles: dict[int, int], color: int):
+    """filters the board out for the colors we are looking for."""
+    return dict(filter(lambda marble: marble[1] == color, marbles.items()))
 
 
 if __name__ == "__main__":
     in_base = "data/in/"
     out_base = "data/out/"
-    genall_movegroup_resultboard(in_base+"Test2.input",
-                                 out_base+"test1.out.moves",
-                                 out_base+"test1.out.board")
 
-    genall_movegroup_resultboard(in_base+"Test1.input",
-                                 out_base+"test1.out.moves",
-                                 out_base+"test1.out.board")
+    board_marbles, player_color = external.in_to_marbles(in_base+"Test1.input")
+    result = genall_groupmove_resultboard(board_marbles, player_color)
+    print("groupmoves_resultboards:", result)
+
+    # board_marbles, player_color = external.in_to_marbles(in_base+"Test2.input")
+    # result = genall_groupmove_resultboard(board_marbles, player_color)
+    # print("groupmoves_resultboards:", result)
