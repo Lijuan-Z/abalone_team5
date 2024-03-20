@@ -40,28 +40,48 @@ Informal Definition, and Conventions:
                  10:NW     11:NE
                      \     /
                       ⟋  ⟍
-            -01:W --  ⎸  ⎹  -- 01:E
+             -1:W --  ⎸  ⎹  -- 1:E
                       ⟍  ⟋
                      /     \
                 -11:SW    -10:SE
 
 
     GROUP:
-        a combination of 1, 2, or 3 marbles formatted like so:
-            ((<marble_coord>:<marble_color>, ...), delta)
+        a tuple of 1, 2, or 3 marbles formatted like so:
+            ((<marble_coord>,<marble_color>), ...)
 
         examples:
-            (34, 33, 37)
-            (23,)
-            (21, 32)
+            ( (34,1), (33,1), (37,1) )
+            a group of 3 white marbles
+
+            ( (23,0) )
+            a single white marble
+
+            ( (21,0), (32,1) )
+            a black and a white marble
 
 
     GROUPMOVE:
         a groupmove is a group of marbles moving in a certain direction
         with the following format:
-            ((marble1, ...), delta)
+            ((marble, ...), delta)
 
         example:
+        ( ((33,0), (34,0), (35,1)), 1 )
+        this is a 2-black, 1-white sumito in the east direction
+
+
+    GROUPDIR:
+        an enriched group with a facing direction.
+        **Not to be mistaken for a groupmove**
+        this is a type of group that has an attached a direction it is "facing"
+        but is not necessarily moving in. it has the following format:
+            ((marble, ...), facing_direction)
+
+        example:
+        ( ((33,1), (34,1), (35,1)), 1 )
+        this tells us this is a group of marbles laying along the -1<-->1 axis
+        but not necessarily moving towards that direction
 
 
     GENALL VS DERIVE:
@@ -79,19 +99,19 @@ import external
 
 def genall_groupmove_resultboard(marbles: dict[int, int],
                                  player_color: int)\
-        -> list[tuple[tuple[tuple[dict[int, int], ...], int], dict[int, int]]]:
+        -> list[tuple[tuple[tuple[int, int], ...], int], dict[int, int]]:
     """Generates all groupmoves and the resulting board from those moves.
 
     return format explained:
         output = list[(groupmove, resultant_board)]
 
         groupmove = (group, direction)
-        resultant_board = list[marble]
+        resultant_board = dict{marble_coord: marble_color}
 
         group = (marble, ...)
         direction = int
 
-        marble = {coord : color, ...}
+        marble = {coord : color}
 
         coord = int
         color = int
