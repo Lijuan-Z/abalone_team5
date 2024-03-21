@@ -26,6 +26,69 @@ P, P, P, O - terminate
 
 P, P, P, P - terminate
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+P, E - terminate
+P, A - terminate, add
+P, O - terminate
+
+P, P, E
+P, P, E, E - terminate
+P, P, E, A - terminate, add (sumito)
+P, P, E, O - terminate, add (sumito, u-u-u-u-ultra kill)
+P, P, E, P - terminate xXx--==***********==--xXx
+P, P, A - terminate, add
+P, P, O - terminate
+
+P, P, P, E
+P, P, P, E, E
+P, P, P, E, E, E - terminate
+P, P, P, E, E, A - terminate, add (sumito)
+P, P, P, E, E, O - terminate, add (sumito, mega kill)
+P, P, P, E, E, P - terminate xXx--==***********==--xXx
+P, P, P, E, A - terminate, add (sumito)
+P, P, P, E, O - terminate, add (sumito, micro kill)
+P, P, P, E, P - terminate xXx--==***********==--xXx
+P, P, P, A - terminate, add
+P, P, P, O - terminate
+
+P, P, P, P - terminate
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 terminate:
     next = A
     next = O

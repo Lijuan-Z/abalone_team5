@@ -143,10 +143,34 @@ def genall_groupmove_resultboard(marbles: dict[int, int],
 
     inlinegroupmoves, sidestepgroupmoves = genall_groupmoves(marbles, player_marbles)
 
-    with open("data/out/TESTOUT", 'a+') as f_board:
+    with open("data/out/TESTOUT2", 'a+') as f_board:
         for move in inlinegroupmoves:
             resultant_board = marbles.copy()
+
             apply_move(resultant_board, move)
+            print("===============================")
+            print("===============================")
+            print(dict_to_out(marbles), ":")
+            debugutils.print_board(marbles)
+            print(dict_to_out(resultant_board), ":")
+            debugutils.print_board(resultant_board)
+            print("===============================")
+            print("===============================")
+            out_formatted_board = dict_to_out(resultant_board)
+            f_board.write(out_formatted_board)
+
+        for move in sidestepgroupmoves:
+            resultant_board = marbles.copy()
+
+            apply_move(resultant_board, move)
+            print("===============================")
+            print("===============================")
+            print(dict_to_out(marbles), ":")
+            debugutils.print_board(marbles)
+            print(dict_to_out(resultant_board), ":")
+            debugutils.print_board(resultant_board)
+            print("===============================")
+            print("===============================")
             out_formatted_board = dict_to_out(resultant_board)
             f_board.write(out_formatted_board)
 
@@ -228,9 +252,11 @@ def derive_sidestepgroupmoves(board: dict[int, int],
 
             if is_valid_sidemove(board, groupdir[0], direction):
                 sidestepgroupmoves.append((groupdir[0], direction))
+                print()
 
             if is_valid_sidemove(board, groupdir[0], -direction):
                 sidestepgroupmoves.append((groupdir[0], -direction))
+                print()
 
     return sidestepgroupmoves
 
@@ -240,11 +266,15 @@ def is_valid_sidemove(board: dict[int, int],
                       direction: int) -> bool:
     """True if groupdir being moved in direction is a valid sidemove."""
     for marble in group:
+        new_coord = marble[0] + direction
         try:
-            board[marble[0] + direction]
+            board[new_coord]
             return False
         except KeyError:
             pass
+
+        if is_out_of_bounds(new_coord):
+            return False
 
     return True
 
@@ -439,7 +469,7 @@ if __name__ == "__main__":
     out_base = "data/out/"
     import external
 
-    test_num = 1
+    test_num = 2
     board_marbles, player_color = external.in_to_marbles(f"{in_base}Test{test_num}.input")
     result = genall_groupmove_resultboard(board_marbles, player_color)
     print("groupmoves_resultboards:", result)
