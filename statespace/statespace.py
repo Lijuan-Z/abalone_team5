@@ -93,27 +93,15 @@ Informal Definition, and Conventions:
             derive_groupmove generates one or a small subset of groupmoves
 """
 # import debugutils
+from marblecoords import is_out_of_bounds
+
 
 absolute_directions = [10, 11, 1]
-
-bounds = {
-    0: (5, 4),
-    1: (1, 5),
-    2: (1, 6),
-    3: (1, 7),
-    4: (1, 8),
-    5: (1, 9),
-    6: (2, 9),
-    7: (3, 9),
-    8: (4, 9),
-    9: (5, 9),
-    10: (5, 4)
-}
 
 
 def genall_groupmove_resultboard(marbles: dict[int, int],
                                  player_color: int)\
-        -> list[tuple[tuple[tuple[int, int], ...], int], dict[int, int]]:
+        -> list[tuple[tuple[tuple[tuple[int, int], ...], int], dict[int, int]]]:
     """Generates all groupmoves and the resulting board from those moves.
 
     return format explained:
@@ -130,46 +118,30 @@ def genall_groupmove_resultboard(marbles: dict[int, int],
         coord = int
         color = int
     """
+    groupmove_resultboards = []
     player_marbles = dict(filter(lambda marble: marble[1] == player_color,
                                  marbles.items()))
 
-    inlinegroupmoves, sidestepgroupmoves = genall_groupmoves(marbles, player_marbles)
+    inlinegroupmoves, sidestepgroupmoves = genall_groupmoves(marbles,
+                                                             player_marbles)
 
-    with open("data/out/TESTOUT2", 'a+') as f_board:
-        for move in inlinegroupmoves:
-            resultant_board = marbles.copy()
+    for move in inlinegroupmoves:
+        resultant_board = marbles.copy()
+        apply_move(resultant_board, move)
+        groupmove_resultboards.append((move, resultant_board))
 
-            apply_move(resultant_board, move)
-            out_formatted_board = dict_to_out(resultant_board)
-            f_board.write(out_formatted_board)
+    for move in sidestepgroupmoves:
+        resultant_board = marbles.copy()
+        apply_move(resultant_board, move)
+        groupmove_resultboards.append((move, resultant_board))
 
-        for move in sidestepgroupmoves:
-            resultant_board = marbles.copy()
-
-            apply_move(resultant_board, move)
-            out_formatted_board = dict_to_out(resultant_board)
-            f_board.write(out_formatted_board)
-
-
-def dict_to_out(board):
-    out_str = ""
-
-    # board_items = board.items()
-    # blacks = list(filter(lambda item: item[1] == 0, board_items))
-    # whites = list(filter(lambda item: item[1] == 1, board_items))
-    # blacks.sort()
-    # whites.sort()
-
-    # all_marbles = blacks + whites
-    for coord, color in board.items():
-        out_str += f"{chr((coord//10) + 64)}{coord%10}{'b' if color == 0 else 'w'},"
-
-    return f"{out_str[:-1]}\n"
+    return groupmove_resultboards
 
 
 def genall_groupmoves(board: dict[int, int],
                       player_marbles: dict[int, int]) \
-        -> list[tuple[tuple[tuple[int, int], ...], int]]:
+        -> tuple[list[tuple[tuple[tuple[int], ...], int]],
+                 list[tuple[tuple[tuple[int], ...], int]]]:
     """Generates all groupmoves given a dict of marbles and the current board.
 
     return format explained:
@@ -365,13 +337,6 @@ def derive_inlinegroupmove(board: dict[int, int],
         return tuple(cur_grouping), direction
     else:
         return None
-
-
-def is_out_of_bounds(marble_coord: int) -> bool:
-    """True if marble coord is out of bounds of an abalone board."""
-    row = marble_coord // 10
-    col = marble_coord % 10
-    return col < bounds[row][0] or col > bounds[row][1]
 
 
 def apply_move(board, groupmove):
