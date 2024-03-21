@@ -417,9 +417,14 @@ def is_out_of_bounds(marble_coord: int) -> bool:
 
 def apply_move(board, groupmove):
     """Apply the given move to the given board state."""
-    for marble in groupmove[0]:
+    for marble in reversed(groupmove[0]):
         del board[marble[0]]
+        new_coord = marble[0] + groupmove[1]
+        if is_out_of_bounds(new_coord):
+            continue
         board[marble[0] + groupmove[1]] = marble[1]
+        print()
+
 
 
 if __name__ == "__main__":
