@@ -169,7 +169,7 @@ def dict_to_out(board):
         # (67, 1)
         out_str += f"{chr((marble[0]//10) + 64)}{marble[0]%10}{'b' if marble[1] == 0 else 'w'},"
 
-    return out_str + "\n"
+    return out_str[:-1] + "\n"
 
 
 
