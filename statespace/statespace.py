@@ -93,8 +93,7 @@ Informal Definition, and Conventions:
             derive_groupmove generates one or a small subset of groupmoves
 """
 # from pprint import pprint
-# import debugutils
-import external
+import debugutils
 
 absolute_directions = [10, 11, 1]
 
@@ -132,7 +131,7 @@ def genall_groupmove_resultboard(marbles: dict[int, int],
         coord = int
         color = int
     """
-    # debugutils.print_board(marbles)
+    debugutils.print_board(marbles)
     # print("marbles:")
     # pprint(marbles)
     # print("player_color:", player_color)
@@ -142,9 +141,55 @@ def genall_groupmove_resultboard(marbles: dict[int, int],
     # print("player_marbles:")
     # pprint(player_marbles)
 
-    all_groupmoves = genall_groupmoves(marbles, player_marbles)
+    inlinegroupmoves, sidestepgroupmoves = genall_groupmoves(marbles, player_marbles)
+
+    with open("data/out/TESTOUT", 'a+') as f_board:
+        for move in inlinegroupmoves:
+            resultant_board = marbles.copy()
+            apply_move(resultant_board, move)
+            out_formatted_board = dict_to_out(resultant_board)
+            f_board.write(out_formatted_board)
+
+
     # print("all_groupmoves:")
     # pprint(all_groupmoves)
+
+
+def dict_to_out(board):
+    out_str = ""
+
+    board_items = board.items()
+    blacks = list(filter(lambda item: item[1] == 0, board_items))
+    whites = list(filter(lambda item: item[1] == 1, board_items))
+    blacks.sort()
+    whites.sort()
+
+    all_marbles = blacks + whites
+    for marble in all_marbles:
+        # (67, 1)
+        out_str += f"{chr((marble[0]//10) + 64)}{marble[0]%10}{'b' if marble[1] == 0 else 'w'},"
+
+    return out_str + "\n"
+
+
+
+    print()
+
+    # for coord, color in board.items():
+
+
+
+    # with open(in_path, 'r') as f:
+    #     player_turn = 0 if 'b' in f.readline() else 1
+    #
+    #     board = {}
+    #     for coord in f.readline().split(','):
+    #         column_digit = (ord(coord[0]) - 64)
+    #         row_digit = int(coord[1])
+    #         color = 0 if coord[2] == 'b' else 1
+    #         board[column_digit*10 + row_digit] = color
+
+    # return board, player_turn
 
 
 def genall_groupmoves(board: dict[int, int],
@@ -157,16 +202,51 @@ def genall_groupmoves(board: dict[int, int],
     """
     inlinegroupmoves, sidestepgroupdirs = \
         genall_inlinegroupmoves_sidestepgroupdirs(board, player_marbles)
-    print()
     # print("inline groupmoves:")
     # pprint(inlinegroupmoves)
     # print("sidestep groupdirs:")
     # pprint(sidestepgroupdirs)
 
-    # sidestep_moves = gen_sidestepgroupmoves(sidestep_groupdirs)
-    # return inline_moves + sidestep_moves
-    return None
+    sidestepgroupmoves = derive_sidestepgroupmoves(board, sidestepgroupdirs)
+    return inlinegroupmoves, sidestepgroupmoves
 
+
+def derive_sidestepgroupmoves(board: dict[int, int],
+        sidestep_groupdirs: list[tuple[tuple[tuple[int, int], ...], int]]) \
+        -> list[tuple[tuple[tuple[int, int], ...], int]] | list:
+    """Get all sidestep moves of a given sidestep groupdir.
+
+    return format explained:
+        output = list[groupmove]
+    """
+    sidestepgroupmoves = []
+
+    for groupdir in sidestep_groupdirs:
+        for direction in absolute_directions:
+            if direction == groupdir[1]:
+                continue
+
+            if is_valid_sidemove(board, groupdir[0], direction):
+                sidestepgroupmoves.append((groupdir[0], direction))
+
+            if is_valid_sidemove(board, groupdir[0], -direction):
+                sidestepgroupmoves.append((groupdir[0], -direction))
+
+    return sidestepgroupmoves
+
+
+def is_valid_sidemove(board: dict[int, int],
+                      group: tuple[tuple[int, int], ...],
+                      direction: int) -> bool:
+    """True if groupdir being moved in direction is a valid sidemove."""
+    for marble in group:
+        try:
+            board[marble[0] + direction]
+            return False
+        except KeyError:
+            pass
+
+    return True
 
 def genall_inlinegroupmoves_sidestepgroupdirs(board: dict[int, int],
                                               player_marbles: dict[int, int]) \
@@ -335,14 +415,19 @@ def is_out_of_bounds(marble_coord: int) -> bool:
     return col < bounds[row][0] or col > bounds[row][1]
 
 
+def apply_move(board, groupmove):
+    """Apply the given move to the given board state."""
+    for marble in groupmove[0]:
+        del board[marble[0]]
+        board[marble[0] + groupmove[1]] = marble[1]
+
+
 if __name__ == "__main__":
     in_base = "data/in/"
     out_base = "data/out/"
+    import external
 
-    board_marbles, player_color = external.in_to_marbles(in_base+"Test1.input")
+    test_num = 1
+    board_marbles, player_color = external.in_to_marbles(f"{in_base}Test{test_num}.input")
     result = genall_groupmove_resultboard(board_marbles, player_color)
-    # print("groupmoves_resultboards:", result)
-
-    # board_marbles, player_color = external.in_to_marbles(in_base+"Test2.input")
-    # result = genall_groupmove_resultboard(board_marbles, player_color)
-    # print("groupmoves_resultboards:", result)
+    print("groupmoves_resultboards:", result)
