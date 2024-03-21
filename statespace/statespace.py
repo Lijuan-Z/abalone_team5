@@ -319,7 +319,8 @@ def derive_inlinegroupmove_sidestepgroupdirs(board: dict[int, int],
 
         if is_out_of_bounds(next_coord) \
                 or num_players == num_enemies \
-                or num_players == 3 and next_marble[1] == marble[1]:
+                or num_players == 3 and next_marble[1] == marble[1] \
+                or next_marble[1] == marble[1] and cur_grouping[-1][1] == 1 - marble[1]:
             # print("terminate")
             break
 
@@ -342,6 +343,8 @@ def derive_inlinegroupmove_sidestepgroupdirs(board: dict[int, int],
         # return (None, sidestep_groupdirs)
         return None, sidestep_groupdirs
     elif num_players == 3 and next_marble and next_marble[1] == marble[1]:
+        return None, sidestep_groupdirs
+    elif next_marble and next_marble[1] == marble[1] and cur_grouping[-1][1] == 1 - marble[1]:
         return None, sidestep_groupdirs
     elif num_players > num_enemies:
         return (tuple(cur_grouping), direction), sidestep_groupdirs
@@ -377,11 +380,11 @@ def derive_inlinegroupmove(board: dict[int, int],
             next_marble = None
             # print("terminate")
             break
-
         if is_out_of_bounds(next_coord) \
                 or num_players == num_enemies \
-                or num_players == 3 and next_marble[1] == marble[1]:
-            # print("terminate")
+                or num_players == 3 and next_marble[1] == marble[1] \
+                or next_marble[1] == marble[1] and cur_grouping[-1][1] == 1 - marble[1]:
+            print("terminate")
             break
 
         cur_grouping.append(next_marble)
@@ -402,6 +405,8 @@ def derive_inlinegroupmove(board: dict[int, int],
         # return (None, sidestep_groupdirs)
         return None
     elif num_players == 3 and next_marble and next_marble[1] == marble[1]:
+        return None
+    elif next_marble and next_marble[1] == marble[1] and cur_grouping[-1][1] == 1 - marble[1]:
         return None
     elif num_players > num_enemies:
         return tuple(cur_grouping), direction
