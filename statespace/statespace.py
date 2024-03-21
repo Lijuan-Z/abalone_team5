@@ -92,8 +92,8 @@ Informal Definition, and Conventions:
             genall_groupmove generates all groupmoves
             derive_groupmove generates one or a small subset of groupmoves
 """
-from pprint import pprint
-import debugutils
+# from pprint import pprint
+# import debugutils
 import external
 
 absolute_directions = [10, 11, 1]
@@ -132,7 +132,7 @@ def genall_groupmove_resultboard(marbles: dict[int, int],
         coord = int
         color = int
     """
-    debugutils.print_board(marbles)
+    # debugutils.print_board(marbles)
     # print("marbles:")
     # pprint(marbles)
     # print("player_color:", player_color)
@@ -157,6 +157,7 @@ def genall_groupmoves(board: dict[int, int],
     """
     inlinegroupmoves, sidestepgroupdirs = \
         genall_inlinegroupmoves_sidestepgroupdirs(board, player_marbles)
+    print()
     # print("inline groupmoves:")
     # pprint(inlinegroupmoves)
     # print("sidestep groupdirs:")
@@ -170,7 +171,7 @@ def genall_groupmoves(board: dict[int, int],
 def genall_inlinegroupmoves_sidestepgroupdirs(board: dict[int, int],
                                               player_marbles: dict[int, int]) \
         -> tuple[list[tuple[tuple[tuple[int, int], ...], int]],
-                 list[tuple[tuple[int, int], ...], int]]:
+                 list[tuple[tuple[tuple[int, int], ...], int]]]:
     """Generates all inline groupmoves and sidestep groupdirs.
 
     outputs two lists due to optimization. We can generate these two
@@ -188,21 +189,28 @@ def genall_inlinegroupmoves_sidestepgroupdirs(board: dict[int, int],
     for marble in player_marbles.items():
         for direction in absolute_directions:
             new_inline_groupmoves, new_sidestep_groupdirs = \
-                derive_direction_inlinegroupmove_sidestepgroupdirs(board,
-                                                                   marble,
-                                                                   direction)
-            if new_inline_groupmoves != None:
+                derive_inlinegroupmove_sidestepgroupdirs(board,
+                                                         marble,
+                                                         direction)
+            if new_inline_groupmoves is not None:
                 inline_groupmoves.append(new_inline_groupmoves)
             sidestep_groupdirs.extend(new_sidestep_groupdirs)
 
+            new_inline_groupmoves = \
+                derive_inlinegroupmove(board,
+                                       marble,
+                                       -direction)
+            if new_inline_groupmoves is not None:
+                inline_groupmoves.append(new_inline_groupmoves)
 
     return inline_groupmoves, sidestep_groupdirs
 
-def derive_direction_inlinegroupmove_sidestepgroupdirs(board: dict[int, int],
+
+def derive_inlinegroupmove_sidestepgroupdirs(board: dict[int, int],
                                              marble: tuple[int, int],
                                              direction: int) \
     -> tuple[tuple[tuple[tuple[int, int], ...], int] | None,
-             list[tuple[tuple[int, int], ...], int]]:
+             list[tuple[tuple[tuple[int, int], ...], int]]]:
     """Get marble's inline groupmove, sidestep groupdirs, for single direction.
 
     return format explained:
@@ -216,6 +224,8 @@ def derive_direction_inlinegroupmove_sidestepgroupdirs(board: dict[int, int],
 
     # print("cur_grouping", cur_grouping)
     # print("next_coord", next_coord)
+
+    next_marble = None
 
     while True:
         # if next == AVAILABLE: break
@@ -249,13 +259,72 @@ def derive_direction_inlinegroupmove_sidestepgroupdirs(board: dict[int, int],
     # print(type(sidestep_groupdirs[0][0][1]))
     if is_out_of_bounds(next_coord) and cur_grouping[-1][1] == marble[1]:
         # return (None, sidestep_groupdirs)
-        return (None, sidestep_groupdirs)
-    elif num_players == 3 and next_marble[1] == marble[1]:
-        return (None, sidestep_groupdirs)
+        return None, sidestep_groupdirs
+    elif num_players == 3 and next_marble and next_marble[1] == marble[1]:
+        return None, sidestep_groupdirs
     elif num_players > num_enemies:
-        return ((tuple(cur_grouping), direction), sidestep_groupdirs)
+        return (tuple(cur_grouping), direction), sidestep_groupdirs
     else:
-        return (None, sidestep_groupdirs)
+        return None, sidestep_groupdirs
+
+
+def derive_inlinegroupmove(board: dict[int, int],
+                           marble: tuple[int, int],
+                           direction: int) \
+        -> tuple[tuple[tuple[int, int], ...], int] | None:
+    """Get marble's inline groupmove for single direction.
+
+    return format explained:
+        output = (inlinegroupmove, list[sidestepgroupdir])
+    """
+    cur_grouping = [marble]
+    next_coord = marble[0] + direction
+    num_players = 1
+    num_enemies = 0
+
+    # print("cur_grouping", cur_grouping)
+    # print("next_coord", next_coord)
+
+    next_marble = None
+
+    while True:
+        # if next == AVAILABLE: break
+        try:
+            # throws KeyError if no marble at that coordinate
+            next_marble = (next_coord, board[next_coord])
+        except KeyError:
+            # print("terminate")
+            break
+
+        if is_out_of_bounds(next_coord) \
+                or num_players == num_enemies \
+                or num_players == 3 and next_marble[1] == marble[1]:
+            # print("terminate")
+            break
+
+        cur_grouping.append(next_marble)
+        # print(cur_grouping)
+
+        if next_marble[1] == marble[1]:
+            num_players += 1
+        elif next_marble[1] == 1 - marble[1]:
+            num_enemies += 1
+
+        next_coord += direction
+
+    # print(sidestep_groupdirs)
+
+    # print(type(sidestep_groupdirs[0][0][0]))
+    # print(type(sidestep_groupdirs[0][0][1]))
+    if is_out_of_bounds(next_coord) and cur_grouping[-1][1] == marble[1]:
+        # return (None, sidestep_groupdirs)
+        return None
+    elif num_players == 3 and next_marble and next_marble[1] == marble[1]:
+        return None
+    elif num_players > num_enemies:
+        return tuple(cur_grouping), direction
+    else:
+        return None
 
 
 def is_out_of_bounds(marble_coord: int) -> bool:
