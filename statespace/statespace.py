@@ -313,6 +313,7 @@ def derive_inlinegroupmove_sidestepgroupdirs(board: dict[int, int],
             # throws KeyError if no marble at that coordinate
             next_marble = (next_coord, board[next_coord])
         except KeyError:
+            next_marble = None
             # print("terminate")
             break
 
@@ -373,6 +374,7 @@ def derive_inlinegroupmove(board: dict[int, int],
             # throws KeyError if no marble at that coordinate
             next_marble = (next_coord, board[next_coord])
         except KeyError:
+            next_marble = None
             # print("terminate")
             break
 
