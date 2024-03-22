@@ -1,5 +1,4 @@
-import debugutils
-import external
+from . import debugutils, external
 
 
 def line_to_marbles(line: str) -> dict[int, int]:
