@@ -8,3 +8,4 @@ if __name__ == "__main__":
     # print(os.listdir(os.path.curdir))
     print("Running...")
     process_folder(os.path.join(os.path.abspath(os.path.curdir), "tests"))
+    print("Done...")
