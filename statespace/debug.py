@@ -19,25 +19,28 @@ def line_to_marbles(line: str) -> dict[int, int]:
 
     return board
 
-def print_output_file_line(output_file_line):
-    print("===============================")
-    print("===============================")
-    original_board = external.in_to_marbles("/home/justin/personal/bcit/term3/3981-COMP-intro-to-ai/repos/abalone_team5/data/in/Test1.input")
-    debugutils.print_board(original_board[0])
-    print()
-    b = line_to_marbles(output_file_line)
-    debugutils.print_board(b)
-    print("===============================")
-    print("===============================")
+def print_output_file(filepath: str):
+    with open(filepath, 'r') as f:
+        moves = f.readlines()
 
+    with open(filepath, 'r') as f:
+        boards = f.readlines()
 
-
+    for line in boards:
+        print("===============================")
+        print("===============================")
+        original_board = external.in_to_marbles("/home/justin/personal/bcit/term3/3981-COMP-intro-to-ai/repos/abalone_team5/data/in/Test1.input")
+        debugutils.print_board(original_board[0])
+        print()
+        b = line_to_marbles(line)
+        debugutils.print_board(b)
+        print("===============================")
+        print("===============================")
 
 
 if __name__ == '__main__':
-    lines = """c5b,d5b,e4b,e5b,e6b,f5b,f6b,f7b,f8b,g6b,h6b,c3w,c4w,d3w,d4w,d6w,e7w,f4w,g5w,g7w,g8w,g9w,h7w,i9w
-c5b,d5b,e4b,e5b,e6b,f5b,f6b,f7b,f8b,g6b,h6b,c3w,c4w,d3w,d4w,d6w,e7w,f4w,g5w,g7w,g8w,g9w,i8w,i9w
-c5b,d5b,e4b,e5b,e6b,f5b,f6b,f7b,f8b,g6b,h6b,c3w,c4w,d3w,d4w,d6w,e7w,f4w,g5w,g7w,g8w,h7w,h8w"""
+    import os
+    print(os.listdir(os.path.curdir))
 
-    for line in lines.split('\n'):
-        print_output_file_line(line)
+    testnum = 1
+    print_output_file(f"../tests/out/Test{testnum}/Test{testnum}.board")

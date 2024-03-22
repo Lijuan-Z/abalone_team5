@@ -5,14 +5,15 @@ is specific to the assignment and not necessarily AI. The generation also needs
  to interact with the UI via some interface. Functions that handle those
  pieces of functionality are put here.
 """
-import statespace as ss
+from . import statespace as ss
+from .marblecoords import is_out_of_bounds
 import os
-from marblecoords import is_out_of_bounds
 
 
 def process_folder(folder_path: str) -> None:
     """WRITEME."""
     # Construct the input and output folder paths
+    # print("Processing Folder:", folder_path)
     in_folder = os.path.join(folder_path, "in")
     out_folder = os.path.join(folder_path, "out")
 
@@ -20,9 +21,13 @@ def process_folder(folder_path: str) -> None:
         os.makedirs(out_folder)
 
     try:
+        # print(os.listdir(os.curdir))
         files = os.listdir(in_folder)
     except FileNotFoundError:
+        # print("Folder does not exist")
         exit()
+
+    # print("Processing the following files:", files)
 
     for filename in files:
         basename = ".".join(filename.split(".")[:-1])
