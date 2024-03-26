@@ -477,7 +477,7 @@ def min_value(board, alpha, beta, depth, player, time_limit, turns_remaining):
     """
 
     if game_over(board, turns_remaining, player) or depth == 0:
-        return None, evaluate(board, turns_remaining, player)
+        return None, -evaluate(board, turns_remaining, player)
     best_move = None
     best_value = float('inf')
     for move, result_board in genall_groupmove_resultboard(board, player):
