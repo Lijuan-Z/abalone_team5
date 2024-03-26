@@ -92,15 +92,17 @@ Informal Definition, and Conventions:
             genall_groupmove generates all groupmoves
             derive_groupmove generates one or a small subset of groupmoves
 """
+import random
+from datetime import time, datetime, timedelta
+
 # import debugutils
 from .marblecoords import is_out_of_bounds
-
 
 absolute_directions = [10, 11, 1]
 
 
 def genall_groupmove_resultboard(marbles: dict[int, int],
-                                 player_color: int)\
+                                 player_color: int) \
         -> list[tuple[tuple[tuple[tuple[int, int], ...], int], dict[int, int]]]:
     """Generates all groupmoves and the resulting board from those moves.
 
@@ -141,7 +143,7 @@ def genall_groupmove_resultboard(marbles: dict[int, int],
 def genall_groupmoves(board: dict[int, int],
                       player_marbles: dict[int, int]) \
         -> tuple[list[tuple[tuple[tuple[int], ...], int]],
-                 list[tuple[tuple[tuple[int], ...], int]]]:
+        list[tuple[tuple[tuple[int], ...], int]]]:
     """Generates all groupmoves given a dict of marbles and the current board.
 
     return format explained:
@@ -155,7 +157,7 @@ def genall_groupmoves(board: dict[int, int],
 
 
 def derive_sidestepgroupmoves(board: dict[int, int],
-        sidestep_groupdirs: list[tuple[tuple[tuple[int, int], ...], int]]) \
+                              sidestep_groupdirs: list[tuple[tuple[tuple[int, int], ...], int]]) \
         -> list[tuple[tuple[tuple[int, int], ...], int]] | list:
     """Get all sidestep moves of a given sidestep groupdir.
 
@@ -195,10 +197,11 @@ def is_valid_sidemove(board: dict[int, int],
 
     return True
 
+
 def genall_inlinegroupmoves_sidestepgroupdirs(board: dict[int, int],
                                               player_marbles: dict[int, int]) \
         -> tuple[list[tuple[tuple[tuple[int, int], ...], int]],
-                 list[tuple[tuple[tuple[int, int], ...], int]]]:
+        list[tuple[tuple[tuple[int, int], ...], int]]]:
     """Generates all inline groupmoves and sidestep groupdirs.
 
     outputs two lists due to optimization. We can generate these two
@@ -236,8 +239,8 @@ def genall_inlinegroupmoves_sidestepgroupdirs(board: dict[int, int],
 def derive_inlinegroupmove_sidestepgroupdirs(board: dict[int, int],
                                              marble: tuple[int, int],
                                              direction: int) \
-    -> tuple[tuple[tuple[tuple[int, int], ...], int] | None,
-             list[tuple[tuple[tuple[int, int], ...], int]]]:
+        -> tuple[tuple[tuple[tuple[int, int], ...], int] | None,
+        list[tuple[tuple[tuple[int, int], ...], int]]]:
     """Get marble's inline groupmove, sidestep groupdirs, for single direction.
 
     return format explained:
@@ -348,6 +351,94 @@ def apply_move(board, groupmove):
             continue
         board[marble[0] + groupmove[1]] = marble[1]
 
+
+from datetime import datetime
+
+
+def iterative_deepening_alpha_beta_search(board, time_limit, player, turns_remaining):
+    start_time = datetime.now()  # Capture the start time
+    depth = 1
+    best_move = None
+    while True:
+        current_time = datetime.now()
+        elapsed_time = (current_time - start_time).total_seconds()
+        if elapsed_time >= time_limit:
+            break
+        temp_move = alpha_beta_search(board, depth, player, time_limit - elapsed_time, turns_remaining)
+        if temp_move is not None:
+            best_move = temp_move
+        depth += 1
+    return best_move
+
+
+def alpha_beta_search(board, depth, player, time_limit, turns_remaining):
+    if player == 0:
+        best_value = float('-inf')
+    else:
+        best_value = float('inf')
+    best_move = None
+
+    for result_board, move in genall_groupmove_resultboard(board, player):
+        if player == 0:
+            current_value = min_value(result_board, float('-inf'), float('inf'), depth - 1, 1 - player, time_limit,
+                                      turns_remaining - 1)
+        else:
+            current_value = max_value(result_board, float('-inf'), float('inf'), depth - 1, 1 - player, time_limit,
+                                      turns_remaining - 1)
+        if player == 0 and current_value > best_value:
+            best_value = current_value
+            best_move = move
+        elif player != 0 and current_value < best_value:
+            best_value = current_value
+            best_move = move
+    return best_move
+
+
+def max_value(board, alpha, beta, depth, player, time_limit, turns_remaining):
+    if game_over(board) or depth == 0:
+        return evaluate(board)
+    value = float('-inf')
+    for result_board, move in genall_groupmove_resultboard(board, player):
+        current_value = min_value(result_board, alpha, beta, depth - 1, 1 - player, time_limit, turns_remaining - 1)
+        if current_value > value:
+            value = current_value
+        if value >= beta:
+            return value
+        alpha = max(alpha, value)
+    return value
+
+
+def min_value(board, alpha, beta, depth, player, time_limit, turns_remaining):
+    if game_over(board) or depth == 0:
+        return evaluate(board)
+    value = float('inf')
+    for result_board, move in genall_groupmove_resultboard(board, player):
+        score = max_value(result_board, alpha, beta, depth - 1, 1 - player, time_limit, turns_remaining - 1)
+        if score < value:
+            value = score
+        if value <= alpha:
+            return value
+        beta = min(beta, value)
+    return value
+
+
+def game_over(state):
+    """
+    Evaluates if the current board state is a 'game_over'
+
+    :param: state, an object representing the positions of marbles and time remaining
+    :return: A bool result
+    """
+
+    return state
+
+
+def evaluate(state):
+    """
+    Applies an evaluation function to the given state,
+    returning a numerical result.
+    """
+    return random.randint(-1, 1)  # replace with your evaluation function
 
 
 if __name__ == "__main__":
