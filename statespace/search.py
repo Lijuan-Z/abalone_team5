@@ -1,5 +1,6 @@
 from datetime import datetime
 import random
+
 from statespace.statespace import genall_groupmove_resultboard
 
 
@@ -12,7 +13,7 @@ def iterative_deepening_alpha_beta_search(board, time_limit, player, turns_remai
         elapsed_time = (current_time - start_time).total_seconds()
         if elapsed_time >= time_limit:
             break
-        temp_move = alpha_beta_search(board, depth, player, time_limit - elapsed_time, turns_remaining)
+        temp_move, _ = alpha_beta_search(board, depth, player, time_limit - elapsed_time, turns_remaining)
         if temp_move is not None:
             best_move = temp_move
         depth += 1
@@ -21,53 +22,41 @@ def iterative_deepening_alpha_beta_search(board, time_limit, player, turns_remai
 
 def alpha_beta_search(board, depth, player, time_limit, turns_remaining):
     if player == 0:
-        best_value = float('-inf')
+        return max_value(board, float('-inf'), float('inf'), depth, player, time_limit, turns_remaining)
     else:
-        best_value = float('inf')
-    best_move = None
-
-    for move, result_board in genall_groupmove_resultboard(board, player):
-        if player == 0:
-            current_value = min_value(result_board, float('-inf'), float('inf'), depth - 1, 1 - player, time_limit,
-                                      turns_remaining - 1)
-        else:
-            current_value = max_value(result_board, float('-inf'), float('inf'), depth - 1, 1 - player, time_limit,
-                                      turns_remaining - 1)
-        if player == 0 and current_value > best_value:
-            best_value = current_value
-            best_move = move
-        elif player != 0 and current_value < best_value:
-            best_value = current_value
-            best_move = move
-    return best_move
+        return min_value(board, float('-inf'), float('inf'), depth, player, time_limit, turns_remaining)
 
 
 def max_value(board, alpha, beta, depth, player, time_limit, turns_remaining):
     if game_over(board, turns_remaining, player) or depth == 0:
-        return evaluate(board, turns_remaining, player)
-    value = float('-inf')
+        return None, evaluate(board, turns_remaining, player)
+    best_move = None
+    best_value = float('-inf')
     for move, result_board in genall_groupmove_resultboard(board, player):
-        current_value = min_value(result_board, alpha, beta, depth - 1, 1 - player, time_limit, turns_remaining - 1)
-        if current_value > value:
-            value = current_value
-        if value >= beta:
-            return value
+        _, value = min_value(result_board, alpha, beta, depth - 1, 1 - player, time_limit, turns_remaining - 1)
+        if value > best_value:
+            best_value = value
+            best_move = move
         alpha = max(alpha, value)
-    return value
+        if alpha >= beta:
+            break
+    return best_move, best_value
 
 
 def min_value(board, alpha, beta, depth, player, time_limit, turns_remaining):
     if game_over(board, turns_remaining, player) or depth == 0:
-        return evaluate(board, turns_remaining, player)
-    value = float('inf')
+        return None, evaluate(board, turns_remaining, player)
+    best_move = None
+    best_value = float('inf')
     for move, result_board in genall_groupmove_resultboard(board, player):
-        current_value = max_value(result_board, alpha, beta, depth - 1, 1 - player, time_limit, turns_remaining - 1)
-        if current_value < value:
-            value = current_value
-        if value <= alpha:
-            return value
+        _, value = max_value(result_board, alpha, beta, depth - 1, 1 - player, time_limit, turns_remaining - 1)
+        if value < best_value:
+            best_value = value
+            best_move = move
         beta = min(beta, value)
-    return value
+        if beta <= alpha:
+            break
+    return best_move, best_value
 
 
 def num_player_marbles(player, board):
