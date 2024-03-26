@@ -370,11 +370,15 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     """
     start_time = datetime.now()
     depth = 1
+    # The total remaining turns in the game will be equal to double one player's remaining turns,
+    # and for white the total will be -1 because they always go after black.
+    max_depth = turns_remaining * 2 - player_color
     best_move = None
     elapsed_time = 0
     time_limit_seconds = time_limit / 1000.0  # Convert time_limit to seconds for comparison
 
-    while True:
+    # The loop will end before the time limit if the maximum depth (based on turns remaining) is reached.
+    while depth <= max_depth:
         current_time = datetime.now()
         elapsed_time = (current_time - start_time).total_seconds()
         if elapsed_time >= time_limit_seconds:
