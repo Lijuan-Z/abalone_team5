@@ -106,7 +106,6 @@ class SimulationGUI(tk.Frame):
         # Config setup
         self.config = config_options if config_options is not None else (
             SimulationGUI.DEFAULT_CONFIG)
-        print(self.config)
 
         # Game info
         SimulationGUI.SESSION_ID += 1
@@ -160,7 +159,6 @@ class SimulationGUI(tk.Frame):
                                        + str(coord_int % 10))
             player_color_str = 'black' if player_color_int == 0 else 'white'
             self.board[player_color_str].append(coord_str)
-            print(self.board)
 
         self.draw_game_board()
 
