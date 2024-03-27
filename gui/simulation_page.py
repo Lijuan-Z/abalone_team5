@@ -137,6 +137,31 @@ class SimulationGUI(tk.Frame):
 
         # Draw the GUI and game board
         self.draw_gui()
+
+        self.board = {
+            'white': ['e4'],
+            'black': ['e5']
+        }
+
+        self.board = {
+            'white': ['e4'],
+            'black': ['e5']
+        }
+
+        self.draw_game_board()
+
+
+
+    def draw_boardstate(self, boardstate: dict[int, int]):
+        """Converts board state into a drawable board and displays it."""
+        self.board = {'black': [], 'white': []}
+        for coord_int, player_color_int in boardstate.items():
+            coord_str = (chr((coord_int // 10) + 64).lower()
+                                       + str(coord_int % 10))
+            player_color_str = 'black' if player_color_int == 0 else 'white'
+            self.board[player_color_str].append(coord_str)
+            print(self.board)
+
         self.draw_game_board()
 
     def draw_gui(self):
@@ -174,13 +199,11 @@ class SimulationGUI(tk.Frame):
                     color_value = 'lightgrey'
                     text_color = 'black'
                     if key in \
-                            SimulationGUI.BOARD_LAYOUTS[self.config['board_layout']][
-                                'black']:
+                            self.board['black']:
                         color_value = 'black'
                         text_color = 'white'
                     elif key in \
-                            SimulationGUI.BOARD_LAYOUTS[self.config['board_layout']][
-                                'white']:
+                            self.board['white']:
                         color_value = 'white'
                     self.positions[key] = {
                         'x': x,
@@ -240,4 +263,5 @@ class SimulationGUI(tk.Frame):
 
     def reset_game(self):
         """Transitions to a fresh SimulationGUI."""
-        self.controller.display_game(self.config)
+        self.config['board_layout'] = 'standard'
+        self.controller.display_simulation_gui(self.config)
