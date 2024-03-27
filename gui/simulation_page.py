@@ -10,7 +10,7 @@ class SimulationGUI(tk.Frame):
 
     SESSION_ID = 0
     DEFAULT_CONFIG = {
-        'board_layout': 'standard',
+        'board_layout': 'empty',
         'color_selection': 'black',
         'game_mode': 'human vs. computer',
         'game_move_limit': 10,
@@ -20,6 +20,12 @@ class SimulationGUI(tk.Frame):
     CIRCLE_RADIUS = 30
     COLUMNS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
     BOARD_LAYOUTS = {
+        'empty': {
+            'white': [
+            ],
+            'black': [
+            ]
+        },
         'standard': {
             'white': ['i5', 'i6', 'i7', 'i8', 'i9',
                       'h4', 'h5', 'h6', 'h7', 'h8', 'h9',
@@ -62,6 +68,10 @@ class SimulationGUI(tk.Frame):
         },
     }
     AI_HARDCODED_ACTIONS = {
+        'empty': {
+            'white': [],
+            'black': [],
+        },
         'standard': {
             'white': ['h4-g4', 'g5h5i5-f5g5h5', 'g6h6i6-f6g6h6', 'h8h9-g8g9',
                       'i8i9-h8h9'],
@@ -148,7 +158,6 @@ class SimulationGUI(tk.Frame):
         # Game state frame
         self.state_frame = tk.Frame(self.info_frame)
         self.state_frame.pack(side="left", padx=20)
-
 
 
     def action_entry_callback(self):
