@@ -93,7 +93,6 @@ Informal Definition, and Conventions:
             derive_groupmove generates one or a small subset of groupmoves
 """
 from datetime import datetime
-from random import random
 
 # import debugutils
 from .marblecoords import is_out_of_bounds
