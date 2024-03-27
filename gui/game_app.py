@@ -1,7 +1,7 @@
 """ This module holds the Game App. """
 import tkinter as tk
-from main_page import GameGUI
-from config_page import ConfigGUI
+from .main_page import GameGUI
+from .config_page import ConfigGUI
 
 
 class GameApp(tk.Tk):
@@ -33,9 +33,3 @@ class GameApp(tk.Tk):
         game_gui = GameGUI(self.container, self, config_options)
         game_gui.grid(row=0, column=0, sticky="nsew")
         game_gui.tkraise()
-
-
-if __name__ == "__main__":
-    # Start the game app
-    app = GameApp()
-    app.mainloop()
