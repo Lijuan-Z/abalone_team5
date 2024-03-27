@@ -378,22 +378,27 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
 
     # The loop will end before the time limit if the maximum depth (based on turns remaining) is reached.
     while depth <= max_depth:
+        print("\n============================================")
+        print(f"================= DEPTH {depth} ==================")
+        print("============================================")
         current_time = datetime.now()
         elapsed_time = (current_time - start_time).total_seconds()
+        print(f"Time remaining: {time_limit_seconds - elapsed_time}ms")
         if elapsed_time >= time_limit_seconds:
             break
-        temp_move, _ = alpha_beta_search(board, depth, player, time_limit_seconds - elapsed_time, turns_remaining)
+        temp_move, value = alpha_beta_search(board, depth, player, time_limit_seconds - elapsed_time, turns_remaining)
         if temp_move is not None:
             best_move = temp_move
-        depth += 1
+        elapsed_time = (current_time - start_time).total_seconds()
         print(f"Elapsed time: {elapsed_time * 1000:.2f}ms/{time_limit:.2f}ms")  # Display in milliseconds
         print(f"Depth Reached: {depth}")
         print(f"Current Best Move: {best_move}")
-    print("\n=======FINISHED========")
+        print(f"Best Move Value: {value}")
+        depth += 1
+    print("\n**************** FINISHED! ******************")
     print(f"Elapsed time: {elapsed_time * 1000:.2f}ms/{time_limit:.2f}ms")  # Display in milliseconds
     print(f"Depth Reached: {depth}")
     print(f"Current Best Move: {best_move}")
-
     return best_move
 
 
@@ -521,60 +526,83 @@ def game_over(board, turns_remaining, player):
 weights = [1, 1, 1, 1, 1]
 
 
-def normalized_score(board, player) -> float:
-    player_marble_count = num_player_marbles(board, player)
-    return (player_marble_count - len(board) - player_marble_count) / 8
+def calculate_normalized_score(board, player) -> float:
+    player_marble_count = num_player_marbles(player, board)
+    # print((player_marble_count - (len(board) - player_marble_count)) / 8)
+    return (player_marble_count - (len(board) - player_marble_count)) / 8
 
 
-def average_distances_from_centre(board, player) -> float:
+def average_distances_from_centre(board, player) -> (float, float):
     """
-    Returns the average manhattan distance from the center of the board a player's marbles are.
+    Returns the average Manhattan distance from the center of the board where a player's and enemy's marbles are.
     """
-    distance_sum = 0.0
-    count = 0
-    for position, color in board:
-        if color != player: continue
-        count += 0
+    player_distance_sum = 0.0
+    player_count = 0
+    enemy_distance_sum = 0.0
+    enemy_count = 0
+
+    for position, color in board.items():
+        if color == player:
+            count_increment = 1
+            distance_sum = player_distance_sum
+        else:
+            count_increment = 1
+            distance_sum = enemy_distance_sum
+
         match position:
-            case (55):
+            case 55:
                 continue
-            case (65 | 66 | 54 | 56 | 44 | 45):
+            case 65 | 66 | 54 | 56 | 44 | 45:
                 distance_sum += 1
-            case (75 | 76 | 77 | 67 | 57 | 46 | 35 | 34 | 33 | 43 | 53 | 64):
+            case 75 | 76 | 77 | 67 | 57 | 46 | 35 | 34 | 33 | 43 | 53 | 64:
                 distance_sum += 2
-            case (85 | 86 | 87 | 88 | 78 | 68 | 58 | 47 | 36 | 25 | 24 | 23 | 22 | 32 | 42 | 52 | 63 | 74 | 85):
+            case 85 | 86 | 87 | 88 | 78 | 68 | 58 | 47 | 36 | 25 | 24 | 23 | 22 | 32 | 42 | 52 | 63 | 74 | 85:
                 distance_sum += 3
-            case (95 | 96 | 97 | 98 | 99 | 89 | 79 | 69 | 59 | 48 | 37 | 26 | 15 | 14 | 13 | 12 | 11 | 21 | 31 | 41 | 51 | 62 | 73 | 84):
+            case 95 | 96 | 97 | 98 | 99 | 89 | 79 | 69 | 59 | 48 | 37 | 26 | 15 | 14 | 13 | 12 | 11 | 21 | 31 | 41 | 51 | 62 | 73 | 84:
                 distance_sum += 4
             case _:
                 raise ValueError(
-                    f"Value {position} is not valid. Check that all positions on the board are valid.\n" + board)
+                    f"Value {position} is not valid. Check that all positions on the board are valid.\n{board}")
 
-    return distance_sum / count
+        if color == player:
+            player_distance_sum = distance_sum
+            player_count += count_increment
+        else:
+            enemy_distance_sum = distance_sum
+            enemy_count += count_increment
+
+    player_average_distance = player_distance_sum / player_count if player_count else 0
+    enemy_average_distance = enemy_distance_sum / enemy_count if enemy_count else 0
+
+    return player_average_distance, enemy_average_distance
 
 
 def calculate_normalized_centre_control(board, player) -> float:
-    """
-    Returns a float in the range [0,1] indicating the center control of the player.
-    """
-    centre_control = average_distances_from_centre(board, player)
-    return centre_control / 4.0
+    player_avg_distance, enemy_avg_distance = average_distances_from_centre(board, player)
+    max_distance = 4
+
+    control_measure = enemy_avg_distance - player_avg_distance
+
+    # Normalize based on the maximum possible control measure
+    normalized_centre_control = control_measure / max_distance
+
+    return normalized_centre_control
 
 
 def calculate_normalized_marble_grouping(board, player) -> float:
-    return 1.0
+    return 0
 
 
 def calculate_normalized_opponent_disruption(board, player) -> float:
-    return 1.0
+    return 0
 
 
 def calculate_normalized_marble_danger(board, player) -> float:
-    return 1.0
+    return 0
 
 
 def calculate_aggressiveness_multiplier(normalized_score: float, turns_remaining, player) -> float:
-    return 1.0
+    return 0
 
 
 def evaluate(board, turns_remaining, player):
@@ -604,8 +632,8 @@ def evaluate(board, turns_remaining, player):
                   + normalized_marble_grouping * weights[2]
                   + normalized_opponent_disruption * weights[3]
                   + normalized_marble_danger * weights[4])
-    print(evaluation)
-    return evaluation  # replace with your evaluation function
+    # print(evaluation, end=", ")
+    return evaluation
 
 
 if __name__ == "__main__":
