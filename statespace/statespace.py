@@ -383,7 +383,7 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
         elapsed_time = (current_time - start_time).total_seconds()
         if elapsed_time >= time_limit_seconds:
             break
-        temp_move, _ = alpha_beta_search(board, float('-int'), float('int'), depth, player, player, time_limit_seconds - elapsed_time, total_turns_remaining)
+        temp_move, _ = alpha_beta_search(board, float('-inf'), float('inf'), depth, player, player, time_limit_seconds - elapsed_time, total_turns_remaining)
         if temp_move is not None:
             best_move = temp_move
         depth += 1
