@@ -96,4 +96,4 @@ if __name__ == '__main__':
     test_num = 2
     _, player_color = external.in_to_marbles(f"{in_base}Test{test_num}.input")
 
-    simulate_game(starting_board, 15, 10000, 0)
+    simulate_game(starting_board, 15, 4000, 0)
