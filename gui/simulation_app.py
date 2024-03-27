@@ -5,7 +5,7 @@ from .simulation_page import SimulationGUI
 class SimApp(tk.Tk):
     """GameApp runs the tkinter app and controls switching between GUIs."""
 
-    def __init__(self, simulation_driver, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """Initializes a new GameApp instance.
 
         :param args: any args to pass through to tk.Tk
@@ -19,10 +19,6 @@ class SimApp(tk.Tk):
         self.game_gui = None
         self.display_simulation_gui()  # to set the window height/width
 
-        simulation_driver.bind_display_callback(self.display_boardstate)
-        simulation_driver.start()
-
-
     def display_simulation_gui(self, config_options=None):
         """Switches to and displays the GameGUI, passing in any configs."""
         game_gui = SimulationGUI(self.container, self, config_options)
@@ -32,8 +28,6 @@ class SimApp(tk.Tk):
 
     def display_boardstate(self, boardstate: dict[int, int]):
         """Displays a board state on the gameboard."""
-
         self.game_gui.draw_boardstate(boardstate)
-
-
-
+        self.update_idletasks()
+        self.update()
