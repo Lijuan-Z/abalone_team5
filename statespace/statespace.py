@@ -383,7 +383,7 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
         elapsed_time = (current_time - start_time).total_seconds()
         if elapsed_time >= time_limit_seconds:
             break
-        temp_move, _ = alpha_beta_search(board, float('-inf'), float('inf'), depth, player, player, time_limit_seconds - elapsed_time, total_turns_remaining, eval_callback)
+        temp_move, _ = alpha_beta_search(board, board, float('-inf'), float('inf'), depth, player, player, time_limit_seconds - elapsed_time, total_turns_remaining, eval_callback)
         if temp_move is not None:
             best_move = temp_move
         depth += 1
@@ -398,7 +398,7 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     return best_move
 
 
-def alpha_beta_search(board, alpha, beta, depth, max_player, cur_ply_player, time_limit, total_turns_remaining, eval_callback):
+def alpha_beta_search(init_board, ply_board, alpha, beta, depth, max_player, cur_ply_player, time_limit, total_turns_remaining, eval_callback):
     """
     Determines which function should be called as the starting point of the alpha-beta search, based on the
     player value.
@@ -415,12 +415,13 @@ def alpha_beta_search(board, alpha, beta, depth, max_player, cur_ply_player, tim
         (best_move, best_value): A tuple containing the best move for a player and that move's value as determined
         by the evaluation function
     """
-    if game_over(board, total_turns_remaining, cur_ply_player) or depth == 0:
-        return None, eval_callback(board, total_turns_remaining, max_player)
+    if game_over(ply_board, total_turns_remaining, cur_ply_player) or depth == 0:
+        return None, eval_callback(init_board=init_board, ply_board=ply_board,
+                                   total_turns_remaining=total_turns_remaining, max_player=max_player)
     if cur_ply_player == max_player:
         best_move = None
         best_value = float('-inf')
-        for move, result_board in genall_groupmove_resultboard(board, cur_ply_player):
+        for move, result_board in genall_groupmove_resultboard(ply_board, cur_ply_player):
             _, value = alpha_beta_search(result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
             if value > best_value:
                 best_value = value
@@ -432,7 +433,7 @@ def alpha_beta_search(board, alpha, beta, depth, max_player, cur_ply_player, tim
     else:
         best_move = None
         best_value = float('inf')
-        for move, result_board in genall_groupmove_resultboard(board, cur_ply_player):
+        for move, result_board in genall_groupmove_resultboard(ply_board, cur_ply_player):
             _, value = alpha_beta_search(result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
             if value < best_value:
                 best_value = value
