@@ -515,6 +515,69 @@ def game_over(board, turns_remaining, player):
     return turns_remaining == 0 or num_player_marbles(player, board) == 8
 
 
+"""
+    Set weights for score, centre control, marble grouping, opponent disruption, and marble danger respectively
+    instantiating this outside of the function scope so it's only created once  
+"""
+weights = [1, 1, 1, 1, 1]
+
+
+def normalized_score(board, player) -> float:
+    player_marble_count = num_player_marbles(board, player)
+    return (player_marble_count - len(board) - player_marble_count) / 8
+
+
+def average_distances_from_centre(board, player) -> float:
+    """
+    Returns the average manhattan distance from the center of the board a player's marbles are.
+    """
+    distance_sum = 0.0
+    count = 0
+    for position, color in board:
+        if color != player: continue
+        count += 0
+        match position:
+            case (55):
+                continue
+            case (65 | 66 | 54 | 56 | 44 | 45):
+                distance_sum += 1
+            case (75 | 76 | 77 | 67 | 57 | 46 | 35 | 34 | 33 | 43 | 53 | 64):
+                distance_sum += 2
+            case (85 | 86 | 87 | 88 | 78 | 68 | 58 | 47 | 36 | 25 | 24 | 23 | 22 | 32 | 42 | 52 | 63 | 74 | 85):
+                distance_sum += 3
+            case (95 | 96 | 97 | 98 | 99 | 89 | 79 | 69 | 59 | 48 | 37 | 26 | 15 | 14 | 13 | 12 | 11 | 21 | 31 | 41 | 51 | 62 | 73 | 84):
+                distance_sum += 4
+            case _:
+                raise ValueError(
+                    f"Value {position} is not valid. Check that all positions on the board are valid.\n" + board)
+
+    return distance_sum / count
+
+
+def calculate_normalized_centre_control(board, player) -> float:
+    """
+    Returns a float in the range [0,1] indicating the center control of the player.
+    """
+    centre_control = average_distances_from_centre(board, player)
+    return centre_control / 4.0
+
+
+def calculate_normalized_marble_grouping(board, player) -> float:
+    return 1.0
+
+
+def calculate_normalized_opponent_disruption(board, player) -> float:
+    return 1.0
+
+
+def calculate_normalized_marble_danger(board, player) -> float:
+    return 1.0
+
+
+def calculate_aggressiveness_multiplier(normalized_score: float, turns_remaining, player) -> float:
+    return 1.0
+
+
 def evaluate(board, turns_remaining, player):
     """
     Evaluates the given board state from the perspective of the specified player.
@@ -529,7 +592,21 @@ def evaluate(board, turns_remaining, player):
     Returns:
         float: The evaluated score of the board state for the specified player.
     """
-    return random()  # replace with your evaluation function
+
+    normalized_score = calculate_normalized_score(board, player)
+    normalized_centre_control = calculate_normalized_centre_control(board, player)
+    normalized_marble_grouping = calculate_normalized_marble_grouping(board, player)
+    normalized_opponent_disruption = calculate_normalized_opponent_disruption(board, player)
+    normalized_marble_danger = calculate_normalized_marble_danger(board, player)
+    aggresiveness = calculate_aggressiveness_multiplier(normalized_score, turns_remaining, player)
+
+    evaluation = (normalized_score * weights[0]
+                  + normalized_centre_control * weights[1]
+                  + normalized_marble_grouping * weights[2]
+                  + normalized_opponent_disruption * weights[3]
+                  + normalized_marble_danger * weights[4])
+    print(evaluation)
+    return evaluation  # replace with your evaluation function
 
 
 if __name__ == "__main__":
@@ -545,5 +622,5 @@ if __name__ == "__main__":
 
     test_num = 2
     board_marbles, player_color = external.in_to_marbles(f"{in_base}Test{test_num}.input")
-    #result = genall_groupmove_resultboard(board_marbles, player_color)
+    # result = genall_groupmove_resultboard(board_marbles, player_color)
     iterative_deepening_alpha_beta_search(board_marbles, 0, 10000, 15)
