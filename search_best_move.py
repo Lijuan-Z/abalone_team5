@@ -1,7 +1,7 @@
 """Currently a testing file for the best-move search algorithm."""
 from statespace import *
 from statespace import external, debugutils
-from statespace.statespace import iterative_deepening_alpha_beta_search, game_over, apply_move
+from statespace.statespace import iterative_deepening_alpha_beta_search, game_over, apply_move, num_player_marbles
 
 
 def print_board(board, black_marble="🦖", white_marble="🐒", empty_space="🥥"):
