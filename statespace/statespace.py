@@ -372,7 +372,7 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     depth = 1
     # The total remaining turns in the game will be equal to double one player's remaining turns,
     # and for white the total will be -1 because they always go after black.
-    max_depth = turns_remaining * 2 - player_color
+    max_depth = turns_remaining * 2 - player
     best_move = None
     elapsed_time = 0
     time_limit_seconds = time_limit / 1000.0  # Convert time_limit to seconds for comparison
