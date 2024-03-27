@@ -61,6 +61,24 @@ def process_file(in_path: str, out_move_path: str, out_board_path: str):
                 f_boards.write(dict_to_out(resultboard))
 
 
+def line_to_marbles(line: str) -> dict[int, int]:
+    """Converts the input file into a dictionary of marbles and player turn.
+
+    The input format is described in the project outline documentation
+    and this function converts it into our desired board representation
+    as described in this module's docstring under "board dictionary format"
+    """
+    board = {}
+    for coord in line.split(','):
+        coord = coord[0].upper() + coord[1:]
+        column_digit = (ord(coord[0]) - 64)
+        row_digit = int(coord[1])
+        color = 0 if coord[2] == 'b' else 1
+        board[column_digit*10 + row_digit] = color
+
+    return board
+
+
 def in_to_marbles(in_path: str) -> tuple[dict[int, int], int]:
     """Converts the input file into a dictionary of marbles and player turn.
 
@@ -70,13 +88,7 @@ def in_to_marbles(in_path: str) -> tuple[dict[int, int], int]:
     """
     with open(in_path, 'r') as f:
         player_turn = 0 if 'b' in f.readline() else 1
-
-        board = {}
-        for coord in f.readline().split(','):
-            column_digit = (ord(coord[0]) - 64)
-            row_digit = int(coord[1])
-            color = 0 if coord[2] == 'b' else 1
-            board[column_digit * 10 + row_digit] = color
+        board = line_to_marbles(f.readline())
 
     return board, player_turn
 

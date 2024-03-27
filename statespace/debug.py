@@ -1,22 +1,6 @@
 from . import debugutils, external
 
 
-def line_to_marbles(line: str) -> dict[int, int]:
-    """Converts the input file into a dictionary of marbles and player turn.
-
-    The input format is described in the project outline documentation
-    and this function converts it into our desired board representation
-    as described in this module's docstring under "board dictionary format"
-    """
-    board = {}
-    for coord in line.split(','):
-        coord = coord[0].upper() + coord[1:]
-        column_digit = (ord(coord[0]) - 64)
-        row_digit = int(coord[1])
-        color = 0 if coord[2] == 'b' else 1
-        board[column_digit*10 + row_digit] = color
-
-    return board
 
 def print_output_file(filepath: str, original_input_filepath = None):
     with open(filepath, 'r') as f:
