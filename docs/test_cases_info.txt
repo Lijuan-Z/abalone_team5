@@ -1,4 +1,0 @@
-TEST CASES
-
-Test 1-2: Chien test cases
-Test 3-7: Vitor test cases
