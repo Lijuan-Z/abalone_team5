@@ -1,6 +1,6 @@
-def eval_state(init_ply_board, ply_board, max_player):
+def eval_state(init_board, ply_board, max_player,total_turns_remaining):
 
-    max_player_init_pos = [key for key, value in init_ply_board.items() if value == max_player]
+    max_player_init_pos = [key for key, value in init_board.items() if value == max_player]
 
     max_player_init_marble_number = len(max_player_init_pos)
     max_player_center_init_pos = sum(max_player_init_pos) / max_player_init_marble_number
@@ -11,7 +11,7 @@ def eval_state(init_ply_board, ply_board, max_player):
     center_pos = sum(max_player_pos) / max_player_marble_number
     max_player_distance = sum(pos - center_pos for pos in max_player_pos)
 
-    opponent_init_pos = [key for key, value in init_ply_board.items() if value == 1 - max_player]
+    opponent_init_pos = [key for key, value in init_board.items() if value == 1 - max_player]
     opponent_init_marble_number = len(opponent_init_pos)
     opponent_center_init_pos = sum(opponent_init_pos) / opponent_init_marble_number
     opponent_init_distance = sum(pos - opponent_center_init_pos for pos in opponent_init_pos)
