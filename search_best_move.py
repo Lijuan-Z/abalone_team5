@@ -50,7 +50,7 @@ def who_won(board):
         return "It's a tie!!"
 
 
-def simulate_game(starting_board, total_turns_remaining_per_player, time_limit, player_color):
+def simulate_game(board, total_turns_remaining_per_player=20, time_limit=5000, player_color=0):
     """
       Simulates an Abalone game given the starting conditions.
 
@@ -60,7 +60,7 @@ def simulate_game(starting_board, total_turns_remaining_per_player, time_limit, 
       - time_limit: The time limit for each move in milliseconds.
       - player_color: The color of the player who starts the game (0 for Black, 1 for White).
       """
-    board = starting_board
+    board = board
     black_player_turns_remaining = total_turns_remaining_per_player
     white_player_turns_remaining = total_turns_remaining_per_player
     player = player_color
@@ -94,6 +94,6 @@ if __name__ == '__main__':
     out_base = "tests/statespace_gen_validation/out/"
 
     test_num = 2
-    _, player_color = external.in_to_marbles(f"{in_base}Test{test_num}.input")
+    _, player = external.in_to_marbles(f"{in_base}Test{test_num}.input")
 
     simulate_game(starting_board, 15, 4000, 0)
