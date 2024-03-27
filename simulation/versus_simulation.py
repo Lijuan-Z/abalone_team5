@@ -5,9 +5,9 @@ from .base_simulation import Simulation
 from statespace.statespace import iterative_deepening_alpha_beta_search as idab
 from statespace.statespace import apply_move
 from statespace.statespace import game_over
-from heuristics import random
+from heuristics import random, lisa_heuristic
 
-strategy = {0: random.eval_state, 1: random.eval_state}
+strategy = {0: lisa_heuristic.eval_state, 1: random.eval_state}
 
 
 class VersusSimulation(Simulation):
