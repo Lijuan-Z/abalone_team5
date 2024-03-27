@@ -422,7 +422,7 @@ def alpha_beta_search(init_board, ply_board, alpha, beta, depth, max_player, cur
         best_move = None
         best_value = float('-inf')
         for move, result_board in genall_groupmove_resultboard(ply_board, cur_ply_player):
-            _, value = alpha_beta_search(result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
+            _, value = alpha_beta_search(init_board,result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
             if value > best_value:
                 best_value = value
                 best_move = move
@@ -434,7 +434,7 @@ def alpha_beta_search(init_board, ply_board, alpha, beta, depth, max_player, cur
         best_move = None
         best_value = float('inf')
         for move, result_board in genall_groupmove_resultboard(ply_board, cur_ply_player):
-            _, value = alpha_beta_search(result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
+            _, value = alpha_beta_search(init_board,result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
             if value < best_value:
                 best_value = value
                 best_move = move
