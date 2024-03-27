@@ -40,6 +40,16 @@ starting_board = {
     35: 1, 34: 1, 33: 1,
 }
 
+
+def who_won(board):
+    if num_player_marbles(0, board) > num_player_marbles(1, board):
+        return "Black Wins!!"
+    elif num_player_marbles(0, board) < num_player_marbles(1, board):
+        return "White Wins!!"
+    else:
+        return "It's a tie!!"
+
+
 def simulate_game(starting_board, total_turns_remaining_per_player, time_limit, player_color):
     """
       Simulates an Abalone game given the starting conditions.
@@ -76,6 +86,7 @@ def simulate_game(starting_board, total_turns_remaining_per_player, time_limit, 
 
         # Switch to the next player
         player = -player + 1
+    print(f"{who_won(board)}")
 
 
 if __name__ == '__main__':
