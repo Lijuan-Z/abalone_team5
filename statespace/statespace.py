@@ -351,7 +351,7 @@ def apply_move(board, groupmove):
         board[marble[0] + groupmove[1]] = marble[1]
 
 
-def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remaining):
+def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remaining, should_print=True):
     """
     Makes calls to alpha_beta_search, incrementing the depth each loop.
 
@@ -375,31 +375,46 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     best_move = None
     elapsed_time = 0
     time_limit_seconds = time_limit / 1000.0  # Convert time_limit to seconds for comparison
-
-    # The loop will end before the time limit if the maximum depth (based on turns remaining) is reached.
-    while depth <= max_depth:
-        print("\n============================================")
-        print(f"================= DEPTH {depth} ==================")
-        print("============================================")
-        current_time = datetime.now()
-        elapsed_time = (current_time - start_time).total_seconds()
-        print(f"Time remaining: {time_limit_seconds - elapsed_time}ms")
-        if elapsed_time >= time_limit_seconds:
-            break
-        temp_move, value = alpha_beta_search(board, depth, player, time_limit_seconds - elapsed_time, turns_remaining)
-        if temp_move is not None:
-            best_move = temp_move
-        elapsed_time = (current_time - start_time).total_seconds()
+    if (should_print):
+        # The loop will end before the time limit if the maximum depth (based on turns remaining) is reached.
+        while depth <= max_depth:
+            print("\n============================================")
+            print(f"================= DEPTH {depth} ==================")
+            print("============================================")
+            current_time = datetime.now()
+            elapsed_time = (current_time - start_time).total_seconds()
+            print(f"Time remaining: {time_limit_seconds - elapsed_time}ms")
+            if elapsed_time >= time_limit_seconds:
+                break
+            temp_move, value = alpha_beta_search(board, depth, player, time_limit_seconds - elapsed_time,
+                                                 turns_remaining)
+            if temp_move is not None:
+                best_move = temp_move
+            elapsed_time = (current_time - start_time).total_seconds()
+            print(f"Elapsed time: {elapsed_time * 1000:.2f}ms/{time_limit:.2f}ms")  # Display in milliseconds
+            print(f"Depth Reached: {depth}")
+            print(f"Current Best Move: {best_move}")
+            print(f"Best Move Value: {value}")
+            depth += 1
+        print("\n**************** FINISHED! ******************")
         print(f"Elapsed time: {elapsed_time * 1000:.2f}ms/{time_limit:.2f}ms")  # Display in milliseconds
         print(f"Depth Reached: {depth}")
         print(f"Current Best Move: {best_move}")
-        print(f"Best Move Value: {value}")
-        depth += 1
-    print("\n**************** FINISHED! ******************")
-    print(f"Elapsed time: {elapsed_time * 1000:.2f}ms/{time_limit:.2f}ms")  # Display in milliseconds
-    print(f"Depth Reached: {depth}")
-    print(f"Current Best Move: {best_move}")
-    return best_move
+        return best_move
+    else:
+        # The loop will end before the time limit if the maximum depth (based on turns remaining) is reached.
+        while depth <= max_depth:
+            current_time = datetime.now()
+            elapsed_time = (current_time - start_time).total_seconds()
+            if elapsed_time >= time_limit_seconds:
+                break
+            temp_move, value = alpha_beta_search(board, depth, player, time_limit_seconds - elapsed_time,
+                                                 turns_remaining)
+            if temp_move is not None:
+                best_move = temp_move
+
+            depth += 1
+        return best_move
 
 
 def alpha_beta_search(board, depth, player, time_limit, turns_remaining):
@@ -520,8 +535,8 @@ def game_over(board, turns_remaining, player):
 
 
 """
-    Set weights for score, centre control, marble grouping, opponent disruption, and marble danger respectively
-    instantiating this outside of the function scope so it's only created once  
+Set weights for score, centre control, marble grouping, opponent disruption, and marble danger respectively
+instantiating this outside of the function scope so it's only created once  
 """
 weights = [1, 1, 1, 1, 1]
 
