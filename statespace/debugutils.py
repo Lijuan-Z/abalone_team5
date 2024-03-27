@@ -1,3 +1,5 @@
+from . import external
+
 def print_board(board: dict):
     board_rep = {11: ' ', 12: ' ', 13: ' ', 14: ' ', 15: ' ', 16: ' ',
                  17: ' ', 18: ' ', 19: ' ', 21: ' ', 22: ' ', 23: ' ',
@@ -43,6 +45,35 @@ def print_board(board: dict):
         ⎸{board_rep[11]}⎹ ⎸{board_rep[12]}⎹ ⎸{board_rep[13]}⎹ ⎸{board_rep[14]}⎹ ⎸{board_rep[15]}⎹
         ⟍ ⟋ ⟍ ⟋ ⟍ ⟋ ⟍ ⟋ ⟍ ⟋        """
     print(board_template)
+
+
+def print_output_file(filepath: str, original_input_filepath = None):
+    with open(filepath, 'r') as f:
+        moves = f.readlines()
+
+    with open(filepath, 'r') as f:
+        boards = f.readlines()
+
+    for line in boards:
+        print("===============================")
+        print("===============================")
+        if original_input_filepath is not None:
+            original_board = external.in_to_marbles("/home/justin/personal/bcit/term3/3981-COMP-intro-to-ai/repos/abalone_team5/data/in/Test1.input")
+            print_board(original_board[0])
+            print()
+        b = external.line_to_marbles(line)
+        print_board(b)
+        print("===============================")
+        print("===============================")
+
+
+def print_output_line(line: str):
+    print("===============================")
+    print("===============================")
+    b = external.line_to_marbles(line)
+    print_board(b)
+    print("===============================")
+    print("===============================")
 
 
 if __name__ == "__main__":
