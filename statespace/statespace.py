@@ -372,18 +372,18 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     depth = 1
     # The total remaining turns in the game will be equal to double one player's remaining turns,
     # and for white the total will be -1 because they always go after black.
-    max_depth = turns_remaining * 2 - player
+    total_turns_remaining = turns_remaining * 2 - player
     best_move = None
     elapsed_time = 0
     time_limit_seconds = time_limit / 1000.0  # Convert time_limit to seconds for comparison
 
     # The loop will end before the time limit if the maximum depth (based on turns remaining) is reached.
-    while depth <= max_depth:
+    while depth <= total_turns_remaining:
         current_time = datetime.now()
         elapsed_time = (current_time - start_time).total_seconds()
         if elapsed_time >= time_limit_seconds:
             break
-        temp_move, _ = alpha_beta_search(board, depth, player, time_limit_seconds - elapsed_time, turns_remaining)
+        temp_move, _ = alpha_beta_search(board, float('-int'), float('int'), depth, player, player, time_limit_seconds - elapsed_time, total_turns_remaining)
         if temp_move is not None:
             best_move = temp_move
         depth += 1
@@ -398,7 +398,7 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     return best_move
 
 
-def alpha_beta_search(board, depth, player, time_limit, turns_remaining):
+def alpha_beta_search(board, alpha, beta, depth, max_player, cur_ply_player, time_limit, total_turns_remaining):
     """
     Determines which function should be called as the starting point of the alpha-beta search, based on the
     player value.
@@ -407,88 +407,40 @@ def alpha_beta_search(board, depth, player, time_limit, turns_remaining):
         board: a dict representation of the marbles on the board
         depth: the current depth limit for the search (ie. how many levels deep before the state is evaluated)
         time_limit: the total allotted time for this move to be determined. Should be accurate to 1/100ths of a second
-        player: a value, 0 or 1, indicating whose turn it is
+        max_player: a value, 0(black) or 1(white), indicating whose turn it is in the game
+        cur_ply_player: a value, 0(black) or 1(white), indicating whose turn it is in the current ply
         turns_remaining: the total remaining turns for the current player
 
     Returns:
         (best_move, best_value): A tuple containing the best move for a player and that move's value as determined
         by the evaluation function
     """
-    if player == 0:
-        return max_value(board, float('-inf'), float('inf'), depth, player, time_limit, turns_remaining)
+    if game_over(board, total_turns_remaining, cur_ply_player) or depth == 0:
+        return None, evaluate(board, total_turns_remaining, max_player)
+    if cur_ply_player == max_player:
+        best_move = None
+        best_value = float('-inf')
+        for move, result_board in genall_groupmove_resultboard(board, cur_ply_player):
+            _, value = alpha_beta_search(result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1)
+            if value > best_value:
+                best_value = value
+                best_move = move
+            alpha = max(alpha, value)
+            if value >= beta:
+                break
+        return best_move, best_value
     else:
-        return min_value(board, float('-inf'), float('inf'), depth, player, time_limit, turns_remaining)
-
-
-def max_value(board, alpha, beta, depth, player, time_limit, turns_remaining):
-    """
-    Finds and returns the move and value most optimal next move for the Max player given a board state.
-    ie. the MAXIMUM VALUE move.
-
-    The purpose of this function is to find the *MAXIMUM value a player can guarantee* given their options
-
-    Parameters:
-        board: a dict representation of the marbles on the board
-        alpha: a float representing the current best lower bound for the Max player.
-        beta: a float representing the current best upper bound for the Min player.
-        depth: the current depth limit for the search (ie. how many levels deep before the state is evaluated)
-        time_limit: the total allotted time for this move to be determined. Should be accurate to 1/100ths of a second
-        player: a value, 0 or 1, indicating whose turn it is
-        turns_remaining: the total remaining turns for the current player
-
-    Returns:
-        (best_move, best_value): A tuple containing the best move for a player and that move's value as determined
-        by the evaluation function
-    """
-    if game_over(board, turns_remaining, player) or depth == 0:
-        return None, evaluate(board, turns_remaining, player)
-    best_move = None
-    best_value = float('-inf')
-    for move, result_board in genall_groupmove_resultboard(board, player):
-        _, value = min_value(result_board, alpha, beta, depth - 1, 1 - player, time_limit, turns_remaining - 1)
-        if value > best_value:
-            best_value = value
-            best_move = move
-        alpha = max(alpha, value)
-        if alpha >= beta:
-            break
-    return best_move, best_value
-
-
-def min_value(board, alpha, beta, depth, player, time_limit, turns_remaining):
-    """
-       Finds and returns the move and value most optimal next move for the Min player given a board state.
-       ie. the MINIMUM VALUE move.
-
-       The purpose of this function is to find the *MINIMUM value a player can guarantee* given their options
-
-       Parameters:
-           board: a dict representation of the marbles on the board
-           alpha: a float representing the current best lower bound for the Max player.
-           beta: a float representing the current best upper bound for the Min player.
-           depth: the current depth limit for the search (ie. how many levels deep before the state is evaluated)
-           player: a value, 0 or 1, indicating whose turn it is
-           time_limit: the total allotted time for this move to be determined. Should be accurate to 1/100ths of a second
-           turns_remaining: the total remaining turns for the current player
-
-       Returns:
-           (best_move, best_value): A tuple containing the best move for the Min player and that move's value as determined
-           by the evaluation function
-    """
-
-    if game_over(board, turns_remaining, player) or depth == 0:
-        return None, -evaluate(board, turns_remaining, player)
-    best_move = None
-    best_value = float('inf')
-    for move, result_board in genall_groupmove_resultboard(board, player):
-        _, value = max_value(result_board, alpha, beta, depth - 1, 1 - player, time_limit, turns_remaining - 1)
-        if value < best_value:
-            best_value = value
-            best_move = move
-        beta = min(beta, value)
-        if beta <= alpha:
-            break
-    return best_move, best_value
+        best_move = None
+        best_value = float('inf')
+        for move, result_board in genall_groupmove_resultboard(board, cur_ply_player):
+            _, value = alpha_beta_search(result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1)
+            if value < best_value:
+                best_value = value
+                best_move = move
+            beta = min(beta, value)
+            if value <= alpha:
+                break
+        return best_move, best_value
 
 
 def num_player_marbles(player, board):
