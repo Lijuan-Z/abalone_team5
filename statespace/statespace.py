@@ -96,7 +96,7 @@ from datetime import datetime
 from random import random
 
 # import debugutils
-from marblecoords import is_out_of_bounds
+from .marblecoords import is_out_of_bounds
 
 absolute_directions = [10, 11, 1]
 
