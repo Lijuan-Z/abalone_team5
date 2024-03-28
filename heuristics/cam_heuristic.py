@@ -1,7 +1,8 @@
 from statespace.statespace import num_player_marbles, genall_inlinegroupmoves_sidestepgroupdirs
 
-# Weights for evaluation metrics: score, center control, marble grouping, opponent disruption, and marble danger
-WEIGHTS = [3, 3, 1, 1, 1]
+# Weights for evaluation metrics: score, center control, marble grouping
+
+WEIGHTS = [3, 3, 1]
 MAX_AGGRESSIVENESS = 1
 
 
