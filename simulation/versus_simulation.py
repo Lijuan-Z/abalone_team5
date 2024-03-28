@@ -5,10 +5,9 @@ from .base_simulation import Simulation
 from statespace.statespace import iterative_deepening_alpha_beta_search as idab
 from statespace.statespace import apply_move
 from statespace.statespace import game_over
-from heuristics import random, lisa_heuristic
+from heuristics import random, lisa_heuristic,cam_heuristic
 
 strategy = {0: lisa_heuristic.eval_state, 1: random.eval_state}
-
 
 class VersusSimulation(Simulation):
     """Runs a full versus simulation using 2 sets of heuristics."""
@@ -34,7 +33,8 @@ class VersusSimulation(Simulation):
                         player_turn, 20,
                         turns_remaining[player_turn],
                         strategy[player_turn])
-
+            if move is None:
+                break
             apply_move(self.board_state, move)
             self.update_display()
             turns_remaining[player_turn] -= 1
