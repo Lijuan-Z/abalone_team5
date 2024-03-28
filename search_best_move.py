@@ -1,4 +1,5 @@
 """Currently a testing file for the best-move search algorithm."""
+from heuristics import cam_heuristic
 from statespace import *
 from statespace import external, debugutils
 from statespace.statespace import iterative_deepening_alpha_beta_search, game_over, apply_move, num_player_marbles
@@ -74,7 +75,7 @@ def simulate_game(board, total_turns_remaining_per_player=20, time_limit=5000, p
         print(f"Board Positions: {board}\n")
         print_board(board)
         print("\nSearching For Next Move...")
-        move = iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remaining, False)
+        move = iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remaining, cam_heuristic.eval_state)
         print(f"Selected Move: {move}\n")
         apply_move(board, move)
 
