@@ -1,6 +1,6 @@
 """Contains a heuristic that returns random values."""
 
-def calculate_control(ply_board, max_player):
+def middle_control(ply_board, max_player):
     max_count = 0
     min_count = 0
     for pos, col in ply_board.items():
@@ -29,7 +29,20 @@ def calculate_control(ply_board, max_player):
     return min_count / max_count
 
 
+def marble_loss(ply_board, max_player):
+    max = sum([1 for col in ply_board.values() if col == max_player])
+    min = len(ply_board) - max
+    return 14 - min
+
+
 def eval_state(ply_board, max_player, *args, **kwargs):
     """Returns a random evaluation result."""
-    result = calculate_control(ply_board, max_player)
+    heuristics = {
+        middle_control: 0.5,
+        marble_loss: 0.5,
+    }
+
+    result = 0
+    for heuristic, weight in heuristics.items():
+        result += heuristic(ply_board, max_player) * weight
     return result
