@@ -2,9 +2,9 @@
 import time
 
 from .base_simulation import Simulation
-from statespace.statespace import iterative_deepening_alpha_beta_search as idab
+from statespace.search import iterative_deepening_alpha_beta_search as idab
 from statespace.statespace import apply_move
-from statespace.statespace import game_over
+from statespace.search import game_over
 from heuristics import random, lisa_heuristic, cam_heuristic, kate_heuristic
 
 strategy = {1: cam_heuristic.eval_state, 0: kate_heuristic.eval_state}
