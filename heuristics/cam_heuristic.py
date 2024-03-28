@@ -32,15 +32,14 @@ def eval_state(ply_board, total_turns_remaining, max_player, *args, **kwargs):
     normalized_enemy_disruption = calculate_normalized_enemy_disruption(total_enemy_disruption, num_player_marbles)
     normalized_marble_danger = calculate_normalized_marble_danger(total_danger, num_player_marbles)
     aggressiveness = calculate_aggressiveness(normalized_score, total_turns_remaining, max_player)
-    aggressiveness = 1
-    weighted_score = normalized_score * (WEIGHTS[0] + aggressiveness**2)
+    weighted_score = normalized_score * (WEIGHTS[0])
     weighted_centre_control = normalized_centre_control * (WEIGHTS[1])
-    weighted_marble_grouping = normalized_marble_grouping * (WEIGHTS[2] - aggressiveness)
-    weighted_enemy_disruption = normalized_enemy_disruption * (WEIGHTS[3] + aggressiveness)
-    weighted_marble_danger = normalized_marble_danger * (WEIGHTS[4] - aggressiveness)
+    weighted_marble_grouping = normalized_marble_grouping * (WEIGHTS[2])
+    weighted_enemy_disruption = normalized_enemy_disruption * (WEIGHTS[3])
+    weighted_marble_danger = normalized_marble_danger * (WEIGHTS[4])
 
-    evaluation = weighted_score + weighted_centre_control + weighted_marble_grouping + weighted_enemy_disruption - weighted_marble_danger
-    print(evaluation)
+    evaluation = weighted_score + weighted_centre_control + weighted_marble_grouping + weighted_enemy_disruption - weighted_marble_danger - aggressiveness
+    # print(evaluation)
     return evaluation
 
 
@@ -143,9 +142,11 @@ def calculate_aggressiveness(normalized_score, total_turns_remaining, player) ->
     Returns:
         float: An aggressiveness factor, with higher values indicating a more aggressive strategy.
     """
+    if normalized_score > 0:
+        return 0
     turns_remaining_for_player = (total_turns_remaining / 2) + player
-    aggression_factor = (1 - turns_remaining_for_player / 400) + abs(normalized_score)
-    return min(max(aggression_factor, 0), 2)
+    aggression_factor = (1 - turns_remaining_for_player / 400)
+    return min(max(aggression_factor, 0), 1)
 
 
 def average_distances_from_centre(board, player) -> (float, float):
