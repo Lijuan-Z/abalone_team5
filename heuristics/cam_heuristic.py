@@ -172,16 +172,16 @@ def marble_danger(marble_groupings):
 
 
 
-def eval_state(board, turns_remaining, player):
+def eval_state(ply_board, total_turns_remaining, max_player, *args, **kwargs):
     """
     Evaluates the given board state from the perspective of the specified player.
 
     Note: This is a placeholder function. You should replace `random.random()` with your actual evaluation logic.
 
     Parameters:
-        board: a dict representation of the marbles on the board.
-        turns_remaining: the total remaining turns for the current player.
-        player: a value, 0 or 1, indicating whose perspective to evaluate from.
+        ply_board: a dict representation of the marbles on the board.
+        total_turns_remaining: the total remaining turns for the current player.
+        max_player: a value, 0 or 1, indicating whose perspective to evaluate from.
 
     Returns:
         float: The evaluated score of the board state for the specified player.
@@ -191,12 +191,12 @@ def eval_state(board, turns_remaining, player):
     # marble_grouping_score = calculate_grouping_score(marble_groupings.values())
     #
     # print(marble_groupings)
-    normalized_score = calculate_normalized_score(board, player)
-    normalized_centre_control = calculate_normalized_centre_control(board, player)
-    normalized_marble_grouping = calculate_normalized_marble_grouping(board, player)
-    normalized_opponent_disruption = calculate_normalized_opponent_disruption(board, player)
-    normalized_marble_danger = calculate_normalized_marble_danger(board, player)
-    aggresiveness = calculate_aggressiveness_multiplier(normalized_score, turns_remaining, player)
+    normalized_score = calculate_normalized_score(ply_board, max_player)
+    normalized_centre_control = calculate_normalized_centre_control(ply_board, max_player)
+    normalized_marble_grouping = calculate_normalized_marble_grouping(ply_board, max_player)
+    normalized_opponent_disruption = calculate_normalized_opponent_disruption(ply_board, max_player)
+    normalized_marble_danger = calculate_normalized_marble_danger(ply_board, max_player)
+    aggresiveness = calculate_aggressiveness_multiplier(normalized_score, total_turns_remaining, max_player)
     evaluation = (normalized_score * weights[0]
                   + normalized_centre_control * weights[1]
                   + normalized_marble_grouping * weights[2]
