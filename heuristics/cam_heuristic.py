@@ -5,8 +5,8 @@ from statespace.statespace import absolute_directions
 from statespace.search import num_player_marbles
 
 # Weights for evaluation metrics: score, center control, marble grouping
-WEIGHTS = [3, 3, 1]
-MAX_AGGRESSIVENESS = 3
+WEIGHTS = [3, 2, 4]
+MAX_AGGRESSIVENESS = 1
 
 
 def genall_groups(board: dict[int, int], player_marbles: dict[int, int]):
@@ -40,22 +40,18 @@ def derive_groupdirs(board: dict[int, int], marble: tuple[int, int], direction: 
         except KeyError:
             next_marble = None
             break
-
         if is_out_of_bounds(next_coord) \
                 or num_players == num_enemies \
                 or num_players == 3 and next_marble[1] == marble[1] \
                 or next_marble[1] == marble[1] and cur_grouping[-1][1] == 1 - marble[1]:
             break
-
         cur_grouping.append(next_marble)
-
         if next_marble[1] == marble[1]:
             sidestep_groupdirs.append((tuple(cur_grouping), direction))
             num_players += 1
         elif next_marble[1] == 1 - marble[1]:
             num_enemies += 1
         next_coord += direction
-
     return sidestep_groupdirs
 
 
@@ -77,14 +73,6 @@ def eval_state(ply_board, total_turns_remaining, max_player, *args, **kwargs):
     player_marbles = {position: player_id for position, player_id in ply_board.items() if player_id == max_player}
     enemy_marbles = {position: player_id for position, player_id in ply_board.items() if player_id == 1 - max_player}
 
-    # with ThreadPoolExecutor() as executor:
-    #     player_groupings = executor.submit(genall_groups()(ply_board, player_marbles)[1])
-    #     enemy_groupings = executor.submit(genall_groups()(ply_board, enemy_marbles)[1])
-
-    player_groupings = genall_groups(ply_board, player_marbles)
-    enemy_groupings = genall_groups(ply_board, enemy_marbles)
-    player_groupings_length = len(player_groupings)
-    enemy_groupings_length = len(enemy_groupings)
     num_player_marbles = len(player_marbles)
 
     # marble_groupings = calculate_groupings_for_all_marbles(ply_board, player_marbles, max_player)
