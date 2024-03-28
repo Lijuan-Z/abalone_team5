@@ -5,8 +5,55 @@ from statespace.statespace import absolute_directions
 from statespace.search import num_player_marbles
 
 # Weights for evaluation metrics: score, center control, marble grouping
-WEIGHTS = [3, 2, 4]
-MAX_AGGRESSIVENESS = 1
+WEIGHTS = [5, 5, 4]
+MAX_AGGRESSIVENESS = 15
+
+
+def eval_state(ply_board, total_turns_remaining, max_player, *args, **kwargs):
+    """
+    Main function to evaluate the current state of the Abalone game board from the perspective of one player. It
+    combines several metrics including score normalization, center control, marble grouping, opponent disruption,
+    and marble danger, each adjusted for aggressiveness based on the game state.
+
+    Parameters:
+        ply_board (dict): A dictionary representation of the game board with positions as keys and player IDs as values.
+        total_turns_remaining (int): An estimate of the total turns remaining in the game, used to adjust aggressiveness.
+        max_player (int): The player ID (0 or 1) for whom the board is being evaluated.
+
+    Returns: float: An overall score for the board state, with higher values indicating more favorable states for the
+    max_player.
+    """
+
+    player_marbles = {position: player_id for position, player_id in ply_board.items() if player_id == max_player}
+    enemy_marbles = {position: player_id for position, player_id in ply_board.items() if player_id == 1 - max_player}
+
+    num_player_marbles = len(player_marbles)
+
+    # marble_groupings = calculate_groupings_for_all_marbles(ply_board, player_marbles, max_player)
+    # total_grouping_score, total_danger, total_enemy_disruption = get_marble_grouping_danger_and_disruption(marble_groupings)
+    # player_groupings_length = len(genall_groups(ply_board, player_marbles))
+    # enemy_groupings_length = len(genall_groups(ply_board, enemy_marbles))
+    # marble_groupings_ratio = player_groupings_length / 1 if enemy_groupings_length == 0 else player_groupings_length / enemy_groupings_length
+    normalized_score = calculate_normalized_score(ply_board, num_player_marbles)
+    normalized_centre_control = calculate_normalized_centre_control(ply_board, max_player)
+    # normalized_marble_grouping = calculate_normalized_marble_grouping(total_grouping_score, num_player_marbles)
+    # normalized_enemy_disruption = calculate_normalized_enemy_disruption(total_enemy_disruption, num_player_marbles)
+    # normalized_marble_danger = calculate_normalized_marble_danger(total_danger, num_player_marbles)
+    aggressiveness = calculate_aggressiveness(normalized_score, total_turns_remaining, max_player)
+    weighted_score = normalized_score * (WEIGHTS[0])
+    weighted_centre_control = normalized_centre_control * (WEIGHTS[1])
+    # weighted_grouping_ratio = marble_groupings_ratio * (WEIGHTS[2])
+    loss_proximity_factor = -2 if 14 - num_player_marbles > 6 else 0
+    # weighted_marble_grouping = normalized_marble_grouping * (WEIGHTS[2])
+    # weighted_enemy_disruption = normalized_enemy_disruption * (WEIGHTS[3])
+    # weighted_marble_danger = normalized_marble_danger * (WEIGHTS[4])
+
+    # evaluation = weighted_score + weighted_centre_control + weighted_marble_grouping + weighted_enemy_disruption - weighted_marble_danger - aggressiveness
+    # evaluation = weighted_score * aggressiveness + weighted_centre_control + weighted_grouping_ratio - aggressiveness + loss_proximity_factor
+    evaluation = weighted_score * aggressiveness + weighted_centre_control - aggressiveness
+
+    # print(evaluation)
+    return evaluation
 
 
 def genall_groups(board: dict[int, int], player_marbles: dict[int, int]):
@@ -53,52 +100,6 @@ def derive_groupdirs(board: dict[int, int], marble: tuple[int, int], direction: 
             num_enemies += 1
         next_coord += direction
     return sidestep_groupdirs
-
-
-def eval_state(ply_board, total_turns_remaining, max_player, *args, **kwargs):
-    """
-    Main function to evaluate the current state of the Abalone game board from the perspective of one player. It
-    combines several metrics including score normalization, center control, marble grouping, opponent disruption,
-    and marble danger, each adjusted for aggressiveness based on the game state.
-
-    Parameters:
-        ply_board (dict): A dictionary representation of the game board with positions as keys and player IDs as values.
-        total_turns_remaining (int): An estimate of the total turns remaining in the game, used to adjust aggressiveness.
-        max_player (int): The player ID (0 or 1) for whom the board is being evaluated.
-
-    Returns: float: An overall score for the board state, with higher values indicating more favorable states for the
-    max_player.
-    """
-
-    player_marbles = {position: player_id for position, player_id in ply_board.items() if player_id == max_player}
-    enemy_marbles = {position: player_id for position, player_id in ply_board.items() if player_id == 1 - max_player}
-
-    num_player_marbles = len(player_marbles)
-
-    # marble_groupings = calculate_groupings_for_all_marbles(ply_board, player_marbles, max_player)
-    # total_grouping_score, total_danger, total_enemy_disruption = get_marble_grouping_danger_and_disruption(marble_groupings)
-    player_groupings_length = len(genall_groups(ply_board, player_marbles))
-    enemy_groupings_length = len(genall_groups(ply_board, enemy_marbles))
-    marble_groupings_ratio = player_groupings_length / 1 if enemy_groupings_length == 0 else player_groupings_length / enemy_groupings_length
-    normalized_score = calculate_normalized_score(ply_board, num_player_marbles)
-    normalized_centre_control = calculate_normalized_centre_control(ply_board, max_player)
-    # normalized_marble_grouping = calculate_normalized_marble_grouping(total_grouping_score, num_player_marbles)
-    # normalized_enemy_disruption = calculate_normalized_enemy_disruption(total_enemy_disruption, num_player_marbles)
-    # normalized_marble_danger = calculate_normalized_marble_danger(total_danger, num_player_marbles)
-    aggressiveness = calculate_aggressiveness(normalized_score, total_turns_remaining, max_player)
-    weighted_score = normalized_score * (WEIGHTS[0])
-    weighted_centre_control = normalized_centre_control * (WEIGHTS[1])
-    weighted_grouping_ratio = marble_groupings_ratio * (WEIGHTS[2])
-    loss_proximity_factor = -2 if 14 - num_player_marbles > 6 else 0
-    # weighted_marble_grouping = normalized_marble_grouping * (WEIGHTS[2])
-    # weighted_enemy_disruption = normalized_enemy_disruption * (WEIGHTS[3])
-    # weighted_marble_danger = normalized_marble_danger * (WEIGHTS[4])
-
-    # evaluation = weighted_score + weighted_centre_control + weighted_marble_grouping + weighted_enemy_disruption - weighted_marble_danger - aggressiveness
-    evaluation = weighted_score * aggressiveness + weighted_centre_control + weighted_grouping_ratio - aggressiveness + loss_proximity_factor
-
-    # print(evaluation)
-    return evaluation
 
 
 def calculate_normalized_score(board, player_marble_count):
