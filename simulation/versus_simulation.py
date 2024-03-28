@@ -10,7 +10,6 @@ from heuristics import random, lisa_heuristic, cam_heuristic, kate_heuristic, \
 
 strategy = {0: justin_heuristic.eval_state, 1: cam_heuristic.eval_state}
 
-
 class VersusSimulation(Simulation):
     """Runs a full versus simulation using 2 sets of heuristics."""
 
