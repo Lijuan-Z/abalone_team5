@@ -89,8 +89,8 @@ def eval_state(ply_board, total_turns_remaining, max_player, *args, **kwargs):
 
     # marble_groupings = calculate_groupings_for_all_marbles(ply_board, player_marbles, max_player)
     # total_grouping_score, total_danger, total_enemy_disruption = get_marble_grouping_danger_and_disruption(marble_groupings)
-    player_groupings_length = len(genall_groups(ply_board, player_marbles)[1])
-    enemy_groupings_length = len(genall_groups(ply_board, enemy_marbles)[1])
+    player_groupings_length = len(genall_groups(ply_board, player_marbles))
+    enemy_groupings_length = len(genall_groups(ply_board, enemy_marbles))
     marble_groupings_ratio = player_groupings_length / 1 if enemy_groupings_length == 0 else player_groupings_length / enemy_groupings_length
     normalized_score = calculate_normalized_score(ply_board, num_player_marbles)
     normalized_centre_control = calculate_normalized_centre_control(ply_board, max_player)
