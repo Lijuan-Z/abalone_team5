@@ -162,31 +162,34 @@ def get_marble_grouping_danger_and_disruption(marble_groupings):
     return total_grouping_score, total_danger, total_enemy_disruption
 
 
-def eval_state(board, turns_remaining, player):
+def eval_state(ply_board, total_turns_remaining, max_player, *args, **kwargs):
     """
     Evaluates the given board state from the perspective of the specified player.
 
     Note: This is a placeholder function. You should replace `random.random()` with your actual evaluation logic.
 
     Parameters:
-        board: a dict representation of the marbles on the board.
-        turns_remaining: the total remaining turns for the current player.
-        player: a value, 0 or 1, indicating whose perspective to evaluate from.
+        ply_board: a dict representation of the marbles on the board.
+        total_turns_remaining: the total remaining turns for the current player.
+        max_player: a value, 0 or 1, indicating whose perspective to evaluate from.
 
     Returns:
         float: The evaluated score of the board state for the specified player.
     """
-    player_marbles = {position: player_id for position, player_id in board.items() if player_id == player}
+
+
+
+    player_marbles = {position: player_id for position, player_id in board.items() if player_id == max_player}
     num_player_marbles = len(player_marbles)
-    marble_groupings = calculate_groupings_for_all_marbles(board, player_marbles, player)
+    marble_groupings = calculate_groupings_for_all_marbles(ply_board, player_marbles, max_player)
     total_grouping_score, total_danger, total_enemy_disruption = get_marble_grouping_danger_and_disruption(marble_groupings)
-    # print(marble_groupings)
-    normalized_score = calculate_normalized_score(board, player)
-    normalized_centre_control = calculate_normalized_centre_control(board, player)
+
+    normalized_score = calculate_normalized_score(ply_board, max_player)
+    normalized_centre_control = calculate_normalized_centre_control(ply_board, max_player)
     normalized_marble_grouping = calculate_normalized_marble_grouping(total_grouping_score, num_player_marbles)
     normalized_enemy_disruption = calculate_normalized_enemy_disruption(total_enemy_disruption, num_player_marbles)
     normalized_marble_danger = calculate_normalized_marble_danger(total_danger, num_player_marbles)
-    aggresiveness = calculate_aggressiveness_multiplier(normalized_score, turns_remaining, player)
+    aggresiveness = calculate_aggressiveness_multiplier(normalized_score, total_turns_remaining, max_player)
     evaluation = (normalized_score * weights[0]
                   + normalized_centre_control * weights[1]
                   + normalized_marble_grouping * weights[2]
