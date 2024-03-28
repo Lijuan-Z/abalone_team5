@@ -69,38 +69,24 @@ def calculate_normalized_centre_control(board, player) -> float:
     return normalized_centre_control
 
 
-def calculate_normalized_marble_grouping(board, player) -> float:
-    return 0
+def calculate_normalized_marble_grouping(total_grouping_score, num_player_marbles) -> float:
+    max_grouping_score_per_marble = 18.0 # 3 marbles outwards in all 6 directions
+    return total_grouping_score / (num_player_marbles * max_grouping_score_per_marble)
 
 
-def calculate_normalized_opponent_disruption(board, player) -> float:
-    return 0
+def calculate_normalized_enemy_disruption(total_enemy_disruption, num_player_marbles) -> float:
+    max_enemy_disruption_per_marble = 3.0 # can be sandwiched from three directions
+    return total_enemy_disruption / (num_player_marbles * max_enemy_disruption_per_marble)
 
 
-
-
-
-def calculate_total_marble_danger(board, position, player):
-    total_marble_danger = 0
-    for marble in board:
-        if not board.get(marble) == player: continue
-        match position:
-            # dangerous positions (outside ring of board)
-            case 95 | 96 | 97 | 98 | 99 | 89 | 79 | 69 | 59 | 48 | 37 | 26 | 15 | 14 | 13 | 12 | 11 | 21 | 31 | 41 | 51 | 62 | 73 | 84:
-                total_marble_danger += marble_danger(position)
-            case _:
-                continue
-    return total_marble_danger
-
-
-def calculate_normalized_marble_danger(board, player) -> float:
-    return 0
-    # danger = 95 | 96 | 97 | 98 | 99 | 89 | 79 | 69 | 59 | 48 | 37 | 26 | 15 | 14 | 13 | 12 | 11 | 21 | 31 | 41 | 51 | 62 | 73 | 84:
-    # return 0
+def calculate_normalized_marble_danger(total_marble_danger, num_player_marbles) -> float:
+    max_danger_per_marble = 27.0 #A marble is in the corner of the board, and has three 3 marble sumitos ready to push it off. No escape possible. RIP.
+    max_total_danger = 67.0 #27 + 22 + 9 + 9
+    return total_marble_danger / max_total_danger
 
 
 def calculate_aggressiveness_multiplier(normalized_score: float, turns_remaining, player) -> float:
-    return 0
+    return 0.0
 
 
 def get_neighbors(board, position, player, memo):
@@ -154,22 +140,26 @@ def calculate_groupings_for_all_marbles(board, player_marbles, player):
     return memo
 
 
-def calculate_grouping_score(marble_groupings):
-    score = 0
-    for direction, neighbours in marble_groupings:
-        score += neighbours["friends"]
-    return score
-
-
-def marble_danger(marble_groupings):
-    total_danger = 0
-    for position, direction_groupings in marble_groupings:
-        match position:
+def get_marble_grouping_danger_and_disruption(marble_groupings):
+    total_grouping_score = 0.0  # a score indicating sum of each marbles total "friendly" neighbours
+    total_danger = 0.0  # a score indicating whether a marble on the edge of the board has neighbouring enemy marbles (is at risk of being pushed off the board)
+    total_enemy_disruption = 0.0  # a score indicating if a marble is sandwiched on both sides by an enemy marble, max possible value would be 3 indicating the marble is completely surrounded (maximally disrupting the enemy formation)
+    for marble, direction_groupings in marble_groupings.items():
+        match marble[0]:  # positional coordinate of the marble
             case 95 | 96 | 97 | 98 | 99 | 89 | 79 | 69 | 59 | 48 | 37 | 26 | 15 | 14 | 13 | 12 | 11 | 21 | 31 | 41 | 51 | 62 | 73 | 84:
-                for direction_grouping in direction_groupings:
-                    total_danger += direction_grouping["enemies"]
-
-
+                for direction_grouping in direction_groupings.values():
+                    total_danger += direction_grouping["enemies"] ** 2 # Scale danger for a marble exponentially based on the number of marbles in a direction
+                    total_grouping_score += direction_grouping["friends"] # Can scale this linearly, since over-grouping marbles can be detrimental to the end-game
+            case _:
+                for direction, neighbours in direction_groupings.items():
+                    opposite_direction = -direction
+                    total_grouping_score += neighbours["friends"]
+                    match direction:
+                        case 11 | 10 | 1:
+                            if opposite_direction in direction_groupings:
+                                if neighbours["enemies"] > 0 and direction_groupings[opposite_direction]["enemies"] > 0:
+                                    total_enemy_disruption += 1 # Might adjust
+    return total_grouping_score, total_danger, total_enemy_disruption
 
 
 def eval_state(board, turns_remaining, player):
@@ -187,20 +177,20 @@ def eval_state(board, turns_remaining, player):
         float: The evaluated score of the board state for the specified player.
     """
     player_marbles = {position: player_id for position, player_id in board.items() if player_id == player}
-    # marble_groupings = calculate_groupings_for_all_marbles(board, player_marbles, player)
-    # marble_grouping_score = calculate_grouping_score(marble_groupings.values())
-    #
+    num_player_marbles = len(player_marbles)
+    marble_groupings = calculate_groupings_for_all_marbles(board, player_marbles, player)
+    total_grouping_score, total_danger, total_enemy_disruption = get_marble_grouping_danger_and_disruption(marble_groupings)
     # print(marble_groupings)
     normalized_score = calculate_normalized_score(board, player)
     normalized_centre_control = calculate_normalized_centre_control(board, player)
-    normalized_marble_grouping = calculate_normalized_marble_grouping(board, player)
-    normalized_opponent_disruption = calculate_normalized_opponent_disruption(board, player)
-    normalized_marble_danger = calculate_normalized_marble_danger(board, player)
+    normalized_marble_grouping = calculate_normalized_marble_grouping(total_grouping_score, num_player_marbles)
+    normalized_enemy_disruption = calculate_normalized_enemy_disruption(total_enemy_disruption, num_player_marbles)
+    normalized_marble_danger = calculate_normalized_marble_danger(total_danger, num_player_marbles)
     aggresiveness = calculate_aggressiveness_multiplier(normalized_score, turns_remaining, player)
     evaluation = (normalized_score * weights[0]
                   + normalized_centre_control * weights[1]
                   + normalized_marble_grouping * weights[2]
-                  + normalized_opponent_disruption * weights[3]
-                  + normalized_marble_danger * weights[4])
+                  + normalized_enemy_disruption * weights[3]
+                  - normalized_marble_danger * weights[4])
     # print(evaluation, end=", ")
     return evaluation
