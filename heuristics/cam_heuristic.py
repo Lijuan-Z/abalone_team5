@@ -2,7 +2,7 @@ from statespace.statespace import num_player_marbles
 
 
 # Weights for evaluation metrics: score, center control, marble grouping, opponent disruption, and marble danger
-WEIGHTS = [1, 3, 2, 1, 1]
+WEIGHTS = [3, 2, 1, 1, 1]
 
 
 def eval_state(ply_board, total_turns_remaining, max_player, *args, **kwargs):
@@ -32,9 +32,9 @@ def eval_state(ply_board, total_turns_remaining, max_player, *args, **kwargs):
     normalized_enemy_disruption = calculate_normalized_enemy_disruption(total_enemy_disruption, num_player_marbles)
     normalized_marble_danger = calculate_normalized_marble_danger(total_danger, num_player_marbles)
     aggressiveness = calculate_aggressiveness(normalized_score, total_turns_remaining, max_player)
-
-    weighted_score = normalized_score * (WEIGHTS[0] + aggressiveness ** 2)
-    weighted_centre_control = normalized_centre_control * (WEIGHTS[1] - aggressiveness)
+    aggressiveness = 1
+    weighted_score = normalized_score * (WEIGHTS[0] + aggressiveness**2)
+    weighted_centre_control = normalized_centre_control * (WEIGHTS[1])
     weighted_marble_grouping = normalized_marble_grouping * (WEIGHTS[2] - aggressiveness)
     weighted_enemy_disruption = normalized_enemy_disruption * (WEIGHTS[3] + aggressiveness)
     weighted_marble_danger = normalized_marble_danger * (WEIGHTS[4] - aggressiveness)
@@ -76,7 +76,7 @@ def calculate_normalized_centre_control(board, player) -> float:
     player_avg_distance, enemy_avg_distance = average_distances_from_centre(board, player)
     max_distance = 4
     control_measure = enemy_avg_distance - player_avg_distance
-    return control_measure / max_distance
+    return enemy_avg_distance / player_avg_distance
 
 
 def calculate_normalized_marble_grouping(total_grouping_score, num_player_marbles) -> float:
@@ -128,8 +128,7 @@ def calculate_normalized_marble_danger(total_marble_danger, num_player_marbles) 
     """
     max_danger_per_marble = 9
     max_total_danger = num_player_marbles * max_danger_per_marble
-    return total_marble_danger / max_total_danger
-
+    return total_marble_danger / 25
 
 def calculate_aggressiveness(normalized_score, total_turns_remaining, player) -> float:
     """
