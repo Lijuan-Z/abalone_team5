@@ -5,9 +5,9 @@ from .base_simulation import Simulation
 from statespace.statespace import iterative_deepening_alpha_beta_search as idab
 from statespace.statespace import apply_move
 from statespace.statespace import game_over
-from heuristics import random, lisa_heuristic
+from heuristics import random, lisa_heuristic, cam_heuristic, kate_heuristic
 
-strategy = {0: lisa_heuristic.eval_state, 1: random.eval_state}
+strategy = {1: cam_heuristic.eval_state, 0: kate_heuristic.eval_state}
 
 
 class VersusSimulation(Simulation):
@@ -22,24 +22,33 @@ class VersusSimulation(Simulation):
                             23: 0, 24: 0, 25: 0, 26: 0, 33: 0, 34: 0, 35: 0,
                             99: 1, 98: 1, 97: 1, 96: 1, 95: 1, 89: 1, 88: 1,
                             87: 1, 86: 1, 85: 1, 84: 1, 77: 1, 76: 1, 75: 1}
-        player_turn = 1 # init as opposite
+        player_turn = 1  # init as opposite
         turns_remaining = {0: 100, 1: 100}
+        time_limit = 500
         self.update_display()
 
         while not game_over(self.board_state,
-                      turns_remaining[player_turn],
-                      player_turn):
+                            turns_remaining[player_turn],
+                            player_turn):
             player_turn = 1 - player_turn
             move = idab(self.board_state,
-                        player_turn, 20,
+                        player_turn, time_limit,
                         turns_remaining[player_turn],
                         strategy[player_turn])
+
+            if move is None:
+                break
 
             apply_move(self.board_state, move)
             self.update_display()
             turns_remaining[player_turn] -= 1
 
-        print(f"{'black' if (1 - player_turn) == 0 else 'white'} wins!")
-
+        black_marbles_remaining = sum(1 for marble in self.board_state.values() if marble == 0)
+        white_marbles_remaining = sum(1 for marble in self.board_state.values() if marble == 1)
+        winner = "Black" if black_marbles_remaining > white_marbles_remaining else "White"
+        print(f"{winner} wins!!!")
+        print(f"Total Remaining Marbles:"
+              f"\tBlack: {black_marbles_remaining}"
+              f"\tWhite: {white_marbles_remaining}")
         while True:
             self.update_display()
