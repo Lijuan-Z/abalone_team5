@@ -1,9 +1,62 @@
-from statespace.statespace import num_player_marbles, genall_inlinegroupmoves_sidestepgroupdirs
+from concurrent.futures import ThreadPoolExecutor
+
+from statespace.marblecoords import is_out_of_bounds
+from statespace.statespace import absolute_directions
+from statespace.search import num_player_marbles
 
 # Weights for evaluation metrics: score, center control, marble grouping
-
 WEIGHTS = [3, 3, 1]
-MAX_AGGRESSIVENESS = 1
+MAX_AGGRESSIVENESS = 3
+
+
+def genall_groups(board: dict[int, int], player_marbles: dict[int, int]):
+    sidestep_groupdirs = []
+    for marble in player_marbles.items():
+        for direction in absolute_directions:
+            new_sidestep_groupdirs = derive_groupdirs(board, marble, direction)
+            sidestep_groupdirs.extend(new_sidestep_groupdirs)
+
+    return sidestep_groupdirs
+
+
+def derive_groupdirs(board: dict[int, int], marble: tuple[int, int], direction: int):
+    """Get marble's inline groupmove, sidestep groupdirs, for single direction.
+
+    return format explained:
+        output = (inlinegroupmove, list[sidestepgroupdir])
+    """
+    sidestep_groupdirs = []
+    cur_grouping = [marble]
+    next_coord = marble[0] + direction
+    num_players = 1
+    num_enemies = 0
+
+    next_marble = None
+
+    while True:
+        try:
+            # throws KeyError if no marble at that coordinate
+            next_marble = (next_coord, board[next_coord])
+        except KeyError:
+            next_marble = None
+            break
+
+        if is_out_of_bounds(next_coord) \
+                or num_players == num_enemies \
+                or num_players == 3 and next_marble[1] == marble[1] \
+                or next_marble[1] == marble[1] and cur_grouping[-1][1] == 1 - marble[1]:
+            break
+
+        cur_grouping.append(next_marble)
+
+        if next_marble[1] == marble[1]:
+            sidestep_groupdirs.append((tuple(cur_grouping), direction))
+            num_players += 1
+        elif next_marble[1] == 1 - marble[1]:
+            num_enemies += 1
+        next_coord += direction
+
+    return sidestep_groupdirs
 
 
 def eval_state(ply_board, total_turns_remaining, max_player, *args, **kwargs):
@@ -23,12 +76,22 @@ def eval_state(ply_board, total_turns_remaining, max_player, *args, **kwargs):
 
     player_marbles = {position: player_id for position, player_id in ply_board.items() if player_id == max_player}
     enemy_marbles = {position: player_id for position, player_id in ply_board.items() if player_id == 1 - max_player}
+
+    # with ThreadPoolExecutor() as executor:
+    #     player_groupings = executor.submit(genall_groups()(ply_board, player_marbles)[1])
+    #     enemy_groupings = executor.submit(genall_groups()(ply_board, enemy_marbles)[1])
+
+    player_groupings = genall_groups(ply_board, player_marbles)
+    enemy_groupings = genall_groups(ply_board, enemy_marbles)
+    player_groupings_length = len(player_groupings)
+    enemy_groupings_length = len(enemy_groupings)
     num_player_marbles = len(player_marbles)
+
     # marble_groupings = calculate_groupings_for_all_marbles(ply_board, player_marbles, max_player)
     # total_grouping_score, total_danger, total_enemy_disruption = get_marble_grouping_danger_and_disruption(marble_groupings)
-    player_groupings_length = len(genall_inlinegroupmoves_sidestepgroupdirs(ply_board, player_marbles)[1])
-    enemy_groupings_length = len(genall_inlinegroupmoves_sidestepgroupdirs(ply_board, enemy_marbles)[1])
-    marble_groupings_ratio = player_groupings_length/1 if enemy_groupings_length is 0 else player_groupings_length/enemy_groupings_length
+    player_groupings_length = len(genall_groups(ply_board, player_marbles)[1])
+    enemy_groupings_length = len(genall_groups(ply_board, enemy_marbles)[1])
+    marble_groupings_ratio = player_groupings_length / 1 if enemy_groupings_length == 0 else player_groupings_length / enemy_groupings_length
     normalized_score = calculate_normalized_score(ply_board, num_player_marbles)
     normalized_centre_control = calculate_normalized_centre_control(ply_board, max_player)
     # normalized_marble_grouping = calculate_normalized_marble_grouping(total_grouping_score, num_player_marbles)
@@ -136,6 +199,7 @@ def calculate_normalized_marble_danger(total_marble_danger, num_player_marbles) 
     max_total_danger = num_player_marbles * max_danger_per_marble
     return total_marble_danger / 25
 
+
 def calculate_aggressiveness(normalized_score, total_turns_remaining, player) -> float:
     """
     Determines the player's aggressiveness level based on their current score and the estimated turns remaining. This
@@ -152,7 +216,7 @@ def calculate_aggressiveness(normalized_score, total_turns_remaining, player) ->
     if normalized_score > 0:
         return 0
     turns_remaining_for_player = (total_turns_remaining / 2) + player
-    aggression_factor = (1 - turns_remaining_for_player / 400) + abs(normalized_score)
+    aggression_factor = (1 - turns_remaining_for_player / 80) + abs(normalized_score)
     return min(max(aggression_factor, 0), MAX_AGGRESSIVENESS)
 
 
