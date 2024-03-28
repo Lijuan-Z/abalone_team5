@@ -2,7 +2,8 @@
 from heuristics import cam_heuristic
 from statespace import *
 from statespace import external, debugutils
-from statespace.statespace import iterative_deepening_alpha_beta_search, game_over, apply_move, num_player_marbles
+from statespace.search import iterative_deepening_alpha_beta_search, game_over, num_player_marbles
+from statespace.statespace import apply_move
 
 
 def print_board(board, black_marble="🦖", white_marble="🐒", empty_space="🥥"):
