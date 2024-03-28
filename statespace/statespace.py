@@ -375,25 +375,26 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     total_turns_remaining = turns_remaining * 2 - player
     best_move = None
     elapsed_time = 0
+    best_move_search_time = 0
     time_limit_seconds = time_limit / 1000.0  # Convert time_limit to seconds for comparison
 
     # The loop will end before the time limit if the maximum depth (based on turns remaining) is reached.
     while depth <= total_turns_remaining:
-        current_time = datetime.now()
-        elapsed_time = (current_time - start_time).total_seconds()
+        temp_move, _ = alpha_beta_search(board, board, float('-inf'), float('inf'), depth, player, player, time_limit_seconds - elapsed_time, total_turns_remaining, eval_callback)
+        elapsed_time = (datetime.now() - start_time).total_seconds()
         if elapsed_time >= time_limit_seconds:
             break
-        temp_move, _ = alpha_beta_search(board, board, float('-inf'), float('inf'), depth, player, player, time_limit_seconds - elapsed_time, total_turns_remaining, eval_callback)
         if temp_move is not None:
             best_move = temp_move
+            best_move_search_time = elapsed_time
         depth += 1
         # print(f"Elapsed time: {elapsed_time * 1000:.2f}ms/{time_limit:.2f}ms")  # Display in milliseconds
-        # print(f"Depth Reached: {depth}")
+        # print(f"Current Depth Reached: {depth}")
         # print(f"Current Best Move: {best_move}")
     print("\n=======FINISHED========")
-    print(f"Elapsed time: {elapsed_time * 1000:.2f}ms/{time_limit:.2f}ms")  # Display in milliseconds
-    print(f"Depth Reached: {depth}")
-    print(f"Current Best Move: {best_move}")
+    print(f"Best Move Search Time: {best_move_search_time * 1000:.2f}ms/{time_limit:.2f}ms")  # Display in milliseconds
+    print(f"Best Move Depth: {depth - 1}")
+    print(f"Best Move: {best_move}")
 
     return best_move
 
