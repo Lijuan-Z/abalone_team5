@@ -387,9 +387,9 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
         if temp_move is not None:
             best_move = temp_move
         depth += 1
-        print(f"Elapsed time: {elapsed_time * 1000:.2f}ms/{time_limit:.2f}ms")  # Display in milliseconds
-        print(f"Depth Reached: {depth}")
-        print(f"Current Best Move: {best_move}")
+        # print(f"Elapsed time: {elapsed_time * 1000:.2f}ms/{time_limit:.2f}ms")  # Display in milliseconds
+        # print(f"Depth Reached: {depth}")
+        # print(f"Current Best Move: {best_move}")
     print("\n=======FINISHED========")
     print(f"Elapsed time: {elapsed_time * 1000:.2f}ms/{time_limit:.2f}ms")  # Display in milliseconds
     print(f"Depth Reached: {depth}")
