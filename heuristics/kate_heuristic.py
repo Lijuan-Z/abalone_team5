@@ -32,11 +32,14 @@ def marble_loss(ply_board, max_player):
 def eval_state(ply_board, max_player, *args, **kwargs):
     """Returns a random evaluation result."""
     heuristics = {
-        middle_control: 0.5,
-        marble_loss: 0.5,
+        middle_control: 1,
+        marble_loss: 1,
     }
 
-    result = 0
+    sum = 0
     for heuristic, weight in heuristics.items():
-        result += heuristic(ply_board, max_player) * weight
-    return result
+        result = heuristic(ply_board, max_player)
+        print(heuristic.__name__, result)
+        sum += heuristic(ply_board, max_player) * weight
+    print()
+    return sum
