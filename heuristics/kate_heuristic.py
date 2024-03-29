@@ -34,14 +34,19 @@ def marble_loss(ply_board, max_player):
 def density(ply_board, max_player):
     adjacency_list = {marble: set() for marble in ply_board.items()}
 
-    sum = 0
+    num = 0
+    den = 0
+
     for marble, neighbors in adjacency_list.items():
         for direction in directions:
             if marble[0] + direction in ply_board.keys():
                 neighbors.add((marble[0] + direction, ply_board[marble[0] + direction]))
-        sum += len(neighbors)
 
-    return sum / len(ply_board)
+        if marble[1] == max_player:
+            num += len(neighbors)
+            den += 1
+
+    return num / den
 
 
 def eval_state(ply_board, max_player, *args, **kwargs):
@@ -56,6 +61,6 @@ def eval_state(ply_board, max_player, *args, **kwargs):
     for heuristic, weight in heuristics.items():
         result = heuristic(ply_board, max_player)
         # print(heuristic.__name__, result)
-        sum += heuristic(ply_board, max_player) * weight
+        sum += result * weight
     print()
     return sum
