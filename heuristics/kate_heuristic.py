@@ -7,6 +7,8 @@ distance_mapping = {
     85: 3, 86: 3, 87: 3, 88: 3, 78: 3, 68: 3, 58: 3, 47: 3, 36: 3, 25: 3, 24: 3, 23: 3, 22: 3, 32: 3, 42: 3, 52: 3, 63: 3, 74: 3,
     95: 4, 96: 4, 97: 4, 98: 4, 99: 4, 89: 4, 79: 4, 69: 4, 59: 4, 48: 4, 37: 4, 26: 4, 15: 4, 14: 4, 13: 4, 12: 4, 11: 4, 21: 4, 31: 4, 41: 4, 51: 4, 62: 4, 73: 4, 84: 4
 }
+directions = [1, 10, 11]
+
 
 def middle_control(ply_board, max_player):
     max_count = 0
@@ -29,17 +31,31 @@ def marble_loss(ply_board, max_player):
     return 14 - min
 
 
+def density(ply_board, max_player):
+    adjacency_list = {marble: set() for marble in ply_board.items()}
+
+    sum = 0
+    for marble, neighbors in adjacency_list.items():
+        for direction in directions:
+            if marble[0] + direction in ply_board.keys():
+                neighbors.add((marble[0] + direction, ply_board[marble[0] + direction]))
+        sum += len(neighbors)
+
+    return sum / len(ply_board)
+
+
 def eval_state(ply_board, max_player, *args, **kwargs):
     """Returns a random evaluation result."""
     heuristics = {
         middle_control: 1,
         marble_loss: 1,
+        density: 0.5,
     }
 
     sum = 0
     for heuristic, weight in heuristics.items():
         result = heuristic(ply_board, max_player)
-        print(heuristic.__name__, result)
+        # print(heuristic.__name__, result)
         sum += heuristic(ply_board, max_player) * weight
     print()
     return sum
