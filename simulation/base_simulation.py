@@ -9,7 +9,7 @@ class Simulation(abc.ABC):
                                   [dict[int, int]], None
                               ]):
         """Binds a display callback for the versus simulation."""
-        self.board_state = {}
+        # self.board_state = {}
         self.set_display_callback = set_display_callback
 
     def update_display(self):
