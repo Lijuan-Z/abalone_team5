@@ -2,7 +2,7 @@ from statespace.marblecoords import is_out_of_bounds
 from statespace.statespace import absolute_directions
 
 # Weights for evaluation metrics: score, center control, marble grouping, enemy disruption, and marble danger
-WEIGHTS = [3, 2, 1, 1, 1]
+WEIGHTS = [4, 1, 1, 1, 1]
 
 # Allowable max value for the aggressiveness of the agent
 MAX_AGGRESSIVENESS = 1
@@ -10,9 +10,70 @@ MAX_AGGRESSIVENESS = 1
 # Set of all valid board coordinates
 VALID_COORDS = {11, 12, 13, 14, 15, 21, 22, 23, 24, 25, 26, 31, 32, 33, 34, 35, 36, 37, 41, 42, 43, 44, 45, 46, 47, 48, 51, 52, 53, 54, 55, 56, 57, 58, 59, 62, 63, 64, 65, 66, 67, 68, 69, 73, 74, 75, 76, 77, 78, 79, 84, 85, 86, 87, 88, 89, 95, 96, 97, 98, 99}
 
+XY_COORDS = {11: (1, 1),
+             12: (1, 2),
+             13: (1, 3),
+             14: (1, 4),
+             15: (1, 5),
+             21: (2, 1),
+             22: (2, 2),
+             23: (2, 3),
+             24: (2, 4),
+             25: (2, 5),
+             26: (2, 6),
+             31: (3, 1),
+             32: (3, 2),
+             33: (3, 3),
+             34: (3, 4),
+             35: (3, 5),
+             36: (3, 6),
+             37: (3, 7),
+             41: (4, 1),
+             42: (4, 2),
+             43: (4, 3),
+             44: (4, 4),
+             45: (4, 5),
+             46: (4, 6),
+             47: (4, 7),
+             48: (4, 8),
+             51: (5, 1),
+             52: (5, 2),
+             53: (5, 3),
+             54: (5, 4),
+             55: (5, 5),
+             56: (5, 6),
+             57: (5, 7),
+             58: (5, 8),
+             59: (5, 9),
+             62: (6, 2),
+             63: (6, 3),
+             64: (6, 4),
+             65: (6, 5),
+             66: (6, 6),
+             67: (6, 7),
+             68: (6, 8),
+             69: (6, 9),
+             73: (7, 3),
+             74: (7, 4),
+             75: (7, 5),
+             76: (7, 6),
+             77: (7, 7),
+             78: (7, 8),
+             79: (7, 9),
+             84: (8, 4),
+             85: (8, 5),
+             86: (8, 6),
+             87: (8, 7),
+             88: (8, 8),
+             89: (8, 9),
+             95: (9, 5),
+             96: (9, 6),
+             97: (9, 7),
+             98: (9, 8),
+             99: (9, 9)}
 
 # Value associated with each distance from the centre of the board
-DISTANCE_PENALTIES = [0, 1, 2, 3, 4]
+DISTANCE_PENALTIES = [0, 2, 4, 6, 10]
 
 # Dict associating board positions with penalty values
 DISTANCE_PENALTIES_DICT = {
@@ -125,7 +186,7 @@ def eval_state(ply_board, total_turns_remaining, max_player, *args, **kwargs):
 
     # Basic game info calculations
     player_marbles = {position: player_id for position, player_id in ply_board.items() if player_id == max_player}
-    enemy_marbles = {position: player_id for position, player_id in ply_board.items() if player_id == 1 - max_player}
+    enemy_marbles = {position: player_id for position, player_id in ply_board.items() if player_id != max_player}
     num_player_marbles = len(player_marbles)
     num_enemy_marbles = len(enemy_marbles)
 
@@ -133,30 +194,69 @@ def eval_state(ply_board, total_turns_remaining, max_player, *args, **kwargs):
     normalized_score = calculate_normalized_score(num_player_marbles, num_enemy_marbles)
     centre_distance_ratio = calc_centre_ratio(num_player_marbles, num_enemy_marbles, player_marbles, enemy_marbles)
 
+
     # marble_groupings = calculate_groupings_for_all_marbles(ply_board, player_marbles, max_player)
     # total_grouping_score, total_danger, total_enemy_disruption = get_marble_grouping_danger_and_disruption(marble_groupings)
-    player_groupings_length = len(genall_groups(ply_board, player_marbles))
-    enemy_groupings_length = len(genall_groups(ply_board, enemy_marbles))
-    marble_groupings_ratio = player_groupings_length / 1 if enemy_groupings_length == 0 else (
-                                                                                                         player_groupings_length / enemy_groupings_length) / 4
+    # player_groupings_length = len(genall_groups(ply_board, player_marbles))
+    # enemy_groupings_length = len(genall_groups(ply_board, enemy_marbles))
+    # marble_groupings_ratio = player_groupings_length / 1 if enemy_groupings_length == 0 else (
+    #                                                                                                      player_groupings_length / enemy_groupings_length) / 4
 
     # normalized_centre_control_ratio = calculate_normalized_centre_control(ply_board, max_player, num_player_marbles,
     #                                                                       num_enemy_marbles)
     # normalized_marble_grouping = calculate_normalized_marble_grouping(total_grouping_score, num_player_marbles)
     # normalized_enemy_disruption = calculate_normalized_enemy_disruption(total_enemy_disruption, num_player_marbles)
     # normalized_marble_danger = calculate_normalized_marble_danger(total_danger, num_player_marbles)
-    aggressiveness = calculate_aggressiveness(normalized_score, total_turns_remaining)
+    # aggressiveness = calculate_aggressiveness(normalized_score, total_turns_remaining)
     weighted_score = normalized_score * (WEIGHTS[0])
     weighted_centre_control = centre_distance_ratio * (WEIGHTS[1])
     # weighted_marble_grouping = normalized_marble_grouping * (WEIGHTS[2])
     # weighted_enemy_disruption = normalized_enemy_disruption * (WEIGHTS[3])
     # weighted_marble_danger = normalized_marble_danger * (WEIGHTS[4])
+    #
+    # center_of_mass_player = calculate_center_of_mass(player_marbles, num_player_marbles)
+    # center_of_mass_enemy = calculate_center_of_mass(enemy_marbles, num_enemy_marbles)
+    # board_center = (5, 5)  # Define the geometric center of your board here
+    #
+    # # Calculate reference point R as a weighted average
+    # R = ((center_of_mass_player[0] + center_of_mass_enemy[0] + board_center[0] * 0.5) / 2.5,
+    #      (center_of_mass_player[1] + center_of_mass_enemy[1] + board_center[1] * 0.5) / 2.5)
+    #
+    # # Sum up distances to R
+    # distance_sum_player = sum(hex_distance(XY_COORDS[pos], R) for pos in player_marbles)
+    # distance_sum_enemy = sum(hex_distance(XY_COORDS[pos], R) for pos in enemy_marbles)
+    #
+    # # Calculate score based on the discrepancy of the two sums
+    # score = distance_sum_enemy - distance_sum_player  # More negative means better for the max player
 
-    marble_groupings_ratio *= WEIGHTS[2]
-    evaluation = weighted_score + weighted_centre_control + marble_groupings_ratio + aggressiveness
+    # marble_groupings_ratio *= WEIGHTS[2]
+    evaluation = weighted_score + weighted_centre_control + calculate_aggressiveness(normalized_score, total_turns_remaining)**2
 
     # print(evaluation)
     return evaluation
+
+
+def hex_distance(a, b):
+    """
+    Calculate the hexagonal Manhattan distance between points a and b.
+    Points are tuples of (x, y).
+    """
+    dx = abs(a[0] - b[0])
+    dy = abs(a[1] - b[1])
+    return max(dx, dy)
+
+
+def calculate_center_of_mass(marbles, num_player_marbles):
+    """
+    Compute the center of mass for a collection of marbles.
+    Marbles is a dict with positions as keys.
+    """
+    total_x, total_y = 0, 0
+    for position in marbles.keys():
+        x, y = XY_COORDS[position]
+        total_x += x
+        total_y += y
+    return total_x / num_player_marbles, total_y / num_player_marbles
 
 
 def calculate_normalized_score(num_player_marbles, num_enemy_marbles):
