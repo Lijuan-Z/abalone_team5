@@ -100,6 +100,7 @@ from .marblecoords import is_out_of_bounds
 
 absolute_directions = [10, 11, 1]
 
+VALID_COORDS = {11, 12, 13, 14, 15, 21, 22, 23, 24, 25, 26, 31, 32, 33, 34, 35, 36, 37, 41, 42, 43, 44, 45, 46, 47, 48, 51, 52, 53, 54, 55, 56, 57, 58, 59, 62, 63, 64, 65, 66, 67, 68, 69, 73, 74, 75, 76, 77, 78, 79, 84, 85, 86, 87, 88, 89, 95, 96, 97, 98, 99}
 
 def genall_groupmove_resultboard(marbles: dict[int, int],
                                  player_color: int) \
@@ -192,7 +193,7 @@ def is_valid_sidemove(board: dict[int, int],
         except KeyError:
             pass
 
-        if is_out_of_bounds(new_coord):
+        if new_coord not in VALID_COORDS:
             return False
 
     return True
@@ -263,7 +264,7 @@ def derive_inlinegroupmove_sidestepgroupdirs(board: dict[int, int],
             next_marble = None
             break
 
-        if is_out_of_bounds(next_coord) \
+        if next_coord not in VALID_COORDS \
                 or num_players == num_enemies \
                 or num_players == 3 and next_marble[1] == marble[1] \
                 or next_marble[1] == marble[1] and cur_grouping[-1][1] == 1 - marble[1]:
@@ -279,7 +280,7 @@ def derive_inlinegroupmove_sidestepgroupdirs(board: dict[int, int],
 
         next_coord += direction
 
-    if is_out_of_bounds(next_coord) and cur_grouping[-1][1] == marble[1]:
+    if next_coord not in VALID_COORDS and cur_grouping[-1][1] == marble[1]:
         return None, sidestep_groupdirs
     elif num_players == 3 and next_marble and next_marble[1] == marble[1]:
         return None, sidestep_groupdirs
@@ -315,7 +316,7 @@ def derive_inlinegroupmove(board: dict[int, int],
         except KeyError:
             next_marble = None
             break
-        if is_out_of_bounds(next_coord) \
+        if next_coord not in VALID_COORDS \
                 or num_players == num_enemies \
                 or num_players == 3 and next_marble[1] == marble[1] \
                 or next_marble[1] == marble[1] and cur_grouping[-1][1] == 1 - marble[1]:
@@ -330,7 +331,7 @@ def derive_inlinegroupmove(board: dict[int, int],
 
         next_coord += direction
 
-    if is_out_of_bounds(next_coord) and cur_grouping[-1][1] == marble[1]:
+    if next_coord not in VALID_COORDS and cur_grouping[-1][1] == marble[1]:
         return None
     elif num_players == 3 and next_marble and next_marble[1] == marble[1]:
         return None
@@ -347,7 +348,7 @@ def apply_move(board, groupmove):
     for marble in reversed(groupmove[0]):
         del board[marble[0]]
         new_coord = marble[0] + groupmove[1]
-        if is_out_of_bounds(new_coord):
+        if new_coord not in VALID_COORDS:
             continue
         board[marble[0] + groupmove[1]] = marble[1]
 
@@ -366,4 +367,4 @@ if __name__ == "__main__":
     test_num = 2
     board_marbles, player_color = external.in_to_marbles(f"{in_base}Test{test_num}.input")
     #result = genall_groupmove_resultboard(board_marbles, player_color)
-    iterative_deepening_alpha_beta_search(board_marbles, 0, 10000, 15)
+
