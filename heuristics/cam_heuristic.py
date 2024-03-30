@@ -1,12 +1,12 @@
 from statespace.marblecoords import is_out_of_bounds
 from statespace.statespace import absolute_directions
 
-# Weights for evaluation metrics: score, center control, marble grouping
-WEIGHTS = [1, 2, 1]
-MAX_AGGRESSIVENESS = 1.5
+# Weights for evaluation metrics: score, center control, marble grouping, enemy disruption, and marble danger
+WEIGHTS = [3, 2, 1, 1, 1]
+MAX_AGGRESSIVENESS = 1
 
 # Value associated with each distance from the centre of the board
-DISTANCE_PENALTIES = [0, 1, 4, 8, 16]
+DISTANCE_PENALTIES = [0, 1, 2, 3, 4]
 
 # Dict associating board positions with penalty values
 DISTANCE_PENALTIES_DICT = {
@@ -80,10 +80,11 @@ DISTANCE_PENALTIES_DICT = {
 # Max player turns
 MAX_PLAYER_TURNS = 80
 
-
 NORMALIZED_SCORES = {
-    # Max player in the lead
+    #Tie (eww)
     0: 0.0,
+
+    # Max player in the lead
     1: 0.167,
     2: 0.333,
     3: 0.5,
@@ -129,9 +130,9 @@ def eval_state(ply_board, total_turns_remaining, max_player, *args, **kwargs):
 
     # marble_groupings = calculate_groupings_for_all_marbles(ply_board, player_marbles, max_player)
     # total_grouping_score, total_danger, total_enemy_disruption = get_marble_grouping_danger_and_disruption(marble_groupings)
-    # player_groupings_length = len(genall_groups(ply_board, player_marbles))
-    # enemy_groupings_length = len(genall_groups(ply_board, enemy_marbles))
-    # marble_groupings_ratio = player_groupings_length / 1 if enemy_groupings_length == 0 else player_groupings_length / enemy_groupings_length
+    player_groupings_length = len(genall_groups(ply_board, player_marbles))
+    enemy_groupings_length = len(genall_groups(ply_board, enemy_marbles))
+    marble_groupings_ratio = player_groupings_length / 1 if enemy_groupings_length == 0 else (player_groupings_length / enemy_groupings_length) / 4
 
     # normalized_centre_control_ratio = calculate_normalized_centre_control(ply_board, max_player, num_player_marbles,
     #                                                                       num_enemy_marbles)
@@ -139,15 +140,14 @@ def eval_state(ply_board, total_turns_remaining, max_player, *args, **kwargs):
     # normalized_enemy_disruption = calculate_normalized_enemy_disruption(total_enemy_disruption, num_player_marbles)
     # normalized_marble_danger = calculate_normalized_marble_danger(total_danger, num_player_marbles)
     aggressiveness = calculate_aggressiveness(normalized_score, total_turns_remaining)
-    weighted_score = normalized_score * (WEIGHTS[0]) * aggressiveness
+    weighted_score = normalized_score * (WEIGHTS[0])
     weighted_centre_control = centre_distance_ratio * (WEIGHTS[1])
-
-    # weighted_grouping_ratio = marble_groupings_ratio * (WEIGHTS[2])
     # weighted_marble_grouping = normalized_marble_grouping * (WEIGHTS[2])
     # weighted_enemy_disruption = normalized_enemy_disruption * (WEIGHTS[3])
     # weighted_marble_danger = normalized_marble_danger * (WEIGHTS[4])
 
-    evaluation = weighted_score * aggressiveness + weighted_centre_control - aggressiveness
+    marble_groupings_ratio *= WEIGHTS[2]
+    evaluation = weighted_score + weighted_centre_control + marble_groupings_ratio
 
     # print(evaluation)
     return evaluation
@@ -156,11 +156,12 @@ def eval_state(ply_board, total_turns_remaining, max_player, *args, **kwargs):
 def calculate_normalized_score(num_player_marbles, num_enemy_marbles):
     return NORMALIZED_SCORES[(num_player_marbles - num_enemy_marbles)]
 
+
 def calc_centre_ratio(num_player_marbles, num_enemy_marbles, player_marbles, enemy_marbles):
-    enemy_centre_distance = sum([DISTANCE_PENALTIES_DICT[position] for position in enemy_marbles]) / num_enemy_marbles
+    enemy_centre_distance = sum([DISTANCE_PENALTIES_DICT[position] for position in enemy_marbles])
     player_centre_distance = sum(
-        [DISTANCE_PENALTIES_DICT[position] for position in player_marbles]) / num_player_marbles
-    return enemy_centre_distance / player_centre_distance
+        [DISTANCE_PENALTIES_DICT[position] for position in player_marbles])
+    return (enemy_centre_distance / player_centre_distance) / 4
 
 
 def calculate_aggressiveness(normalized_score, total_turns_remaining):
@@ -241,7 +242,7 @@ def calculate_normalized_marble_grouping(total_grouping_score, num_player_marble
     Returns: float: A normalized score representing the effectiveness of marble grouping, with higher scores
     indicating better grouping.
     """
-    max_grouping_score_per_marble = 18.0
+    max_grouping_score_per_marble = 10.0
     return total_grouping_score / (num_player_marbles * max_grouping_score_per_marble)
 
 
@@ -367,7 +368,7 @@ def get_marble_grouping_danger_and_disruption(marble_groupings):
         match marble[0]:
             case 95 | 96 | 97 | 98 | 99 | 89 | 79 | 69 | 59 | 48 | 37 | 26 | 15 | 14 | 13 | 12 | 11 | 21 | 31 | 41 | 51 | 62 | 73 | 84:
                 for direction_grouping in direction_groupings.values():
-                    total_danger += direction_grouping["enemies"] ** 2
+                    total_danger += direction_grouping["enemies"] ** 2 + 0.1
                     total_grouping_score += direction_grouping["friends"]
             case _:
                 for direction, neighbours in direction_groupings.items():
