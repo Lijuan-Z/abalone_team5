@@ -4,6 +4,10 @@ import random
 import threading
 import tkinter as tk
 
+from heuristics import cam_heuristic
+from statespace.marblecoords import is_out_of_bounds
+from statespace.search import iterative_deepening_alpha_beta_search
+
 
 class GameGUI(tk.Frame):
     """GameGUI displays the game board and executes game logic."""
@@ -418,7 +422,7 @@ class GameGUI(tk.Frame):
                 self.white_time_var.set(
                     f"White time left: {self.time_left['white']}")
         elif ((self.paused is False and self.player_turn == owner and
-              self.time_left[self.player_turn] == 0) and
+               self.time_left[self.player_turn] == 0) and
               GameGUI.SESSION_ID == session_id):
             print('reached')
             self.reset_game()
@@ -433,6 +437,34 @@ class GameGUI(tk.Frame):
         self.update_display()
         self.start_turn()
 
+    def move_to_action(self, move):
+        source_pos, direction = move
+        print(source_pos, direction)
+        source = ""
+        destination = ""
+        for pos in source_pos:
+            source += (chr((pos[0] // 10) + 96) + str(pos[0] % 10))
+            dest = pos[0] + direction
+            if not is_out_of_bounds(dest):
+                destination += (chr((dest // 10) + 96) + str(dest % 10))
+        action = source + "-" + destination
+        return action
+
+    def ai_search_result(self):
+        board = {}
+        for key, value in self.positions.items():
+            if value['color'] == 'black':
+                board[(ord(key[0]) - 96) * 10 + int(key[1])] = 0
+            elif value['color'] == 'white':
+                board[(ord(key[0]) - 96) * 10 + int(key[1])] = 1
+        input_player_turn = 0 if self.player_turn == 'black' else 1
+        strategy = cam_heuristic.eval_state
+        # need change time to milliseconds?
+        input_time_limit = self.time_left[self.player_turn]
+        move = iterative_deepening_alpha_beta_search(board, input_player_turn, input_time_limit,
+                                                     self.num_moves[self.player_turn], strategy)
+        return move
+
     def start_turn(self):
         """Starts a new turn, executing logic based on if human or computer."""
         if self.total_move_number > 0:
@@ -443,7 +475,16 @@ class GameGUI(tk.Frame):
                               session_id=GameGUI.SESSION_ID)
             if self.config['color_selection'] != self.player_turn:
                 print('Computer turn')
-                action = self.actions[self.current_action_index]
+                move = self.ai_search_result()
+                action = self.move_to_action(move)
+
+                # if self.current_action_index == 0 and self.player_turn == 'black':
+                #     # random actions for black first move
+                #     action = self.actions[self.current_action_index]
+                # else:
+                #     move = self.ai_search_result()
+                #     # action = self.actions[self.current_action_index]
+                #     action = self.move_to_action(move)
                 self.current_action_index += 1
                 self.ai_next_var.set("Calculating...")
                 calculation_time = random.randint(1, 8)
