@@ -3,7 +3,13 @@ from statespace.statespace import absolute_directions
 
 # Weights for evaluation metrics: score, center control, marble grouping, enemy disruption, and marble danger
 WEIGHTS = [3, 2, 1, 1, 1]
+
+# Allowable max value for the aggressiveness of the agent
 MAX_AGGRESSIVENESS = 1
+
+# Set of all valid board coordinates
+VALID_COORDS = {11, 12, 13, 14, 15, 21, 22, 23, 24, 25, 26, 31, 32, 33, 34, 35, 36, 37, 41, 42, 43, 44, 45, 46, 47, 48, 51, 52, 53, 54, 55, 56, 57, 58, 59, 62, 63, 64, 65, 66, 67, 68, 69, 73, 74, 75, 76, 77, 78, 79, 84, 85, 86, 87, 88, 89, 95, 96, 97, 98, 99}
+
 
 # Value associated with each distance from the centre of the board
 DISTANCE_PENALTIES = [0, 1, 2, 3, 4]
@@ -81,7 +87,7 @@ DISTANCE_PENALTIES_DICT = {
 MAX_PLAYER_TURNS = 80
 
 NORMALIZED_SCORES = {
-    #Tie (eww)
+    # Tie (eww)
     0: 0.0,
 
     # Max player in the lead
@@ -100,7 +106,6 @@ NORMALIZED_SCORES = {
     -5: -0.833,
     -6: -1.0
 }
-
 
 
 def eval_state(ply_board, total_turns_remaining, max_player, *args, **kwargs):
@@ -132,7 +137,8 @@ def eval_state(ply_board, total_turns_remaining, max_player, *args, **kwargs):
     # total_grouping_score, total_danger, total_enemy_disruption = get_marble_grouping_danger_and_disruption(marble_groupings)
     player_groupings_length = len(genall_groups(ply_board, player_marbles))
     enemy_groupings_length = len(genall_groups(ply_board, enemy_marbles))
-    marble_groupings_ratio = player_groupings_length / 1 if enemy_groupings_length == 0 else (player_groupings_length / enemy_groupings_length) / 4
+    marble_groupings_ratio = player_groupings_length / 1 if enemy_groupings_length == 0 else (
+                                                                                                         player_groupings_length / enemy_groupings_length) / 4
 
     # normalized_centre_control_ratio = calculate_normalized_centre_control(ply_board, max_player, num_player_marbles,
     #                                                                       num_enemy_marbles)
@@ -147,7 +153,7 @@ def eval_state(ply_board, total_turns_remaining, max_player, *args, **kwargs):
     # weighted_marble_danger = normalized_marble_danger * (WEIGHTS[4])
 
     marble_groupings_ratio *= WEIGHTS[2]
-    evaluation = weighted_score + weighted_centre_control + marble_groupings_ratio
+    evaluation = weighted_score + weighted_centre_control + marble_groupings_ratio + aggressiveness
 
     # print(evaluation)
     return evaluation
@@ -215,7 +221,7 @@ def derive_groupdirs(board: dict[int, int], marble: tuple[int, int], direction: 
         except KeyError:
             next_marble = None
             break
-        if is_out_of_bounds(next_coord) \
+        if next_coord not in VALID_COORDS \
                 or num_players == num_enemies \
                 or num_players == 3 and next_marble[1] == marble[1] \
                 or next_marble[1] == marble[1] and cur_grouping[-1][1] == 1 - marble[1]:
