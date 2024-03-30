@@ -124,7 +124,6 @@ def eval_state(ply_board, total_turns_remaining, max_player, *args, **kwargs):
     num_enemy_marbles = len(enemy_marbles)
 
     # Performance measure calculations
-
     normalized_score = calculate_normalized_score(num_player_marbles, num_enemy_marbles)
     centre_distance_ratio = calc_centre_ratio(num_player_marbles, num_enemy_marbles, player_marbles, enemy_marbles)
 
@@ -153,9 +152,9 @@ def eval_state(ply_board, total_turns_remaining, max_player, *args, **kwargs):
     # print(evaluation)
     return evaluation
 
-def calculate_normalized_score(num_player_marbles, num_enemy_marbles):
-    return NORMALIZED_SCORES[(num_player_marbles, num_enemy_marbles)]
 
+def calculate_normalized_score(num_player_marbles, num_enemy_marbles):
+    return NORMALIZED_SCORES[(num_player_marbles - num_enemy_marbles)]
 
 def calc_centre_ratio(num_player_marbles, num_enemy_marbles, player_marbles, enemy_marbles):
     enemy_centre_distance = sum([DISTANCE_PENALTIES_DICT[position] for position in enemy_marbles]) / num_enemy_marbles
