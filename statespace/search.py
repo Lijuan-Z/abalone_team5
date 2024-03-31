@@ -50,6 +50,24 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     return best_move
 
 
+def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_remaining, eval_callback):
+    start_time = datetime.now()
+    cur_depth = 1
+    best_move = None
+
+    while cur_depth <= depth:
+        temp_move, _ = alpha_beta_search(board, board, float('-inf'), float('inf'), cur_depth, player, player, 0, turns_remaining, eval_callback, )
+        elapsed_time = (datetime.now() - start_time).total_seconds()
+        best_move = temp_move
+        print("\n=======PLY FINISHED========")
+        print(f"Search Time: {elapsed_time * 1000:.2f}ms")  # Display in milliseconds
+        print(f"Depth: {cur_depth}")
+        print(f"Best Move: {best_move}")
+        cur_depth += 1
+
+    return best_move
+
+
 def alpha_beta_search(init_board, ply_board, alpha, beta, depth, max_player, cur_ply_player, time_limit, total_turns_remaining, eval_callback):
     """
     Determines which function should be called as the starting point of the alpha-beta search, based on the

@@ -1,8 +1,9 @@
 """Currently a testing file for the best-move search algorithm."""
-from heuristics import cam_heuristic
+from heuristics import justin_heuristic
 from statespace import *
 from statespace import external, debugutils
-from statespace.search import iterative_deepening_alpha_beta_search, game_over, num_player_marbles
+from statespace.search import game_over, num_player_marbles
+from statespace.search import iterative_deepening_alpha_beta_search_by_depth as id_abs_bd
 from statespace.statespace import apply_move
 
 
@@ -33,7 +34,7 @@ def print_board(board, black_marble="🦖", white_marble="🐒", empty_space="�
 
 
 starting_boards = {
-    'default': {11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 21: 0, 22: 0,
+    'standard': {11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 21: 0, 22: 0,
                 23: 0, 24: 0, 25: 0, 26: 0, 33: 0, 34: 0, 35: 0,
                 99: 1, 98: 1, 97: 1, 96: 1, 95: 1, 89: 1, 88: 1,
                 87: 1, 86: 1, 85: 1, 84: 1, 77: 1, 76: 1, 75: 1},
@@ -43,7 +44,7 @@ starting_boards = {
                       14: 1, 15: 1, 24: 1, 25: 1, 26: 1, 35: 1, 36: 1,
                       95: 1, 96: 1, 84: 1, 85: 1, 86: 1, 74: 1, 75: 1},
 
-    'germain_daisy': {21: 0, 22: 0, 31: 0, 32: 0, 33: 0, 42: 0, 43: 0,
+    'german_daisy': {21: 0, 22: 0, 31: 0, 32: 0, 33: 0, 42: 0, 43: 0,
                       67: 0, 68: 0, 77: 0, 78: 0, 79: 0, 88: 0, 89: 0,
                       25: 1, 26: 1, 35: 1, 36: 1, 37: 1, 46: 1, 47: 1,
                       63: 1, 64: 1, 73: 1, 74: 1, 75: 1, 84: 1, 85: 1},
@@ -115,12 +116,10 @@ if __name__ == '__main__':
     # test_num = 2
     # board, player = external.in_to_marbles(f"{in_base}Test{test_num}.input")
     # board = starting_board
-
-    print(external.in_to_marbles(f"{in_base}GermanDaisy.input"))
-
-    # total_turns = 10
-    # max_player = 0
-    # time_limit = 20000
-    # iterative_deepening_alpha_beta_search(board, max_player, time_limit, total_turns, cam_heuristic.eval_state)
-
     # simulate_game(starting_board, 15, 4000, 0)
+
+    # node ordering development
+    turns_remaining = 10
+    max_player = 0
+    depth = 4
+    id_abs_bd(starting_boards["belgian_daisy"], max_player, depth, turns_remaining, justin_heuristic.eval_state)
