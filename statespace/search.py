@@ -79,9 +79,9 @@ def alpha_beta_search(init_board, ply_board, alpha, beta, depth, max_player, cur
             if value > best_value:
                 best_value = value
                 best_move = move
-            alpha = max(alpha, value)
             if value >= beta:
                 break
+            alpha = max(alpha, value)
         return best_move, best_value
     else:
         best_move = None
@@ -91,9 +91,9 @@ def alpha_beta_search(init_board, ply_board, alpha, beta, depth, max_player, cur
             if value < best_value:
                 best_value = value
                 best_move = move
-            beta = min(beta, value)
             if value <= alpha:
                 break
+            beta = min(beta, value)
         return best_move, best_value
 
 def num_player_marbles(player, board):
