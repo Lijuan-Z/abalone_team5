@@ -2,7 +2,7 @@
 from heuristics import justin_heuristic
 from statespace import *
 from statespace import external, debugutils
-from statespace.search import game_over, num_player_marbles
+from statespace.search import game_over, num_player_marbles, node_struct
 from statespace.search import iterative_deepening_alpha_beta_search_by_depth as id_abs_bd
 from statespace.statespace import apply_move
 
