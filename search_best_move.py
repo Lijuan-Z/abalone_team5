@@ -114,30 +114,31 @@ if __name__ == '__main__':
     out_base = "tests/statespace_gen_validation/out/"
 
     # node ordering and persistent tree development
-    turns_remaining = [20, 20]
+    turns_remaining = [5, 5]
     board_state = starting_boards["standard"]
-    cur_player = 0
+    cur_player = 1
     depth = 5
 
     root = node_struct(None, board_state)
     cur_node = root
 
-    move = id_abs_bd(root,
-                     cur_player, depth,
-                     turns_remaining[cur_player],
-                     justin_heuristic.eval_state)
+    # move = id_abs_bd(root,
+    #                  cur_player, depth,
+    #                  turns_remaining[cur_player],
+    #                  justin_heuristic.eval_state)
 
-    # while not game_over(board_state, turns_remaining[cur_player], cur_player):
-    #     move = id_abs_bd(cur_node,
-    #                      cur_player, depth,
-    #                      turns_remaining[cur_player],
-    #                      justin_heuristic.eval_state)
-    #
-    #     if move is None:
-    #         break
-    #
-    #     apply_move(board_state, move)
-    #     print_board(board_state)
-    #
-    #     turns_remaining[cur_player] -= 1
-    #     cur_player = 1 - cur_player
+    while not game_over(board_state, turns_remaining[cur_player], cur_player):
+        cur_player = 1 - cur_player
+        node = id_abs_bd(cur_node,
+                         cur_player, depth,
+                         turns_remaining[cur_player],
+                         justin_heuristic.eval_state)
+
+        if node is None:
+            break
+
+        print_board(node[1])
+
+        turns_remaining[cur_player] -= 1
+        cur_node = node
+        print()
