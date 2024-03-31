@@ -4,19 +4,20 @@ import random
 from statespace.statespace import genall_groupmove_resultboard
 
 
-def node_struct(move: tuple[tuple[tuple[tuple[int, int], ...], int]],
+def node_struct(move: tuple[tuple[tuple[tuple[int, int], ...], int]] | None,
                 board: dict[int, int]) \
-        -> tuple[tuple[tuple[tuple[tuple[int, int], ...], int]], dict[int, int], list[tuple[tuple[tuple[tuple[int, int], ...], int]]]]:
+        -> tuple[tuple[tuple[tuple[tuple[int, int], ...], int]], dict[int, int], list[tuple[tuple[tuple[tuple[int, int], ...], int]] | None]]:
     """
     Returns a node of the given move.
 
     Parameters:
         move: tuple[tuple[tuple[tuple[int, int]]]]
+        board: dict[int, int]
 
     Returns:
         move and a list of pointers to the next node
     """
-    return move, board, list()
+    return move, board, [None]
 
 
 def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remaining, eval_callback):
@@ -65,13 +66,13 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     return best_move
 
 
-def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_remaining, eval_callback):
+def iterative_deepening_alpha_beta_search_by_depth(node, player, depth, turns_remaining, eval_callback):
     start_time = datetime.now()
     cur_depth = 1
     best_move = None
 
     while cur_depth <= depth:
-        temp_move, _ = alpha_beta_search(board, board, float('-inf'), float('inf'), cur_depth, player, player, 0, turns_remaining, eval_callback, )
+        temp_move, _ = alpha_beta_search(node[1], node, float('-inf'), float('inf'), cur_depth, player, player, 0, turns_remaining, eval_callback, )
         elapsed_time = (datetime.now() - start_time).total_seconds()
         best_move = temp_move
         print("\n=======PLY FINISHED========")
@@ -83,7 +84,7 @@ def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_r
     return best_move
 
 
-def alpha_beta_search(init_board, ply_board, alpha, beta, depth, max_player, cur_ply_player, time_limit, total_turns_remaining, eval_callback):
+def alpha_beta_search(init_board, node, alpha, beta, depth, max_player, cur_ply_player, time_limit, total_turns_remaining, eval_callback):
     """
     Determines which function should be called as the starting point of the alpha-beta search, based on the
     player value.
@@ -100,18 +101,21 @@ def alpha_beta_search(init_board, ply_board, alpha, beta, depth, max_player, cur
         (best_move, best_value): A tuple containing the best move for a player and that move's value as determined
         by the evaluation function
     """
-    if depth == 0 or total_turns_remaining == 0 or num_player_marbles(cur_ply_player, ply_board) == 8:
-        return None, eval_callback(init_board=init_board, ply_board=ply_board,
+    if depth == 0 or total_turns_remaining == 0 or num_player_marbles(cur_ply_player, node[1]) == 8:
+        return None, eval_callback(init_board=init_board, ply_board=node[1],
                                    total_turns_remaining=total_turns_remaining, max_player=max_player,
                                    time_limit=time_limit)
     if cur_ply_player == max_player:
         best_move = None
         best_value = float('-inf')
-        for move, result_board in genall_groupmove_resultboard(ply_board, cur_ply_player):
-            _, value = alpha_beta_search(init_board,result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
+        if node[2][0] is None:
+            node[2][0] = tuple([node_struct(move, result_board) for move, result_board in genall_groupmove_resultboard(node[1], cur_ply_player)])
+            # print(f"filled! node has {len(node[2][0])} children.")
+        for cur_node in node[2][0]:
+            _, value = alpha_beta_search(init_board, cur_node, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
             if value > best_value:
                 best_value = value
-                best_move = move
+                best_move = cur_node[0]
             if value >= beta:
                 break
             alpha = max(alpha, value)
@@ -119,11 +123,14 @@ def alpha_beta_search(init_board, ply_board, alpha, beta, depth, max_player, cur
     else:
         best_move = None
         best_value = float('inf')
-        for move, result_board in genall_groupmove_resultboard(ply_board, cur_ply_player):
-            _, value = alpha_beta_search(init_board,result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
+        if node[2][0] is None:
+            node[2][0] = tuple([node_struct(move, result_board) for move, result_board in genall_groupmove_resultboard(node[1], cur_ply_player)])
+            # print(f"filled! node has {len(node[2][0])} children.")
+        for cur_node in node[2][0]:
+            _, value = alpha_beta_search(init_board, cur_node, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
             if value < best_value:
                 best_value = value
-                best_move = move
+                best_move = cur_node[0]
             if value <= alpha:
                 break
             beta = min(beta, value)
