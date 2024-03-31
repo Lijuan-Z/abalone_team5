@@ -6,8 +6,6 @@ from statespace.statespace import genall_groupmove_resultboard
 
 import hashlib
 
-
-
 hashed_positions = {
     (11, 0): 13694894272781220920,
     (11, 1): 14607039107576160046,
@@ -164,7 +162,8 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
 
     # The loop will end before the time limit if the maximum depth (based on turns remaining) is reached.
     while depth <= total_turns_remaining:
-        temp_move, _ = alpha_beta_search(board, board, float('-inf'), float('inf'), depth, player, player, time_limit_seconds - elapsed_time, total_turns_remaining, eval_callback, )
+        temp_move, _ = alpha_beta_search(board, board, float('-inf'), float('inf'), depth, player, player,
+                                         time_limit_seconds - elapsed_time, total_turns_remaining, eval_callback, )
         elapsed_time = (datetime.now() - start_time).total_seconds()
         if elapsed_time >= time_limit_seconds:
             break
@@ -180,30 +179,14 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     return best_move
 
 
-def iterative_deepening_alpha_beta_search_by_depth_transposition(board, player, depth, turns_remaining, eval_callback):
+def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_remaining, eval_callback, ab_callback):
     start_time = datetime.now()
     cur_depth = 1
     best_move = None
 
     while cur_depth <= depth:
-        temp_move, _ = alpha_beta_search_transposition(board, board, float('-inf'), float('inf'), cur_depth, player, player, 0, turns_remaining, eval_callback, )
-        elapsed_time = (datetime.now() - start_time).total_seconds()
-        best_move = temp_move
-        print("\n=======PLY FINISHED========")
-        print(f"Search Time: {elapsed_time * 1000:.2f}ms")  # Display in milliseconds
-        print(f"Depth: {cur_depth}")
-        print(f"Best Move: {best_move}")
-        cur_depth += 1
-
-    return best_move
-
-def iterative_deepening_alpha_beta_search_by_depth_control(board, player, depth, turns_remaining, eval_callback):
-    start_time = datetime.now()
-    cur_depth = 1
-    best_move = None
-
-    while cur_depth <= depth:
-        temp_move, _ = alpha_beta_search_control(board, board, float('-inf'), float('inf'), cur_depth, player, player, 0, turns_remaining, eval_callback, )
+        temp_move, _ = ab_callback(board, board, float('-inf'), float('inf'), cur_depth, player,
+                                                       player, 0, turns_remaining, eval_callback, )
         elapsed_time = (datetime.now() - start_time).total_seconds()
         best_move = temp_move
         print("\n=======PLY FINISHED========")
@@ -215,8 +198,8 @@ def iterative_deepening_alpha_beta_search_by_depth_control(board, player, depth,
     return best_move
 
 
-
-def alpha_beta_search_transposition(init_board, ply_board, alpha, beta, depth, max_player, cur_ply_player, time_limit, total_turns_remaining, eval_callback):
+def alpha_beta_search_transposition_add_before(init_board, ply_board, alpha, beta, depth, max_player, cur_ply_player, time_limit,
+                                    total_turns_remaining, eval_callback):
     """
     Determines which function should be called as the starting point of the alpha-beta search, based on the
     player value.
@@ -233,18 +216,21 @@ def alpha_beta_search_transposition(init_board, ply_board, alpha, beta, depth, m
         (best_move, best_value): A tuple containing the best move for a player and that move's value as determined
         by the evaluation function
     """
+    board_hash = hash_board_state(ply_board)
+    if transposition_table.get(board_hash) is None:
+        transposition_table[board_hash] = eval_callback(init_board=init_board, ply_board=ply_board,
+                                                        total_turns_remaining=total_turns_remaining,
+                                                        max_player=max_player,
+                                                        time_limit=time_limit)
     if depth == 0 or total_turns_remaining == 0 or num_player_marbles(cur_ply_player, ply_board) == 8:
-        board_hash = hash_board_state(ply_board)
-        if transposition_table.get(board_hash) is None:
-            transposition_table[board_hash] = eval_callback(init_board=init_board, ply_board=ply_board,
-                                   total_turns_remaining=total_turns_remaining, max_player=max_player,
-                                   time_limit=time_limit)
         return None, transposition_table[board_hash]
     if cur_ply_player == max_player:
         best_move = None
         best_value = float('-inf')
         for move, result_board in genall_groupmove_resultboard(ply_board, cur_ply_player):
-            _, value = alpha_beta_search_transposition(init_board,result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
+            _, value = alpha_beta_search_transposition(init_board, result_board, alpha, beta, depth - 1, max_player,
+                                                       1 - cur_ply_player, time_limit, total_turns_remaining - 1,
+                                                       eval_callback)
             if value > best_value:
                 best_value = value
                 best_move = move
@@ -256,7 +242,65 @@ def alpha_beta_search_transposition(init_board, ply_board, alpha, beta, depth, m
         best_move = None
         best_value = float('inf')
         for move, result_board in genall_groupmove_resultboard(ply_board, cur_ply_player):
-            _, value = alpha_beta_search_transposition(init_board,result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
+            _, value = alpha_beta_search_transposition(init_board, result_board, alpha, beta, depth - 1, max_player,
+                                                       1 - cur_ply_player, time_limit, total_turns_remaining - 1,
+                                                       eval_callback)
+            if value < best_value:
+                best_value = value
+                best_move = move
+            if value <= alpha:
+                break
+            beta = min(beta, value)
+        return best_move, best_value
+
+def alpha_beta_search_transposition(init_board, ply_board, alpha, beta, depth, max_player, cur_ply_player, time_limit,
+                                    total_turns_remaining, eval_callback):
+    """
+    Determines which function should be called as the starting point of the alpha-beta search, based on the
+    player value.
+
+    Parameters:
+        board: a dict representation of the marbles on the board
+        depth: the current depth limit for the search (ie. how many levels deep before the state is evaluated)
+        time_limit: the total allotted time for this move to be determined. Should be accurate to 1/100ths of a second
+        max_player: a value, 0(black) or 1(white), indicating whose turn it is in the game
+        cur_ply_player: a value, 0(black) or 1(white), indicating whose turn it is in the current ply
+        turns_remaining: the total remaining turns for the current player
+
+    Returns:
+        (best_move, best_value): A tuple containing the best move for a player and that move's value as determined
+        by the evaluation function
+    """
+
+    if depth == 0 or total_turns_remaining == 0 or num_player_marbles(cur_ply_player, ply_board) == 8:
+        board_hash = hash_board_state(ply_board)
+        if transposition_table.get(board_hash) is None:
+            transposition_table[board_hash] = eval_callback(init_board=init_board, ply_board=ply_board,
+                                                            total_turns_remaining=total_turns_remaining,
+                                                            max_player=max_player,
+                                                            time_limit=time_limit)
+        return None, transposition_table[board_hash]
+    if cur_ply_player == max_player:
+        best_move = None
+        best_value = float('-inf')
+        for move, result_board in genall_groupmove_resultboard(ply_board, cur_ply_player):
+            _, value = alpha_beta_search_transposition(init_board, result_board, alpha, beta, depth - 1, max_player,
+                                                       1 - cur_ply_player, time_limit, total_turns_remaining - 1,
+                                                       eval_callback)
+            if value > best_value:
+                best_value = value
+                best_move = move
+            if value >= beta:
+                break
+            alpha = max(alpha, value)
+        return best_move, best_value
+    else:
+        best_move = None
+        best_value = float('inf')
+        for move, result_board in genall_groupmove_resultboard(ply_board, cur_ply_player):
+            _, value = alpha_beta_search_transposition(init_board, result_board, alpha, beta, depth - 1, max_player,
+                                                       1 - cur_ply_player, time_limit, total_turns_remaining - 1,
+                                                       eval_callback)
             if value < best_value:
                 best_value = value
                 best_move = move
@@ -266,7 +310,8 @@ def alpha_beta_search_transposition(init_board, ply_board, alpha, beta, depth, m
         return best_move, best_value
 
 
-def alpha_beta_search_control(init_board, ply_board, alpha, beta, depth, max_player, cur_ply_player, time_limit, total_turns_remaining, eval_callback):
+def alpha_beta_search_control(init_board, ply_board, alpha, beta, depth, max_player, cur_ply_player, time_limit,
+                              total_turns_remaining, eval_callback):
     """
     Determines which function should be called as the starting point of the alpha-beta search, based on the
     player value.
@@ -291,7 +336,9 @@ def alpha_beta_search_control(init_board, ply_board, alpha, beta, depth, max_pla
         best_move = None
         best_value = float('-inf')
         for move, result_board in genall_groupmove_resultboard(ply_board, cur_ply_player):
-            _, value = alpha_beta_search_control(init_board,result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
+            _, value = alpha_beta_search_control(init_board, result_board, alpha, beta, depth - 1, max_player,
+                                                 1 - cur_ply_player, time_limit, total_turns_remaining - 1,
+                                                 eval_callback)
             if value > best_value:
                 best_value = value
                 best_move = move
@@ -303,7 +350,9 @@ def alpha_beta_search_control(init_board, ply_board, alpha, beta, depth, max_pla
         best_move = None
         best_value = float('inf')
         for move, result_board in genall_groupmove_resultboard(ply_board, cur_ply_player):
-            _, value = alpha_beta_search_control(init_board,result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
+            _, value = alpha_beta_search_control(init_board, result_board, alpha, beta, depth - 1, max_player,
+                                                 1 - cur_ply_player, time_limit, total_turns_remaining - 1,
+                                                 eval_callback)
             if value < best_value:
                 best_value = value
                 best_move = move
@@ -339,6 +388,7 @@ def hash_marble_position(position, player):
 
     return hash_val
 
+
 def generate_all_hashes(valid_coords):
     """
     Generate 64-bit hashes for all valid marble positions for both players.
@@ -366,6 +416,7 @@ def hash_board_state(board):
             hashed_board ^ hashed_positions[(position, player)]
     return hashed_board
 
+
 def num_player_marbles(player, board):
     """
        Counts the number of marbles belonging to a given player on the board.
@@ -388,6 +439,3 @@ def game_over(board, turns_remaining, player):
     :return: A bool result
     """
     return turns_remaining == 0 or sum(1 for value in board.values() if value == player) == 8
-
-
-

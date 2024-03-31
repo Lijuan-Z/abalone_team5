@@ -1,9 +1,10 @@
 """Currently a testing file for the best-move search algorithm."""
 from heuristics import justin_heuristic
 from statespace import *
-from statespace import external, debugutils
+from statespace import external, debugutils, marblecoords
 from statespace.search import game_over, num_player_marbles
 from statespace.search import iterative_deepening_alpha_beta_search_by_depth as id_abs_bd
+from statespace.search import alpha_beta_search_control, alpha_beta_search_transposition, alpha_beta_search_transposition_add_before
 from statespace.statespace import apply_move
 
 
@@ -121,5 +122,5 @@ if __name__ == '__main__':
     # node ordering development
     turns_remaining = 10
     max_player = 0
-    depth = 4
-    id_abs_bd(starting_boards["belgian_daisy"], max_player, depth, turns_remaining, justin_heuristic.eval_state)
+    depth = 5
+    id_abs_bd(starting_boards["standard"], max_player, depth, turns_remaining, justin_heuristic.eval_state, alpha_beta_search_transposition_add_before)
