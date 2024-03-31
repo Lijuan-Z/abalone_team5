@@ -38,7 +38,7 @@ class GameApp(tk.Tk):
 
     def start_config(self, **kwargs):
         if self.current_page:
-            self.current_page.pack_forget()
+            self.forget_packs_recursively(self)
         self.geometry("400x300")
         self.current_page = ConfigPage(self,
                                        **kwargs)
@@ -48,11 +48,21 @@ class GameApp(tk.Tk):
     def start_game(self, **kwargs):
         # Hide the config screen and show the game screen
         if self.current_page:
-            self.current_page.pack_forget()
+            self.forget_packs_recursively(self)
         self.geometry("400x400")
         self.current_page = GamePage(self, **kwargs)
         self.current_page.pack()
         self.dark_mode(root=self)
+
+    def forget_packs_recursively(self, parent):
+        """
+        Recursively forgets all child widgets of the given parent widget.
+
+        :param parent: A Tkinter widget that acts as the parent of other widgets.
+        """
+        for child in parent.winfo_children():
+            child.pack_forget()
+            self.forget_packs_recursively(child)  # Recursively forget children's children
 
     def dark_mode(self, root):
         """Re-colors root to be dark mode, then recurses."""
