@@ -67,9 +67,10 @@ def alpha_beta_search(init_board, ply_board, alpha, beta, depth, max_player, cur
         (best_move, best_value): A tuple containing the best move for a player and that move's value as determined
         by the evaluation function
     """
-    if game_over(ply_board, total_turns_remaining, cur_ply_player) or depth == 0:
+    if depth == 0 or total_turns_remaining == 0 or num_player_marbles(cur_ply_player, ply_board) == 8:
         return None, eval_callback(init_board=init_board, ply_board=ply_board,
-                                   total_turns_remaining=total_turns_remaining, max_player=max_player)
+                                   total_turns_remaining=total_turns_remaining, max_player=max_player,
+                                   time_limit=time_limit)
     if cur_ply_player == max_player:
         best_move = None
         best_value = float('-inf')
@@ -116,4 +117,4 @@ def game_over(board, turns_remaining, player):
     :param: state, an object representing the positions of marbles and time remaining
     :return: A bool result
     """
-    return turns_remaining == 0 or num_player_marbles(player, board) == 8
+    return turns_remaining == 0 or sum(1 for value in board.values() if value == player) == 8

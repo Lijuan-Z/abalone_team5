@@ -97,5 +97,10 @@ if __name__ == '__main__':
 
     test_num = 2
     _, player = external.in_to_marbles(f"{in_base}Test{test_num}.input")
+    board = starting_board
+    total_turns = 15
+    max_player = 0
+    time_limit = 20000
+    iterative_deepening_alpha_beta_search(board, max_player, time_limit, total_turns, cam_heuristic.eval_state)
 
-    simulate_game(starting_board, 15, 4000, 0)
+    #simulate_game(starting_board, 15, 4000, 0)
