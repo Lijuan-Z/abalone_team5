@@ -4,12 +4,20 @@ import time
 from .base_simulation import Simulation
 from statespace.search import iterative_deepening_alpha_beta_search as idab
 from statespace.statespace import apply_move
+<<<<<<< HEAD
 from statespace.search import game_over
 from heuristics import random, lisa_heuristic, cam_heuristic, kate_heuristic, \
     justin_heuristic
 
 strategy = {0: justin_heuristic.eval_state, 1: cam_heuristic.eval_state}
 
+=======
+from statespace.statespace import game_over
+from heuristics import random, lisa_heuristic,cam_heuristic
+
+strategy = {0: lisa_heuristic.eval_state, 1: random.eval_state}
+
+>>>>>>> 0f37cc748b9b4dffbf0c3fafe2fd44a7feec7f56
 class VersusSimulation(Simulation):
     """Runs a full versus simulation using 2 sets of heuristics."""
 
@@ -47,10 +55,15 @@ class VersusSimulation(Simulation):
                         player_turn, time_limit,
                         turns_remaining[player_turn],
                         strategy[player_turn])
+<<<<<<< HEAD
 
             if move is None:
                 break
 
+=======
+            if move is None:
+                break
+>>>>>>> 0f37cc748b9b4dffbf0c3fafe2fd44a7feec7f56
             apply_move(self.board_state, move)
 
             black_marbles_remaining = sum(
