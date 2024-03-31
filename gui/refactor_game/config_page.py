@@ -46,6 +46,7 @@ class ConfigState(tk.Frame):
         self.comps['difficulty_dropdown'] = dropdown
         self.comps['difficulty_dropdown'].pack(pady=10)
 
+
 class ConfigPage(tk.Frame):
     """Config page"""
 
@@ -54,5 +55,3 @@ class ConfigPage(tk.Frame):
 
         self.state = ConfigState(parent=parent, **kwargs)
         self.state.pack()
-
-
