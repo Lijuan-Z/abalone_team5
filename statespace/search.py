@@ -108,7 +108,7 @@ def alpha_beta_search(init_board, node, alpha, beta, depth, max_player, cur_ply_
         best_node = None
         best_value = float('-inf')
         if node[2][0] is None:
-            node[2][0] = tuple([node_struct(move, result_board) for move, result_board in genall_groupmove_resultboard(node[1], cur_ply_player)])
+            node[2][0] = genall_groupmove_resultboard(node[1], cur_ply_player)
             # print(f"filled! node has {len(node[2][0])} children.")
         for cur_node in node[2][0]:
             _, value = alpha_beta_search(init_board, cur_node, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
@@ -123,7 +123,7 @@ def alpha_beta_search(init_board, node, alpha, beta, depth, max_player, cur_ply_
         best_node = None
         best_value = float('inf')
         if node[2][0] is None:
-            node[2][0] = tuple([node_struct(move, result_board) for move, result_board in genall_groupmove_resultboard(node[1], cur_ply_player)])
+            node[2][0] = genall_groupmove_resultboard(node[1], cur_ply_player)
             # print(f"filled! node has {len(node[2][0])} children.")
         for cur_node in node[2][0]:
             _, value = alpha_beta_search(init_board, cur_node, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)

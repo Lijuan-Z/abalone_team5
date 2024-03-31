@@ -119,8 +119,7 @@ if __name__ == '__main__':
     cur_player = 1
     depth = 5
 
-    root = node_struct(None, board_state)
-    cur_node = root
+    cur_node = (None, board_state, [None])
 
     # move = id_abs_bd(root,
     #                  cur_player, depth,

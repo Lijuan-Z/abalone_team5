@@ -131,12 +131,12 @@ def genall_groupmove_resultboard(marbles: dict[int, int],
     for move in inlinegroupmoves:
         resultant_board = marbles.copy()
         apply_move(resultant_board, move)
-        groupmove_resultboards.append((move, resultant_board))
+        groupmove_resultboards.append((move, resultant_board, [None]))
 
     for move in sidestepgroupmoves:
         resultant_board = marbles.copy()
         apply_move(resultant_board, move)
-        groupmove_resultboards.append((move, resultant_board))
+        groupmove_resultboards.append((move, resultant_board, [None]))
 
     return groupmove_resultboards
 
