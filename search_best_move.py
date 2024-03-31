@@ -113,13 +113,27 @@ if __name__ == '__main__':
     in_base = "tests/statespace_gen_validation/in/"
     out_base = "tests/statespace_gen_validation/out/"
 
-    # test_num = 2
-    # board, player = external.in_to_marbles(f"{in_base}Test{test_num}.input")
-    # board = starting_board
-    # simulate_game(starting_board, 15, 4000, 0)
-
-    # node ordering development
-    turns_remaining = 10
-    max_player = 0
+    # node ordering and persistent tree development
+    turns_remaining = [3, 3]
+    board_state = starting_boards["standard"]
+    cur_player = 0
     depth = 4
-    id_abs_bd(starting_boards["belgian_daisy"], max_player, depth, turns_remaining, justin_heuristic.eval_state)
+    # move = id_abs_bd(board_state,
+    #                  cur_player, depth,
+    #                  turns_remaining[cur_player],
+    #                  justin_heuristic.eval_state)
+
+    while not game_over(board_state, turns_remaining[cur_player], cur_player):
+        move = id_abs_bd(board_state,
+                         cur_player, depth,
+                         turns_remaining[cur_player],
+                         justin_heuristic.eval_state)
+
+        if move is None:
+            break
+
+        apply_move(board_state, move)
+        print_board(board_state)
+
+        turns_remaining[cur_player] -= 1
+        cur_player = 1 - cur_player
