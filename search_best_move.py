@@ -119,7 +119,19 @@ if __name__ == '__main__':
     # simulate_game(starting_board, 15, 4000, 0)
 
     # node ordering development
-    turns_remaining = 10
-    max_player = 0
+    turns_remaining = [5, 5]
+    board_state = starting_boards["german_daisy"]
+    cur_player = 1
     depth = 4
-    id_abs_bd(starting_boards["belgian_daisy"], max_player, depth, turns_remaining, justin_heuristic.eval_state)
+
+    while not game_over(board_state, turns_remaining[cur_player], cur_player):
+        cur_player = 1 - cur_player
+        move = id_abs_bd(board_state,
+                         cur_player, depth,
+                         turns_remaining[cur_player],
+                         justin_heuristic.eval_state)
+
+        apply_move(board_state, move)
+        print_board(board_state)
+
+        turns_remaining[cur_player] -= 1

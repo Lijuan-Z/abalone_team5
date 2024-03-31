@@ -92,39 +92,28 @@ def alpha_beta_search(init_board, ply_board, alpha, beta, depth, max_player, cur
     if cur_ply_player == max_player:
         best_move = None
         best_value = float('-inf')
-        all_groupmove_resultboard = sorted(genall_groupmove_resultboard(ply_board, cur_ply_player),
-                                           key=lambda groupmove_resultboard: eval_callback(
-            init_board=init_board, ply_board=groupmove_resultboard[1],
-            total_turns_remaining=total_turns_remaining, max_player=max_player,
-            time_limit=time_limit
-        ))
-        for move, result_board in all_groupmove_resultboard:
-            _, value = alpha_beta_search(init_board,result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
+        for move, result_board in genall_groupmove_resultboard(ply_board, cur_ply_player):
+            next_move, value = alpha_beta_search(init_board,result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
             if value > best_value:
                 best_value = value
                 best_move = move
             if value >= beta:
                 break
-            alpha = max(alpha, value)
+            if value > alpha:
+                alpha = value
         return best_move, best_value
     else:
         best_move = None
         best_value = float('inf')
-        all_groupmove_resultboard = sorted(
-            genall_groupmove_resultboard(ply_board, cur_ply_player),
-            key=lambda groupmove_resultboard: eval_callback(
-                init_board=init_board, ply_board=groupmove_resultboard[1],
-                total_turns_remaining=total_turns_remaining,
-                max_player=max_player,
-                time_limit=time_limit
-        ))
-        for move, result_board in all_groupmove_resultboard:
-            _, value = alpha_beta_search(init_board,result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
+        for move, result_board in genall_groupmove_resultboard(ply_board, cur_ply_player):
+            next_move, value = alpha_beta_search(init_board,result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
             if value < best_value:
                 best_value = value
                 best_move = move
             if value <= alpha:
                 break
+            if value < beta:
+                beta = value
             beta = min(beta, value)
         return best_move, best_value
 
