@@ -475,16 +475,14 @@ class GameGUI(tk.Frame):
                               session_id=GameGUI.SESSION_ID)
             if self.config['color_selection'] != self.player_turn:
                 print('Computer turn')
-                move = self.ai_search_result()
-                action = self.move_to_action(move)
 
-                # if self.current_action_index == 0 and self.player_turn == 'black':
-                #     # random actions for black first move
-                #     action = self.actions[self.current_action_index]
-                # else:
-                #     move = self.ai_search_result()
-                #     # action = self.actions[self.current_action_index]
-                #     action = self.move_to_action(move)
+                if self.current_action_index == 0 and self.player_turn == 'black':
+                    # random actions for black first move
+                    index_selected = random.randint(0, len(self.actions) - 1)
+                    action = self.actions[index_selected]
+                else:
+                    move = self.ai_search_result()
+                    action = self.move_to_action(move)
                 self.current_action_index += 1
                 self.ai_next_var.set("Calculating...")
                 calculation_time = random.randint(1, 8)
