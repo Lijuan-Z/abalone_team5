@@ -4,6 +4,20 @@ import random
 from statespace.statespace import genall_groupmove_resultboard
 
 
+def node_struct(move: tuple[tuple[tuple[tuple[int, int], ...], int]]) \
+        -> tuple[tuple[tuple[tuple[tuple[int, int], ...], int]], list[tuple[tuple[tuple[tuple[int, int], ...], int]]]]:
+    """
+    Returns a node of the given move.
+
+    Parameters:
+        move: tuple[tuple[tuple[tuple[int, int]]]]
+
+    Returns:
+        move and a list of pointers to the next node
+    """
+    return move, list()
+
+
 def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remaining, eval_callback):
     """
     Makes calls to alpha_beta_search, incrementing the depth each loop.
