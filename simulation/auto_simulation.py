@@ -18,14 +18,20 @@ starting_boards = {
     1: {11: 0, 12: 0, 21: 0, 22: 0, 23: 0, 32: 0, 33: 0,
         99: 0, 98: 0, 89: 0, 88: 0, 87: 0, 78: 0, 77: 0,
         14: 1, 15: 1, 24: 1, 25: 1, 26: 1, 35: 1, 36: 1,
-        95: 1, 96: 1, 84: 1, 85: 1, 86: 1, 74: 1, 75: 1}
+        95: 1, 96: 1, 84: 1, 85: 1, 86: 1, 74: 1, 75: 1},
+
+    # germain daisy
+    2: {21: 0, 22: 0, 31: 0, 32: 0, 33: 0, 42: 0, 43: 0,
+        67: 0, 68: 0, 77: 0, 78: 0, 79: 0, 88: 0, 89: 0,
+        25: 1, 26: 1, 35: 1, 36: 1, 37: 1, 46: 1, 47: 1,
+        63: 1, 64: 1, 73: 1, 74: 1, 75: 1, 84: 1, 85: 1}
 }
 turns_limit = 30
 time_limit = 30
 # time_limit = 300
 records = []
 winners_name = []
-for board_config_key in [1, 0]:
+for board_config_key in [1, 0, 2]:
     layout = "default" if board_config_key == 0 else "belgian daisy"
     for evaluation_black in file_list:
         for evaluation_white in file_list:
