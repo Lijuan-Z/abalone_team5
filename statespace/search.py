@@ -1,12 +1,12 @@
 from datetime import datetime
 import random
 
-from statespace import marblecoords
 from statespace.statespace import genall_groupmove_resultboard
-
 import hashlib
 import pickle
+import json
 
+# A dictionary of unique 64-bit integer hashes representing each position paired with each color marble.
 hashed_positions = {
     (11, 0): 13694894272781220920,
     (11, 1): 14607039107576160046,
@@ -142,9 +142,6 @@ def load_transposition_table_from_pickle(filename):
     with open(filename, 'rb') as file:
         table = pickle.load(file)
     return table
-
-
-import json
 
 
 def save_transposition_table_to_json(table, filename):
