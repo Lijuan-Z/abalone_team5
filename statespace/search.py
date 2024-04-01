@@ -174,16 +174,16 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
         best_move: the best move found from all iterations the alpha-beta search
     """
 
+    if is_first_move and player == 0:
+        first_move = first_moves_dict[(hash_board_state(board), random.randint(1, 3))]
+        print(f"First Move: {first_move}")
+        return first_move
+
     if transposition_table is None:
         try:
             transposition_table = load_transposition_table_from_pickle(t_table_filename)
         except FileNotFoundError:
             transposition_table = {}
-
-    if is_first_move and player == 0:
-        first_move = first_moves_dict[(hash_board_state(board), random.randint(1, 3))]
-        print(f"First Move: {first_move}")
-        return first_move, transposition_table
 
     start_time = datetime.now()
     depth = 1
@@ -224,16 +224,16 @@ def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_r
                                                    is_first_move=False,
                                                    t_table_filename="transposition_table.pkl"):
 
+    if is_first_move and player == 0:
+        first_move = first_moves_dict[(hash_board_state(board), random.randint(1, 3))]
+        print(f"First Move: {first_move}")
+        return first_move
+
     if transposition_table is None:
         try:
             transposition_table = load_transposition_table_from_pickle(t_table_filename)
         except FileNotFoundError:
             transposition_table = {}
-
-    if is_first_move and player == 0:
-        first_move = first_moves_dict[(hash_board_state(board), random.randint(1, 3))]
-        print(f"First Move: {first_move}")
-        return first_move, transposition_table
     start_time = datetime.now()
     cur_depth = 1
     best_move = None
