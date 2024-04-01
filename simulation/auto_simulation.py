@@ -1,14 +1,39 @@
 import copy
+import os
 
+from random import randint
 from statespace.search import iterative_deepening_alpha_beta_search as idab
 from statespace.statespace import apply_move
 from statespace.search import game_over
 from heuristics import random, lisa_heuristic, cam_heuristic, kate_heuristic, \
     justin_heuristic
+import pandas as pd
 
-file_list = [cam_heuristic,justin_heuristic,kate_heuristic,lisa_heuristic]
+
+def generate_writable_excel_path(base_path):
+    index = 1  # Start with an index for file naming
+    while True:
+        try:
+            # Check if the file exists to avoid unnecessary opening attempts
+            if os.path.exists(base_path):
+                # Attempt to open the file in append mode just to check writability
+                with open(base_path, 'a'):
+                    pass
+                # If successful, break out of the loop
+                break
+            else:
+                # If the file does not exist, it's "writable" by virtue of being creatable
+                break
+        except (IOError, PermissionError):
+            base_name, extension = os.path.splitext(base_path)
+            base_path = f"{base_name}_{index}{extension}"
+            index += 1
+    return base_path
+
+
+file_list = [cam_heuristic, justin_heuristic, kate_heuristic, lisa_heuristic]
 starting_boards = {
-    # default
+    # standard
     0: {11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 21: 0, 22: 0,
         23: 0, 24: 0, 25: 0, 26: 0, 33: 0, 34: 0, 35: 0,
         99: 1, 98: 1, 97: 1, 96: 1, 95: 1, 89: 1, 88: 1,
@@ -26,75 +51,78 @@ starting_boards = {
         25: 1, 26: 1, 35: 1, 36: 1, 37: 1, 46: 1, 47: 1,
         63: 1, 64: 1, 73: 1, 74: 1, 75: 1, 84: 1, 85: 1}
 }
-turns_limit = 30
-time_limit = 30
-# time_limit = 300
+
+turn_limits = [30]
+time_limits = [20]
+winners_name = ""
+wins_counter = {}
+for heuristic in file_list:
+    wins_counter[heuristic.__name__.split('.')[1].split('_')[0]] = 0
 records = []
-winners_name = []
-for board_config_key in [1, 0, 2]:
-    layout = "default" if board_config_key == 0 else "belgian daisy"
-    for evaluation_black in file_list:
-        for evaluation_white in file_list:
-            if evaluation_white != evaluation_black:
-                # configuration
-                board_state = copy.deepcopy(starting_boards[board_config_key])
-                player_turn = 1  # init as opposite
-                turns_remaining = {0: turns_limit, 1: turns_limit}
+for board_config_key in [0]:
+    layout = {0: "standard", 1: "belgian daisy", 2: "german daisy"}.get(board_config_key, "")
+    print(f"Simulating...")
+    for turn_limit in turn_limits:
+        for time_limit in time_limits:
+            for evaluation_black in file_list:
+                for evaluation_white in file_list:
+                    if evaluation_white != evaluation_black:
+                        board_state = copy.deepcopy(starting_boards[board_config_key])
+                        player_turn = 1
+                        turns_remaining = {0: turn_limit, 1: turn_limit}
+                        strategy = {0: evaluation_black.eval_state, 1: evaluation_white.eval_state}
+                        first_turn = True
 
-                strategy = {0: evaluation_black.eval_state, 1: evaluation_white.eval_state}
+                        while not game_over(board_state, turns_remaining[player_turn], player_turn):
+                            player_turn = 1 - player_turn
+                            move = idab(board_state, player_turn, time_limit, turns_remaining[player_turn],
+                                        strategy[player_turn], first_turn)
+                            first_turn = False
+                            if move is None:
+                                break
+                            apply_move(board_state, move)
+                            turns_remaining[player_turn] -= 1
 
-                while not game_over(board_state,
-                                    turns_remaining[player_turn],
-                                    player_turn):
-                    player_turn = 1 - player_turn
-                    move = idab(board_state,
-                                player_turn, time_limit,
-                                turns_remaining[player_turn],
-                                strategy[player_turn])
+                        black_marbles_remaining = sum(value == 0 for value in board_state.values())
+                        white_marbles_remaining = sum(value == 1 for value in board_state.values())
+                        black_author_name = evaluation_black.__name__.split('.')[1].split('_')[0]
+                        white_author_name = evaluation_white.__name__.split('.')[1].split('_')[0]
+                        if black_marbles_remaining > white_marbles_remaining:
+                            winner = "Black"
+                            winners_name = black_author_name
+                        elif black_marbles_remaining < white_marbles_remaining:
+                            winner = "White"
+                            winners_name = white_author_name
+                        else:
+                            winner = "Tie"
+                            winners_name = "N/A"
 
-                    if move is None:
-                        break
+                        if winner != "Tie":
+                            wins_counter[winners_name] = wins_counter.get(winners_name, 0) + 1
+                        results = {
+                            "Black Player": black_author_name,
+                            "White Player": white_author_name,
+                            "Starting Board Layout": layout,
+                            "Time Limit Per Move (ms)": time_limit,
+                            "Turn Limit Per Player": turn_limit,
+                            "Black Marbles Remaining": black_marbles_remaining,
+                            "White Marbles Remaining": white_marbles_remaining,
+                            "Winner Color": winner,
+                            "Winner Name": winners_name,
+                        }
+                        for player_name in wins_counter.keys():
+                            results[player_name] = wins_counter.get(player_name, 0)
+                        records.append(results)
+                        print(results)
+records.append(wins_counter)
 
-                    apply_move(board_state, move)
+df = pd.DataFrame(records)
 
-                    black_marbles_remaining = sum(
-                        1 for marble in board_state.values() if marble == 0)
-                    white_marbles_remaining = sum(
-                        1 for marble in board_state.values() if marble == 1)
-                    # print(f"Total Remaining Marbles:"
-                    #       f"\tBlack: {black_marbles_remaining}"
-                    #       f"\tWhite: {white_marbles_remaining}")
+base_excel_path = "game_results.xlsx"
+excel_path = generate_writable_excel_path(base_excel_path)
+print(f"Printing results to {excel_path}")
+with pd.ExcelWriter(excel_path, engine='xlsxwriter') as writer:
+    df.to_excel(writer, sheet_name='Game Results', index=False)
 
-                    turns_remaining[player_turn] -= 1
-                black_marbles_remaining = sum(
-                    1 for marble in board_state.values() if marble == 0)
-                white_marbles_remaining = sum(
-                    1 for marble in board_state.values() if marble == 1)
-                winner = "Black" if black_marbles_remaining > white_marbles_remaining else "White"
 
-                black_file_name = evaluation_black.__name__
-                second_part = black_file_name.split('.')[1]
-                black_author_name = second_part.split('_')[0]
 
-                white_file_name = evaluation_white.__name__
-                second_part = white_file_name.split('.')[1]
-                white_author_name = second_part.split('_')[0]
-                winners_name.append(black_author_name if winner=='Black' else white_author_name)
-                record = ("layout", layout, "black", black_author_name, "white", white_author_name, "winner", winner,
-                          "black marbles remaining", black_marbles_remaining, "white marbles remaining",
-                          white_marbles_remaining,
-                          "turns_remaining", turns_remaining)
-                records.append(record)
-count_cam = winners_name.count('cam')
-count_justin = winners_name.count('justin')
-count_kate = winners_name.count('kate')
-count_lisa = winners_name.count('lisa')
-with open("output.txt", "w") as f:
-    for record in records:
-        record_str = ",".join(map(str, record))
-        f.write(record_str + "\n")
-    f.write(f"=====winner count information=====\n")
-    f.write(f"Count of 'cam': {count_cam}\n")
-    f.write(f"Count of 'justin': {count_justin}\n")
-    f.write(f"Count of 'kate': {count_kate}\n")
-    f.write(f"Count of 'lisa': {count_lisa}\n")
