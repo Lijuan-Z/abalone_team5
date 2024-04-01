@@ -14,7 +14,7 @@ strategy = {0: justin_heuristic.eval_state, 1: cam_heuristic.eval_state}
 class VersusSimulation(Simulation):
     """Runs a full versus simulation using 2 sets of heuristics."""
 
-    def __init__(self, board_config_key = 0):
+    def __init__(self, board_config_key=0):
         super().__init__()
 
         self.starting_boards = {
@@ -45,6 +45,7 @@ class VersusSimulation(Simulation):
         time_limit = 300
         # time_limit = 30
         self.update_display()
+        is_first_move = True
 
         while not game_over(self.board_state,
                             turns_remaining[player_turn],
@@ -53,8 +54,8 @@ class VersusSimulation(Simulation):
             move = idab(self.board_state,
                         player_turn, time_limit,
                         turns_remaining[player_turn],
-                        strategy[player_turn])
-
+                        strategy[player_turn], is_first_move=is_first_move)
+            is_first_move = False
             if move is None:
                 break
 

@@ -159,7 +159,29 @@ def load_transposition_table_from_json(filename):
     return table
 
 
-def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remaining, eval_callback):
+# maps a board hash to the value calculated by the evaluation function
+transposition_table = {}
+
+first_moves_dict = {
+    # Belgian Daisy First moves
+    (1835253602899219050, 1): (((11, 0), (22, 0), (33, 0)), 11),
+    (1835253602899219050, 2): (((99, 0), (88, 0), (77, 0)), -11),
+    (1835253602899219050, 3): (((98, 0), (87, 0)), -11),
+
+    # German Daisy First Moves
+    (5214771994522690999, 1): (((21, 0), (32, 0), (43, 0)), 11),
+    (5214771994522690999, 2): (((89, 0), (78, 0), (67, 0)), -11),
+    (5214771994522690999, 3): (((42, 0), (43, 0)), 11),
+
+    # Standard Board First Moves
+    (2251738777944622381, 1): (((11, 0), (22, 0), (33, 0)), 11),
+    (2251738777944622381, 2): (((15, 0), (25, 0), (35, 0)), 10),
+    (2251738777944622381, 3): (((12, 0), (23, 0), (34, 0)), 11)
+}
+
+
+def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remaining, eval_callback,
+                                          is_first_move=False):
     """
     Makes calls to alpha_beta_search, incrementing the depth each loop.
 
@@ -168,13 +190,22 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
 
     Parameters:
         board: a dict representation of the marbles on the board
-        time_limit: the total allotted time for this move to be determined in milliseconds. Should be accurate to 1/100ths of a second
+        time_limit: the total allotted time for this move to be determined in milliseconds. Should be accurate to 1/100th of a second
         player: a value, 0 or 1, indicating whose turn it is
         turns_remaining: the total remaining turns for the current player
+        is_first_move: a boolean indicating if this is the first move of the game. Used to pick from a list of random first moves.
 
     Returns:
         best_move: the best move found from all iterations the alpha-beta search
     """
+    if is_first_move and player == 0:
+        return first_moves_dict[(hash_board_state(board), random.randint(1, 3))]
+
+    global transposition_table
+    try:
+        transposition_table = load_transposition_table_from_pickle("transposition_table.pkl")
+    except FileNotFoundError:
+        transposition_table = {}
     start_time = datetime.now()
     depth = 1
     # The total remaining turns in the game will be equal to double one player's remaining turns,
@@ -201,19 +232,20 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     print(f"Best Move Search Time: {best_move_search_time * 1000:.2f}ms/{time_limit:.2f}ms")  # Display in milliseconds
     print(f"Best Move Depth: {depth}")
     print(f"Best Move: {best_move}")
-
+    save_transposition_table_to_pickle(transposition_table, 'transposition_table.pkl')
     return best_move
 
 
-# maps a board hash to the value calculated by the evaluation function
-transposition_table = {}
+def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_remaining, eval_callback, ab_callback,
+                                                   is_first_move=False):
+    if is_first_move and player == 0:
+        return first_moves_dict[(hash_board_state(board), random.randint(1, 3))]
 
-
-def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_remaining, eval_callback, ab_callback):
     global transposition_table
-    # transposition_table = load_transposition_table_from_json("transposition_table.json")
-    transposition_table = load_transposition_table_from_pickle("transposition_table.pkl")
-    # transposition_table = {}
+    try:
+        transposition_table = load_transposition_table_from_pickle("transposition_table.pkl")
+    except FileNotFoundError:
+        transposition_table = {}
     start_time = datetime.now()
     cur_depth = 1
     best_move = None
@@ -229,7 +261,6 @@ def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_r
         print(f"Best Move: {best_move}")
         cur_depth += 1
     save_transposition_table_to_pickle(transposition_table, 'transposition_table.pkl')
-    save_transposition_table_to_json(transposition_table, 'transposition_table.json')
     return best_move
 
 
