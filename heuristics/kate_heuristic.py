@@ -44,25 +44,27 @@ def marble_loss(ply_board, max_player):
 
 
 def density(ply_board, max_player):
-    num = 0
-    den = 0
+    num = [0, 0]
+    den = [0, 0]
     danger_count = [0, 0]
 
     for marble in ply_board.items():
         for direction in directions:
             if marble[0] + direction in ply_board.keys():
-                num += 1 - marble[1]
+                num[marble[1]] += 1
                 if distance_mapping[marble[0]] == 10 and marble[0] + (2 * direction) in ply_board.keys() and ply_board[marble[0] + direction] == 1 - marble[1] and ply_board[marble[0] + (2 * direction)] == 1 - marble[1]:
                     danger_count[marble[1]] += 1
             if marble[0] - direction in ply_board.keys():
-                num += 1 - marble[1]
+                num[marble[1]] += 1
                 if distance_mapping[marble[0]] == 10 and marble[0] - (2 * direction) in ply_board.keys() and ply_board[marble[0] - direction] == 1 - marble[1] and ply_board[marble[0] - (2 * direction)] == 1 - marble[1]:
                     danger_count[marble[1]] += 1
 
-            den += 1 - marble[1]
+            den[marble[1]] += 1
 
-    print("danger_count", danger_count)
-    return (num / den) + danger_count[1] - danger_count[0]
+    # print("num den", (num[0]/den[0], num[1]/den[1]))
+    # print("danger_count", danger_count)
+    # print()
+    return (num[0] / den[0]) - (num[1] / den[1]) + danger_count[1] - danger_count[0]
 
 
 def eval_state(ply_board, max_player, *args, **kwargs):
@@ -79,5 +81,5 @@ def eval_state(ply_board, max_player, *args, **kwargs):
         result = heuristic(ply_board, max_player)
         print(heuristic.__name__, result * weight)
         sum += result * weight
-    print()
+    # print()
     return sum
