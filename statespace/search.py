@@ -55,8 +55,8 @@ def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_r
     cur_depth = 1
     best_move = None
 
-    while cur_depth <= depth:
-        temp_move, _ = alpha_beta_search(board, board, float('-inf'), float('inf'), cur_depth, player, player, 0, turns_remaining, eval_callback, )
+    while cur_depth <= depth: # and cur_depth <= turns_remaining:
+        temp_move, _, path = alpha_beta_search(board, board, float('-inf'), float('inf'), cur_depth, player, player, 0, turns_remaining, eval_callback)
         elapsed_time = (datetime.now() - start_time).total_seconds()
         best_move = temp_move
         print("\n=======PLY FINISHED========")
@@ -88,34 +88,39 @@ def alpha_beta_search(init_board, ply_board, alpha, beta, depth, max_player, cur
     if depth == 0 or total_turns_remaining == 0 or num_player_marbles(cur_ply_player, ply_board) == 8:
         return None, eval_callback(init_board=init_board, ply_board=ply_board,
                                    total_turns_remaining=total_turns_remaining, max_player=max_player,
-                                   time_limit=time_limit)
+                                   time_limit=time_limit), []
     if cur_ply_player == max_player:
         best_move = None
         best_value = float('-inf')
+        best_path = []
         for move, result_board in genall_groupmove_resultboard(ply_board, cur_ply_player):
-            next_move, value = alpha_beta_search(init_board,result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
+            _, value, path = alpha_beta_search(init_board,result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
             if value > best_value:
                 best_value = value
                 best_move = move
+                best_path = path
             if value >= beta:
                 break
             if value > alpha:
                 alpha = value
-        return best_move, best_value
+        best_path.insert(0, best_move)
+        return best_move, best_value, best_path
     else:
         best_move = None
         best_value = float('inf')
+        best_path = []
         for move, result_board in genall_groupmove_resultboard(ply_board, cur_ply_player):
-            next_move, value = alpha_beta_search(init_board,result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
+            _, value, path = alpha_beta_search(init_board,result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
             if value < best_value:
                 best_value = value
                 best_move = move
+                best_path = path
             if value <= alpha:
                 break
             if value < beta:
                 beta = value
-            beta = min(beta, value)
-        return best_move, best_value
+        best_path.insert(0, best_move)
+        return best_move, best_value, best_path
 
 def num_player_marbles(player, board):
     """
