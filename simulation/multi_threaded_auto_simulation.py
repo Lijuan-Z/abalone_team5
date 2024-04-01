@@ -39,6 +39,24 @@ starting_boards = {
 turn_limits = [30]
 time_limits = [5000]
 
+def generate_writable_excel_path(base_path):
+    index = 1  # Start with an index for file naming
+    while True:
+        try:
+            # Check if the file exists to avoid unnecessary opening attempts
+            if os.path.exists(base_path):
+                # Attempt to open the file in append mode just to check writability
+                with open(base_path, 'a'):
+                    pass
+                break
+            else:
+                break
+        except (IOError, PermissionError):
+            base_name, extension = os.path.splitext(base_path)
+            base_path = f"{base_name}_{index}{extension}"
+            index += 1
+    return base_path
+
 
 def simulate_game(board_config_key, turn_limit, time_limit, evaluation_black, evaluation_white, results_queue):
     try:
@@ -72,15 +90,15 @@ def simulate_game(board_config_key, turn_limit, time_limit, evaluation_black, ev
             player_turn = 1 - player_turn
             if first_turn:
                 first_move = idab(board_state,
-                                  player_turn,
-                                  time_limit,
-                                  turns_remaining[player_turn],
-                                  transposition_table=transposition_tables[
-                                      player_turn],
-                                  eval_callback=strategy[player_turn],
-                                  is_first_move=first_turn,
-                                  t_table_filename=
-                                  transposition_table_file_names[player_turn])
+                                                                     player_turn,
+                                                                     time_limit,
+                                                                     turns_remaining[player_turn],
+                                                                     transposition_table=transposition_tables[
+                                                                         player_turn],
+                                                                     eval_callback=strategy[player_turn],
+                                                                     is_first_move=first_turn,
+                                                                     t_table_filename=
+                                                                     transposition_table_file_names[player_turn])
                 apply_move(board_state, first_move)
                 first_turn = False
                 continue
