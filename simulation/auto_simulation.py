@@ -9,6 +9,8 @@ from heuristics import random, lisa_heuristic, cam_heuristic, kate_heuristic, \
     justin_heuristic
 import pandas as pd
 
+from statespace.transposition_table_IO import load_transposition_table_from_pickle
+
 
 def generate_writable_excel_path(base_path):
     index = 1  # Start with an index for file naming
@@ -19,10 +21,8 @@ def generate_writable_excel_path(base_path):
                 # Attempt to open the file in append mode just to check writability
                 with open(base_path, 'a'):
                     pass
-                # If successful, break out of the loop
                 break
             else:
-                # If the file does not exist, it's "writable" by virtue of being creatable
                 break
         except (IOError, PermissionError):
             base_name, extension = os.path.splitext(base_path)
@@ -60,33 +60,67 @@ for heuristic in file_list:
     player_name = heuristic.__name__.split('.')[1].split('_')[0]
     wins_counter[player_name] = 0
 records = []
-for board_config_key in [0]:
+for board_config_key in [0, 1, 2]:
     layout = {0: "standard", 1: "belgian daisy", 2: "german daisy"}.get(board_config_key, "")
-    print(f"Simulating...")
     for turn_limit in turn_limits:
         for time_limit in time_limits:
             for evaluation_black in file_list:
                 for evaluation_white in file_list:
                     if evaluation_white != evaluation_black:
+                        layout = {0: "standard", 1: "belgian daisy", 2: "german daisy"}.get(board_config_key, "")
+                        print(f"Simulating...")
                         board_state = copy.deepcopy(starting_boards[board_config_key])
-                        player_turn = 1
+                        player_turn = 1  # Black starts
                         turns_remaining = {0: turn_limit, 1: turn_limit}
                         strategy = {0: evaluation_black.eval_state, 1: evaluation_white.eval_state}
+                        winner = ""
+                        first_move = None
                         first_turn = True
+
                         black_author_name = evaluation_black.__name__.split('.')[1].split('_')[0]
                         white_author_name = evaluation_white.__name__.split('.')[1].split('_')[0]
                         transposition_table_file_names = [f"transposition_table_{black_author_name}.pkl",
                                                           f"transposition_table_{white_author_name}.pkl"]
-                        first_move = None
+                        transposition_tables = [{}, {}]
+                        try:
+                            transposition_tables[0] = load_transposition_table_from_pickle(
+                                transposition_table_file_names[0])
+                        except FileNotFoundError:
+                            transposition_tables[0] = {}
+                        try:
+                            transposition_tables[1] = load_transposition_table_from_pickle(
+                                transposition_table_file_names[1])
+                        except FileNotFoundError:
+                            transposition_tables[1] = {}
+
+                        # Simulation loop
                         while not game_over(board_state, turns_remaining[player_turn], player_turn):
                             player_turn = 1 - player_turn
-                            move = idab(board_state, player_turn, time_limit,
-                                        turns_remaining[player_turn],
-                                        strategy[player_turn], first_turn,
-                                        transposition_table_file_names[player_turn])
                             if first_turn:
-                                first_move = move
-                            first_turn = False
+                                first_move = idab(board_state,
+                                                                           player_turn,
+                                                                           time_limit,
+                                                                           turns_remaining[player_turn],
+                                                                           transposition_table=transposition_tables[
+                                                                               player_turn],
+                                                                           eval_callback=strategy[player_turn],
+                                                                           is_first_move=first_turn,
+                                                                           t_table_filename=
+                                                                           transposition_table_file_names[player_turn])
+                                apply_move(board_state, first_move)
+                                first_turn = False
+                                continue
+
+                            move, transposition_tables[player_turn] = idab(board_state,
+                                                                           player_turn,
+                                                                           time_limit,
+                                                                           turns_remaining[player_turn],
+                                                                           transposition_table=transposition_tables[
+                                                                               player_turn],
+                                                                           eval_callback=strategy[player_turn],
+                                                                           is_first_move=first_turn,
+                                                                           t_table_filename=
+                                                                           transposition_table_file_names[player_turn])
                             if move is None:
                                 break
                             apply_move(board_state, move)
@@ -123,6 +157,7 @@ for board_config_key in [0]:
                             results[player_name] = wins_counter.get(player_name, 0)
                         records.append(results)
                         print(results)
+                        
 records.append(wins_counter)
 
 df = pd.DataFrame(records)
