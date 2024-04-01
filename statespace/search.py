@@ -133,7 +133,7 @@ hashed_positions = {
 }
 
 # maps a board hash to the value calculated by the evaluation function
-transposition_table = {}
+# transposition_table = {}
 
 first_moves_dict = {
     # Belgian Daisy First moves
@@ -154,6 +154,7 @@ first_moves_dict = {
 
 
 def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remaining, eval_callback,
+                                          transposition_table,
                                           is_first_move=False, t_table_filename="transposition_table.pkl"):
     """
     Makes calls to alpha_beta_search, incrementing the depth each loop.
@@ -166,29 +167,31 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
         time_limit: the total allotted time for this move to be determined in milliseconds. Should be accurate to 1/100th of a second
         player: a value, 0 or 1, indicating whose turn it is
         turns_remaining: the total remaining turns for the current player
+        transposition_table: a transition table containing a board mapped to that board's evaluation
         is_first_move: a boolean indicating if this is the first move of the game. Used to pick from a list of random first moves.
-        t_table: a transition table containing a board mapped to an evaluation
+        t_table_filename: Name of the file to load the t_table from if it has yet to be loaded
     Returns:
         best_move: the best move found from all iterations the alpha-beta search
     """
-    if is_first_move and player == 0:
-        return first_moves_dict[(hash_board_state(board), random.randint(1, 3))]
 
-    global transposition_table
-    try:
-        transposition_table = load_transposition_table_from_pickle(t_table_filename)
-    except FileNotFoundError:
-        transposition_table = {}
+    if transposition_table is None:
+        try:
+            transposition_table = load_transposition_table_from_pickle(t_table_filename)
+        except FileNotFoundError:
+            transposition_table = {}
+
+    if is_first_move and player == 0:
+        first_move = first_moves_dict[(hash_board_state(board), random.randint(1, 3))]
+        print(f"First Move: {first_move}")
+        return first_move, transposition_table
+
     start_time = datetime.now()
     depth = 1
-    # The total remaining turns in the game will be equal to double one player's remaining turns,
-    # and for white the total will be -1 because they always go after black.
     total_turns_remaining = turns_remaining * 2 - player
     best_move = None
     elapsed_time = 0
     best_move_search_time = 0
     time_limit_seconds = time_limit / 1000.0  # Convert time_limit to seconds for comparison
-    temp_move = None
 
     # The loop will end before the time limit if the maximum depth (based on turns remaining) is reached.
     while depth <= total_turns_remaining:
@@ -198,7 +201,7 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
             break
         temp_move, _ = alpha_beta_search_transposition(board, board, float('-inf'), float('inf'), depth, player, player,
                                                        time_limit_seconds - elapsed_time, total_turns_remaining,
-                                                       eval_callback, )
+                                                       eval_callback, transposition_table)
         elapsed_time = (datetime.now() - start_time).total_seconds()
         if elapsed_time >= time_limit_seconds:
             depth -= 1
@@ -213,25 +216,30 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     print(f"Depth Reached: {depth}")
     print(f"Best Move: {best_move}")
     save_transposition_table_to_pickle(transposition_table, t_table_filename)
-    return best_move
+    return best_move, transposition_table
 
 
 def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_remaining, eval_callback, ab_callback,
-                                                   is_first_move=False):
-    if is_first_move and player == 0:
-        return first_moves_dict[(hash_board_state(board), random.randint(1, 3))]
+                                                   transposition_table,
+                                                   is_first_move=False,
+                                                   t_table_filename="transposition_table.pkl"):
 
-    global transposition_table
-    try:
-        transposition_table = load_transposition_table_from_pickle("transposition_table.pkl")
-    except FileNotFoundError:
-        transposition_table = {}
+    if transposition_table is None:
+        try:
+            transposition_table = load_transposition_table_from_pickle(t_table_filename)
+        except FileNotFoundError:
+            transposition_table = {}
+
+    if is_first_move and player == 0:
+        first_move = first_moves_dict[(hash_board_state(board), random.randint(1, 3))]
+        print(f"First Move: {first_move}")
+        return first_move, transposition_table
     start_time = datetime.now()
     cur_depth = 1
     best_move = None
     while cur_depth <= depth:
         temp_move, _ = ab_callback(board, board, float('-inf'), float('inf'), cur_depth, player,
-                                   player, 0, turns_remaining, eval_callback)
+                                   player, 0, turns_remaining, eval_callback, transposition_table)
         elapsed_time = (datetime.now() - start_time).total_seconds()
         best_move = temp_move
         print("\n=======PLY FINISHED========")
@@ -239,13 +247,12 @@ def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_r
         print(f"Depth: {cur_depth}")
         print(f"Best Move: {best_move}")
         cur_depth += 1
-    save_transposition_table_to_pickle(transposition_table, 'transposition_table.pkl')
-    return best_move
+    save_transposition_table_to_pickle(transposition_table, t_table_filename)
+    return best_move, transposition_table
 
 
 def alpha_beta_search_transposition(init_board, ply_board, alpha, beta, depth, max_player, cur_ply_player, time_limit,
-                                    total_turns_remaining, eval_callback):
-    global transposition_table
+                                    total_turns_remaining, eval_callback, transposition_table):
     """
     Determines which function should be called as the starting point of the alpha-beta search, based on the
     player value.
@@ -277,7 +284,7 @@ def alpha_beta_search_transposition(init_board, ply_board, alpha, beta, depth, m
         for move, result_board in genall_groupmove_resultboard(ply_board, cur_ply_player):
             _, value = alpha_beta_search_transposition(init_board, result_board, alpha, beta, depth - 1, max_player,
                                                        1 - cur_ply_player, time_limit, total_turns_remaining - 1,
-                                                       eval_callback)
+                                                       eval_callback, transposition_table)
             if value > best_value:
                 best_value = value
                 best_move = move
@@ -291,7 +298,7 @@ def alpha_beta_search_transposition(init_board, ply_board, alpha, beta, depth, m
         for move, result_board in genall_groupmove_resultboard(ply_board, cur_ply_player):
             _, value = alpha_beta_search_transposition(init_board, result_board, alpha, beta, depth - 1, max_player,
                                                        1 - cur_ply_player, time_limit, total_turns_remaining - 1,
-                                                       eval_callback)
+                                                       eval_callback, transposition_table)
             if value < best_value:
                 best_value = value
                 best_move = move
