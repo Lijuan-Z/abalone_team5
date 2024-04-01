@@ -119,10 +119,10 @@ if __name__ == '__main__':
     # simulate_game(starting_board, 15, 4000, 0)
 
     # node ordering development
-    turns_remaining = [2, 2]
+    turns_remaining = [3, 3]
     board_state = starting_boards["standard"]
     cur_player = 1
-    depth = 2
+    depth = 3
 
     while not game_over(board_state, turns_remaining[cur_player], cur_player):
         cur_player = 1 - cur_player
