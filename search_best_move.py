@@ -119,17 +119,18 @@ if __name__ == '__main__':
     # simulate_game(starting_board, 15, 4000, 0)
 
     # node ordering development
-    turns_remaining = [3, 3]
+    turns_remaining = [5, 5]
     board_state = starting_boards["standard"]
     cur_player = 1
-    depth = 3
+    depth = 5
+    path = [None]
 
     while not game_over(board_state, turns_remaining[cur_player], cur_player):
         cur_player = 1 - cur_player
-        move = id_abs_bd(board_state,
+        move, path = id_abs_bd(board_state,
                          cur_player, depth,
                          turns_remaining[cur_player],
-                         justin_heuristic.eval_state)
+                         justin_heuristic.eval_state, path[1:])
 
         apply_move(board_state, move)
         print_board(board_state)

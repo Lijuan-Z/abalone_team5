@@ -50,11 +50,10 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     return best_move
 
 
-def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_remaining, eval_callback):
+def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_remaining, eval_callback, path):
     start_time = datetime.now()
     cur_depth = 1
     best_move = None
-    path = None
 
     while cur_depth <= depth and cur_depth <= turns_remaining:
         temp_move, _, path = alpha_beta_search(board, board, float('-inf'), float('inf'), cur_depth, player, player, 0, turns_remaining, eval_callback, path)
@@ -66,7 +65,7 @@ def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_r
         print(f"Best Move: {best_move}")
         cur_depth += 1
 
-    return best_move
+    return best_move, path
 
 
 def alpha_beta_search(init_board, ply_board, alpha, beta, depth, max_player, cur_ply_player, time_limit, total_turns_remaining, eval_callback, total_best_path):
