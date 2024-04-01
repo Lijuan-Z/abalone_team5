@@ -24,56 +24,44 @@ def middle_control(ply_board, max_player):
     # returns ratio. the smaller count you have, the closer you are to center. you want the denominator to be smaller.
     return min_count / max_count
 
-def whites_edges(ply_board, max_player):
-    min_count = 0
-    num_min = 0
-    for pos, col in ply_board.items():
-        if col != max_player:
-            min_count += distance_mapping[pos]
-            num_min += 1
-
-    # returns ratio. the smaller count you have, the closer you are to center. you want the denominator to be smaller.
-    return min_count / num_min
-
 
 def marble_loss(ply_board, max_player):
     max = sum([1 for col in ply_board.values() if col == max_player])
     min = len(ply_board) - max
-    print("max, min", (max, min))
+    # print("max, min", (max, min))
     return max - min
 
 
 def density(ply_board, max_player):
-    num = [0, 0]
-    den = [0, 0]
+    num = 0
+    den = 0
     danger_count = [0, 0]
 
     for marble in ply_board.items():
         for direction in directions:
             if marble[0] + direction in ply_board.keys():
-                num[marble[1]] += 1
-                if distance_mapping[marble[0]] == 10 and marble[0] + (2 * direction) in ply_board.keys() and ply_board[marble[0] + direction] == 1 - marble[1] and ply_board[marble[0] + (2 * direction)] == 1 - marble[1]:
+                num += 1 - max_player
+                if distance_mapping[marble[0]] == 10 and marble[0] + direction in ply_board.keys() and ply_board[marble[0] + direction] == 1 - marble[1] and ply_board[marble[0] + direction] == 1 - marble[1]:
                     danger_count[marble[1]] += 1
             if marble[0] - direction in ply_board.keys():
-                num[marble[1]] += 1
-                if distance_mapping[marble[0]] == 10 and marble[0] - (2 * direction) in ply_board.keys() and ply_board[marble[0] - direction] == 1 - marble[1] and ply_board[marble[0] - (2 * direction)] == 1 - marble[1]:
+                num += 1 - max_player
+                if distance_mapping[marble[0]] == 10 and marble[0] - direction in ply_board.keys() and ply_board[marble[0] - direction] == 1 - marble[1] and ply_board[marble[0] - direction] == 1 - marble[1]:
                     danger_count[marble[1]] += 1
 
-            den[marble[1]] += 1
+            den += 1 - max_player
 
-    # print("num den", (num[0]/den[0], num[1]/den[1]))
-    # print("danger_count", danger_count)
+    # print("num den", (num/den, num/den))
+    # print("danger_count", (danger_count[max_player], danger_count[1 - max_player]))
     # print()
-    return (num[0] / den[0]) - (num[1] / den[1]) + danger_count[1] - danger_count[0]
+    return (num / den) + (2 * (danger_count[1 - max_player] - danger_count[max_player]))
 
 
-def eval_state(ply_board, max_player, *args, **kwargs):
+def eval_state(ply_board, total_turns_remaining, max_player, *args, **kwargs):
     """Returns a random evaluation result."""
     heuristics = {
-        middle_control: 0.7,
-        marble_loss: 5,
-        density: 1,
-        whites_edges: 0.1,
+        middle_control: total_turns_remaining * 0.02,
+        marble_loss: 20,
+        density: 0.6,
     }
 
     sum = 0
