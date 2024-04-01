@@ -57,7 +57,8 @@ time_limits = [20]
 winners_name = ""
 wins_counter = {}
 for heuristic in file_list:
-    wins_counter[heuristic.__name__.split('.')[1].split('_')[0]] = 0
+    player_name = heuristic.__name__.split('.')[1].split('_')[0]
+    wins_counter[player_name] = 0
 records = []
 for board_config_key in [0]:
     layout = {0: "standard", 1: "belgian daisy", 2: "german daisy"}.get(board_config_key, "")
@@ -72,11 +73,19 @@ for board_config_key in [0]:
                         turns_remaining = {0: turn_limit, 1: turn_limit}
                         strategy = {0: evaluation_black.eval_state, 1: evaluation_white.eval_state}
                         first_turn = True
-
+                        black_author_name = evaluation_black.__name__.split('.')[1].split('_')[0]
+                        white_author_name = evaluation_white.__name__.split('.')[1].split('_')[0]
+                        transposition_table_file_names = [f"transposition_table_{black_author_name}.pkl",
+                                                          f"transposition_table_{white_author_name}.pkl"]
+                        first_move = None
                         while not game_over(board_state, turns_remaining[player_turn], player_turn):
                             player_turn = 1 - player_turn
-                            move = idab(board_state, player_turn, time_limit, turns_remaining[player_turn],
-                                        strategy[player_turn], first_turn)
+                            move = idab(board_state, player_turn, time_limit,
+                                        turns_remaining[player_turn],
+                                        strategy[player_turn], first_turn,
+                                        transposition_table_file_names[player_turn])
+                            if first_turn:
+                                first_move = move
                             first_turn = False
                             if move is None:
                                 break
@@ -85,8 +94,7 @@ for board_config_key in [0]:
 
                         black_marbles_remaining = sum(value == 0 for value in board_state.values())
                         white_marbles_remaining = sum(value == 1 for value in board_state.values())
-                        black_author_name = evaluation_black.__name__.split('.')[1].split('_')[0]
-                        white_author_name = evaluation_white.__name__.split('.')[1].split('_')[0]
+
                         if black_marbles_remaining > white_marbles_remaining:
                             winner = "Black"
                             winners_name = black_author_name
@@ -103,6 +111,7 @@ for board_config_key in [0]:
                             "Black Player": black_author_name,
                             "White Player": white_author_name,
                             "Starting Board Layout": layout,
+                            "First Move": first_move,
                             "Time Limit Per Move (ms)": time_limit,
                             "Turn Limit Per Player": turn_limit,
                             "Black Marbles Remaining": black_marbles_remaining,
@@ -123,6 +132,3 @@ excel_path = generate_writable_excel_path(base_excel_path)
 print(f"Printing results to {excel_path}")
 with pd.ExcelWriter(excel_path, engine='xlsxwriter') as writer:
     df.to_excel(writer, sheet_name='Game Results', index=False)
-
-
-
