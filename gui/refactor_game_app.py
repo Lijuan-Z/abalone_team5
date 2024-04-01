@@ -6,13 +6,13 @@ from gui.refactor_game.config_page import ConfigPage
 from gui.refactor_game.game_page import GamePage
 
 dark_mode_colors = {
-    'Background': ("#2D2D2D", "#CCCCCC"),
-    'Label': ("#2D2D2D", "#CCCCCC"),
-    'Button': ("#4E4E4E", "#CCCCCC"),
-    'Entry': ("#333333", "#CCCCCC"),
-    'Text': ("#333333", "#CCCCCC"),
-    'Frame': ("#2D2D2D", "#CCCCCC"),
-    'Select': ("#555555", "#CCCCCC"),
+    'Background': ("#2D2D2D", "#FFFFFF"),
+    'Label': ("#2D2D2D", "#FFFFFF"),
+    'Button': ("#4E4E4E", "#FFFFFF"),
+    'Entry': ("#333333", "#FFFFFF"),
+    'Text': ("#333333", "#FFFFFF"),
+    'Frame': ("#2D2D2D", "#FFFFFF"),
+    'Select': ("#555555", "#FFFFFF"),
     'Scrollbar': ("#4E4E4E", "#2D2D2D"),
 }
 
@@ -77,7 +77,7 @@ class GameApp(tk.Tk):
                                             'configure': {
                                                 'selectbackground': '#353535',
                                                 'fieldbackground': '#656565',
-                                                'foreground': '#CCCCCC'
+                                                'foreground': '#FFFFFF'
                                             }
                                         }
                                     }
