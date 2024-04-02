@@ -485,6 +485,7 @@ class GameGUI(tk.Frame):
                               session_id=GameGUI.SESSION_ID)
             if self.config['color_selection'] != self.player_turn:
                 print('Computer turn')
+                calculation_time = None
 
                 if self.current_action_index == 0 and self.player_turn == 'black':
                     # random actions for black first move
@@ -496,7 +497,7 @@ class GameGUI(tk.Frame):
                 self.current_action_index += 1
                 self.ai_next_var.set("Calculating...")
                 self.ai_recommendation_history.append(
-                    (action, calculation_time))
+                    (action, calculation_time if calculation_time is not None else 0))
                 self.action_entry.config(state="disabled")
                 self.pause_button.config(state="disabled")
                 self.resume_button.config(state="disabled")
