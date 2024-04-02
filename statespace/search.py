@@ -181,7 +181,8 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
 
     if transposition_table is None:
         try:
-            transposition_table = load_transposition_table_from_pickle(t_table_filename)
+            # transposition_table = load_transposition_table_from_pickle(t_table_filename)
+            transposition_table = {}
         except FileNotFoundError:
             transposition_table = {}
 
@@ -196,7 +197,7 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     # The loop will end before the time limit if the maximum depth (based on turns remaining) is reached.
     while depth <= total_turns_remaining:
         elapsed_time = (datetime.now() - start_time).total_seconds()
-        if elapsed_time >= time_limit_seconds * 0.5:
+        if elapsed_time*7 >= time_limit_seconds:
             depth -= 1
             break
         temp_move, _ = alpha_beta_search_transposition(board, board, float('-inf'), float('inf'), depth, player, player,
@@ -210,12 +211,12 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
             best_move = temp_move
             best_move_search_time = elapsed_time
             depth += 1
-    print("\n=======FINISHED========")
-    print(f"Best Move Search Time: {best_move_search_time * 1000:.2f}ms/{time_limit:.2f}ms")  # Display in milliseconds
-    print(f"Total Elapsed Time: {elapsed_time * 1000:.2f}ms/{time_limit:.2f}ms ")
-    print(f"Depth Reached: {depth}")
-    print(f"Best Move: {best_move}")
-    save_transposition_table_to_pickle(transposition_table, t_table_filename)
+    # print("\n=======FINISHED========")
+    # print(f"Best Move Search Time: {best_move_search_time * 1000:.2f}ms/{time_limit:.2f}ms")  # Display in milliseconds
+    # print(f"Total Elapsed Time: {elapsed_time * 1000:.2f}ms/{time_limit:.2f}ms ")
+    # print(f"Depth Reached: {depth}")
+    # print(f"Best Move: {best_move}")
+    # save_transposition_table_to_pickle(transposition_table, t_table_filename)
     return best_move, transposition_table
 
 
@@ -242,10 +243,10 @@ def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_r
                                    player, 0, turns_remaining, eval_callback, transposition_table)
         elapsed_time = (datetime.now() - start_time).total_seconds()
         best_move = temp_move
-        print("\n=======PLY FINISHED========")
-        print(f"Search Time: {elapsed_time * 1000:.2f}ms")  # Display in milliseconds
-        print(f"Depth: {cur_depth}")
-        print(f"Best Move: {best_move}")
+        # print("\n=======PLY FINISHED========")
+        # print(f"Search Time: {elapsed_time * 1000:.2f}ms")  # Display in milliseconds
+        # print(f"Depth: {cur_depth}")
+        # print(f"Best Move: {best_move}")
         cur_depth += 1
     save_transposition_table_to_pickle(transposition_table, t_table_filename)
     return best_move, transposition_table

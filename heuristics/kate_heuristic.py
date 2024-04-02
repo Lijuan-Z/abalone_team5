@@ -70,7 +70,7 @@ def eval_state(ply_board, max_player, *args, **kwargs):
     sum = 0
     for heuristic, weight in heuristics.items():
         result = heuristic(ply_board, max_player)
-        print(heuristic.__name__, result * weight)
+        # print(heuristic.__name__, result * weight)
         sum += result * weight
     # print()
     return sum
