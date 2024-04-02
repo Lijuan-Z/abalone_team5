@@ -7,7 +7,7 @@ from statespace.search import iterative_deepening_alpha_beta_search as idab
 from statespace.statespace import apply_move
 from statespace.search import game_over
 from heuristics import random, lisa_heuristic, cam_heuristic, kate_heuristic, \
-    justin_heuristic, agg_heuristic
+    justin_heuristic
 import pandas as pd
 
 from statespace.transposition_table_IO import load_transposition_table_from_pickle
@@ -54,7 +54,7 @@ starting_boards = {
 }
 start_time = datetime.now()
 turn_limits = [30]
-time_limits = [5000]
+time_limits = [10000]
 winners_name = ""
 wins_counter = {}
 for heuristic in file_list:
