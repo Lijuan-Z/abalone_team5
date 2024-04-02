@@ -1,29 +1,159 @@
 import copy
 import os
 from datetime import datetime
+from itertools import product
+from multiprocessing import Process, Manager
 
-from random import randint
 from statespace.search import iterative_deepening_alpha_beta_search as idab
 from statespace.statespace import apply_move
 from statespace.search import game_over
-from heuristics import random, lisa_heuristic, cam_heuristic, kate_heuristic, \
+from heuristics import lisa_heuristic, cam_heuristic, kate_heuristic, \
     justin_heuristic
 import pandas as pd
 
-from statespace.transposition_table_IO import load_transposition_table_from_pickle
+
+class AutoSim(Process):
+    starting_boards = {
+        # standard
+        "standard": {11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 21: 0, 22: 0,
+                     23: 0, 24: 0, 25: 0, 26: 0, 33: 0, 34: 0, 35: 0,
+                     99: 1, 98: 1, 97: 1, 96: 1, 95: 1, 89: 1, 88: 1,
+                     87: 1, 86: 1, 85: 1, 84: 1, 77: 1, 76: 1, 75: 1},
+
+        # belgian daisy
+        "belgian daisy": {11: 0, 12: 0, 21: 0, 22: 0, 23: 0, 32: 0, 33: 0,
+                          99: 0, 98: 0, 89: 0, 88: 0, 87: 0, 78: 0, 77: 0,
+                          14: 1, 15: 1, 24: 1, 25: 1, 26: 1, 35: 1, 36: 1,
+                          95: 1, 96: 1, 84: 1, 85: 1, 86: 1, 74: 1, 75: 1},
+
+        # german daisy
+        "german daisy": {21: 0, 22: 0, 31: 0, 32: 0, 33: 0, 42: 0, 43: 0,
+                         67: 0, 68: 0, 77: 0, 78: 0, 79: 0, 88: 0, 89: 0,
+                         25: 1, 26: 1, 35: 1, 36: 1, 37: 1, 46: 1, 47: 1,
+                         63: 1, 64: 1, 73: 1, 74: 1, 75: 1, 84: 1, 85: 1}
+    }
+
+    def __init__(self, turn_limit_per_player: int, time_limit_per_move: int, board_layout: str, black_player_heuristic,
+                 white_player_heuristic, wins_counter, results_list):
+        super().__init__()
+        self.board_state = copy.deepcopy(self.starting_boards[board_layout])
+        self.turn_limit_per_player = turn_limit_per_player
+        self.turns_remaining = {0: turn_limit_per_player, 1: turn_limit_per_player}
+        self.time_limit_per_move = time_limit_per_move
+        self.board_layout = board_layout
+        self.transposition_tables = [{}, {}]
+        self.first_move = None
+
+        self.black_player_heuristic = black_player_heuristic.eval_state
+        self.black_player_name = black_player_heuristic.__name__.split('.')[1].split('_')[0]
+        self.black_marbles_remaining = 14
+
+        self.white_player_heuristic = white_player_heuristic.eval_state
+        self.white_player_name = white_player_heuristic.__name__.split('.')[1].split('_')[0]
+        self.white_marbles_remaining = 14
+
+        self.winner_colour = ""
+        self.winner = "N/A"
+
+        self.wins_counter = wins_counter
+        self.results_list = results_list
+
+    def run(self):
+        start_time = datetime.now()
+        print(f"Simulating {self.black_player_name} vs. {self.white_player_name}, {self.board_layout}")
+        player_turn = 1  # Black starts
+        while not game_over(self.board_state, self.turns_remaining[player_turn], player_turn):
+            player_turn = 1 - player_turn
+            if self.first_move is None:
+                self.first_move = idab(self.board_state,
+                                       player_turn,
+                                       self.time_limit_per_move,
+                                       self.turns_remaining[player_turn],
+                                       transposition_table=self.transposition_tables[player_turn],
+                                       eval_callback=self.black_player_heuristic if player_turn == 0 else self.white_player_heuristic,
+                                       is_first_move=True,
+                                       t_table_filename=
+                                       f"transposition_table_{self.black_player_name}.pkl" if player_turn == 0 else f"transposition_table_{self.white_player_name}.pkl")
+                apply_move(self.board_state, self.first_move)
+                continue
+
+            move, self.transposition_tables[player_turn] = idab(self.board_state,
+                                                                player_turn,
+                                                                self.time_limit_per_move,
+                                                                self.turns_remaining[player_turn],
+                                                                transposition_table=self.transposition_tables[
+                                                                    player_turn],
+                                                                eval_callback=self.black_player_heuristic if player_turn == 0 else self.white_player_heuristic,
+                                                                is_first_move=False,
+                                                                t_table_filename=
+                                                                f"transposition_table_{self.black_player_name}.pkl" if player_turn == 0 else f"transposition_table_{self.white_player_name}.pkl")
+            if move is None:
+                break
+
+            apply_move(self.board_state, move)
+            self.turns_remaining[player_turn] -= 1
+        self.black_marbles_remaining = sum(value == 0 for value in self.board_state.values())
+        self.white_marbles_remaining = sum(value == 1 for value in self.board_state.values())
+
+        if self.black_marbles_remaining > self.white_marbles_remaining:
+            self.winner_colour = "Black"
+            self.winner = self.black_player_name
+        elif self.black_marbles_remaining < self.white_marbles_remaining:
+            self.winner_colour = "White"
+            self.winner = self.black_player_name
+        else:
+            self.winner_colour = "Tie"
+            self.winner = "N/A"
+
+        if self.winner != "N/A":
+            self.wins_counter[self.winner] = self.wins_counter.get(self.winner, 0) + 1
+        results = {
+            "Black Player": self.black_player_name,
+            "White Player": self.white_player_name,
+            "Starting Board Layout": self.board_layout,
+            "First Move": self.first_move,
+            "Time Limit Per Move (ms)": self.time_limit_per_move,
+            "Turn Limit Per Player": self.turn_limit_per_player,
+            "Black Marbles Remaining": self.black_marbles_remaining,
+            "White Marbles Remaining": self.white_marbles_remaining,
+            "Winner Color": self.winner_colour,
+            "Winner Name": self.winner,
+            "Time Elapsed": datetime.now() - start_time
+        }
+        self.results_list.append(results)
+        print(f"Finished: {results}")
 
 
-def generate_writable_excel_path(base_path):
-    index = 1  # Start with an index for file naming
+def run_simulations(simulation_kwargs_list):
+    processes = []
+    with Manager() as manager:
+        wins_counter = manager.dict()
+        results_list = manager.list()
+
+        # Start all simulations
+        for kwargs in simulation_kwargs_list:
+            process = AutoSim(**kwargs, wins_counter=wins_counter, results_list=results_list)
+            processes.append(process)
+            process.start()
+
+        # Wait for all simulations to finish
+        for process in processes:
+            process.join()
+
+        # Collect all results
+        results = [result for result in results_list]
+        return results, dict(wins_counter)
+
+
+def generate_writable_excel_path(base_path="game_results.xlsx"):
+    index = 1
     while True:
         try:
-            # Check if the file exists to avoid unnecessary opening attempts
-            if os.path.exists(base_path):
-                # Attempt to open the file in append mode just to check writability
-                with open(base_path, 'a'):
-                    pass
+            if not os.path.exists(base_path):
                 break
             else:
+                with open(base_path, 'a'):
+                    pass
                 break
         except (IOError, PermissionError):
             base_name, extension = os.path.splitext(base_path)
@@ -32,143 +162,44 @@ def generate_writable_excel_path(base_path):
     return base_path
 
 
-file_list = [cam_heuristic, justin_heuristic, kate_heuristic, lisa_heuristic]
-starting_boards = {
-    # standard
-    0: {11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 21: 0, 22: 0,
-        23: 0, 24: 0, 25: 0, 26: 0, 33: 0, 34: 0, 35: 0,
-        99: 1, 98: 1, 97: 1, 96: 1, 95: 1, 89: 1, 88: 1,
-        87: 1, 86: 1, 85: 1, 84: 1, 77: 1, 76: 1, 75: 1},
+def write_results_to_excel(results, filename="game_results.xlsx"):
+    df = pd.DataFrame(results)
+    excel_path = generate_writable_excel_path(filename)
+    with pd.ExcelWriter(excel_path, engine='xlsxwriter') as writer:
+        df.to_excel(writer, sheet_name='Game Results', index=False)
+    print(f"Results have been written to {excel_path}")
 
-    # belgian daisy
-    1: {11: 0, 12: 0, 21: 0, 22: 0, 23: 0, 32: 0, 33: 0,
-        99: 0, 98: 0, 89: 0, 88: 0, 87: 0, 78: 0, 77: 0,
-        14: 1, 15: 1, 24: 1, 25: 1, 26: 1, 35: 1, 36: 1,
-        95: 1, 96: 1, 84: 1, 85: 1, 86: 1, 74: 1, 75: 1},
 
-    # germain daisy
-    2: {21: 0, 22: 0, 31: 0, 32: 0, 33: 0, 42: 0, 43: 0,
-        67: 0, 68: 0, 77: 0, 78: 0, 79: 0, 88: 0, 89: 0,
-        25: 1, 26: 1, 35: 1, 36: 1, 37: 1, 46: 1, 47: 1,
-        63: 1, 64: 1, 73: 1, 74: 1, 75: 1, 84: 1, 85: 1}
-}
-start_time = datetime.now()
-turn_limits = [30]
-time_limits = [5000]
-winners_name = ""
-wins_counter = {}
-for heuristic in file_list:
-    player_name = heuristic.__name__.split('.')[1].split('_')[0]
-    wins_counter[player_name] = 0
-records = []
-for board_config_key in [0, 1, 2]:
-    layout = {0: "standard", 1: "belgian daisy", 2: "german daisy"}.get(board_config_key, "")
-    for turn_limit in turn_limits:
-        for time_limit in time_limits:
-            for evaluation_black in file_list:
-                for evaluation_white in file_list:
-                    if evaluation_white != evaluation_black:
-                        layout = {0: "standard", 1: "belgian daisy", 2: "german daisy"}.get(board_config_key, "")
+if __name__ == '__main__':
+    heuristic_list = [cam_heuristic, justin_heuristic, kate_heuristic, lisa_heuristic]
+    turn_limits = [40]
+    time_limits = [5000]
+    board_layouts = ["standard", "belgian daisy", "german daisy"]
 
-                        board_state = copy.deepcopy(starting_boards[board_config_key])
-                        player_turn = 1  # Black starts
-                        turns_remaining = {0: turn_limit, 1: turn_limit}
-                        strategy = {0: evaluation_black.eval_state, 1: evaluation_white.eval_state}
-                        winner = ""
-                        first_move = None
-                        first_turn = True
+    # Generate the Cartesian product of all simulation arguments
+    # this is such a dope function.
+    simulation_args_list = list(product(turn_limits, time_limits, board_layouts, heuristic_list, heuristic_list))
 
-                        black_author_name = evaluation_black.__name__.split('.')[1].split('_')[0]
-                        white_author_name = evaluation_white.__name__.split('.')[1].split('_')[0]
-                        print(f"Simulating {black_author_name} vs. {white_author_name}, {layout}")
-                        transposition_table_file_names = [f"transposition_table_{black_author_name}.pkl",
-                                                          f"transposition_table_{white_author_name}.pkl"]
-                        transposition_tables = [{}, {}]
-                        try:
-                            # transposition_tables[0] = load_transposition_table_from_pickle(
-                            #     transposition_table_file_names[0])
-                            transposition_tables[0] = {}
-                        except FileNotFoundError:
-                            transposition_tables[0] = {}
-                        try:
-                            # transposition_tables[1] = load_transposition_table_from_pickle(
-                            #     transposition_table_file_names[1])
-                            transposition_tables[1] = {}
-                        except FileNotFoundError:
-                            transposition_tables[1] = {}
+    # Filter out simulations where the black and white heuristics would be the same
+    simulation_args_list = [args for args in simulation_args_list if args[3] != args[4]]
 
-                        # Simulation loop
-                        while not game_over(board_state, turns_remaining[player_turn], player_turn):
-                            player_turn = 1 - player_turn
-                            if first_turn:
-                                first_move = idab(board_state,
-                                                                           player_turn,
-                                                                           time_limit,
-                                                                           turns_remaining[player_turn],
-                                                                           transposition_table=transposition_tables[
-                                                                               player_turn],
-                                                                           eval_callback=strategy[player_turn],
-                                                                           is_first_move=first_turn,
-                                                                           t_table_filename=
-                                                                           transposition_table_file_names[player_turn])
-                                apply_move(board_state, first_move)
-                                first_turn = False
-                                continue
+    simulation_kwargs_list = [
+        {
+            'turn_limit_per_player': args[0],
+            'time_limit_per_move': args[1],
+            'board_layout': args[2],
+            'black_player_heuristic': args[3],
+            'white_player_heuristic': args[4]
+        }
+        for args in simulation_args_list
+    ]
 
-                            move, transposition_tables[player_turn] = idab(board_state,
-                                                                           player_turn,
-                                                                           time_limit,
-                                                                           turns_remaining[player_turn],
-                                                                           transposition_table=transposition_tables[
-                                                                               player_turn],
-                                                                           eval_callback=strategy[player_turn],
-                                                                           is_first_move=first_turn,
-                                                                           t_table_filename=
-                                                                           transposition_table_file_names[player_turn])
-                            if move is None:
-                                break
-                            apply_move(board_state, move)
-                            turns_remaining[player_turn] -= 1
+    # Now call the run_simulations function with this list
+    results, wins_counter = run_simulations(simulation_kwargs_list)
 
-                        black_marbles_remaining = sum(value == 0 for value in board_state.values())
-                        white_marbles_remaining = sum(value == 1 for value in board_state.values())
+    # Write results to excel
+    write_results_to_excel(results)
 
-                        if black_marbles_remaining > white_marbles_remaining:
-                            winner = "Black"
-                            winners_name = black_author_name
-                        elif black_marbles_remaining < white_marbles_remaining:
-                            winner = "White"
-                            winners_name = white_author_name
-                        else:
-                            winner = "Tie"
-                            winners_name = "N/A"
-
-                        if winner != "Tie":
-                            wins_counter[winners_name] = wins_counter.get(winners_name, 0) + 1
-                        results = {
-                            "Black Player": black_author_name,
-                            "White Player": white_author_name,
-                            "Starting Board Layout": layout,
-                            "First Move": first_move,
-                            "Time Limit Per Move (ms)": time_limit,
-                            "Turn Limit Per Player": turn_limit,
-                            "Black Marbles Remaining": black_marbles_remaining,
-                            "White Marbles Remaining": white_marbles_remaining,
-                            "Winner Color": winner,
-                            "Winner Name": winners_name,
-                        }
-                        for player_name in wins_counter.keys():
-                            results[player_name] = wins_counter.get(player_name, 0)
-                        records.append(results)
-                        print(results)
-                        
-records.append(wins_counter)
-
-df = pd.DataFrame(records)
-
-base_excel_path = "game_results.xlsx"
-excel_path = generate_writable_excel_path(base_excel_path)
-print(f"Printing results to {excel_path}")
-with pd.ExcelWriter(excel_path, engine='xlsxwriter') as writer:
-    df.to_excel(writer, sheet_name='Game Results', index=False)
-print(datetime.now() - start_time)
+    # Print out the wins_counter
+    for key, value in wins_counter.items():
+        print(f"{key}: {value} wins")
