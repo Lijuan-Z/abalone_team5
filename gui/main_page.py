@@ -7,6 +7,7 @@ import tkinter as tk
 from heuristics import cam_heuristic
 from statespace.marblecoords import is_out_of_bounds
 from statespace.search import iterative_deepening_alpha_beta_search
+from statespace.transposition_table_IO import load_transposition_table_from_pickle
 
 
 class GameGUI(tk.Frame):
@@ -459,11 +460,20 @@ class GameGUI(tk.Frame):
                 board[(ord(key[0]) - 96) * 10 + int(key[1])] = 1
         input_player_turn = 0 if self.player_turn == 'black' else 1
         strategy = cam_heuristic.eval_state
+
+        transposition_table_file_name = "./transposition_table_ui.pkl"
+        transposition_table = {}
+        try:
+            transposition_table = load_transposition_table_from_pickle(
+                transposition_table_file_name)
+        except FileNotFoundError:
+            transposition_table = {}
+
         # need change time to milliseconds?
         input_time_limit = self.time_left[self.player_turn]
-        move = iterative_deepening_alpha_beta_search(board, input_player_turn, input_time_limit,
-                                                     self.num_moves[self.player_turn], strategy)
-        return move
+        move, _, elapsed_time = iterative_deepening_alpha_beta_search(board, input_player_turn, input_time_limit * 100,
+                                                     self.num_moves[self.player_turn], strategy, transposition_table)
+        return move, elapsed_time
 
     def start_turn(self):
         """Starts a new turn, executing logic based on if human or computer."""
@@ -481,11 +491,10 @@ class GameGUI(tk.Frame):
                     index_selected = random.randint(0, len(self.actions) - 1)
                     action = self.actions[index_selected]
                 else:
-                    move = self.ai_search_result()
+                    move, calculation_time = self.ai_search_result()
                     action = self.move_to_action(move)
                 self.current_action_index += 1
                 self.ai_next_var.set("Calculating...")
-                calculation_time = random.randint(1, 8)
                 self.ai_recommendation_history.append(
                     (action, calculation_time))
                 self.action_entry.config(state="disabled")
@@ -493,10 +502,7 @@ class GameGUI(tk.Frame):
                 self.resume_button.config(state="disabled")
                 self.reset_button.config(state="disabled")
                 self.undo_button.config(state="disabled")
-                timer = threading.Timer(calculation_time,
-                                        lambda: self.ai_next_move_callback(
-                                            action))
-                timer.start()
+                self.ai_next_move_callback(action)
             else:
                 print('Human turn')
                 self.action_entry.config(state="normal")
