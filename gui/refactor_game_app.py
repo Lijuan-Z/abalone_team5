@@ -53,7 +53,7 @@ class GameApp(tk.Tk):
         self.center(self)
         self.current_page = ConfigPage(self, **kwargs)
         self.current_page.grid(row=0, column=0, sticky='nesw')
-        # self.dark_mode(root=self)
+        self.dark_mode(root=self)
 
     def start_game(self, **kwargs):
         """Starts the game page."""
@@ -63,7 +63,7 @@ class GameApp(tk.Tk):
         self.center(self)
         self.current_page = GamePage(self, **kwargs)
         self.current_page.grid(row=0, column=0, sticky='nsew')
-        # self.dark_mode(root=self)
+        self.dark_mode(root=self)
 
 
     def center(self, win):

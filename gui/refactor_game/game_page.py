@@ -29,6 +29,7 @@ class Player():
         self.turns_left = turns_left
         self.time_left = None if turn_time is None else tk.IntVar(None,
                                                                   turn_time)
+        self.score = 0
 
 
 class GameLogicalState:
@@ -75,7 +76,7 @@ class GameLogicalState:
 
         self.board = self.STARTING_BOARDS[self.config['layout']]
 
-        self.turn_timer = None
+        self.one_second_pass_timer = None
 
         self.players = {
             Player.ONE: Player(
@@ -101,12 +102,69 @@ class GameLogicalState:
             else Player.ONE
         )
 
+        self.game_state = "NO GAME STARTED"
+
     def get_board(self):
         """Returns the board.
 
         :rtype: dict[int, int]
         """
         return self.board
+
+    def get_top_info(self):
+        """Returns the information needed for the top info widget"""
+        player_1 = self.players[Player.ONE]
+        player_2 = self.players[Player.TWO]
+        info = {
+            'game_state': self.game_state,
+            'cur_player': f"{'Player_1' if self.current_player == Player.ONE else 'Player_2'}({self.players[self.current_player].color})",
+            'player_1_marble_color': player_1.color,
+            'player_1_turns_left': player_1.turns_left if player_1.turns_left is not None else "Unlimited",
+            'player_1_score': player_1.score,
+            'player_1_time_left': player_1.time_left.get() if player_1.time_left is not None else "Unlimited",
+            'player_2_marble_color': player_2.color,
+            'player_2_turns_left': player_2.turns_left if player_2.turns_left is not None else "Unlimited",
+            'player_2_score': player_2.score,
+            'player_2_time_left': player_2.time_left.get() if player_2.time_left is not None else "Unlimited"
+        }
+
+        return info
+
+    def handle_start_callback(self):
+        """Handles start button."""
+        print("start")
+        pass
+
+    def handle_input_confirm_callback(self, user_input):
+        """Handles action input confirm event."""
+        print("input confirm")
+        print(f"user_input: {user_input}")
+        pass
+
+    def handle_pause_callback(self):
+        """Handles pause button."""
+        print("pause")
+        pass
+
+    def handle_resume_callback(self):
+        """Handles resume button."""
+        print("resume")
+        pass
+
+    def handle_undo_last_move_callback(self):
+        """Handles undo last move button."""
+        print("undo")
+        pass
+
+    def handle_reset_callback(self):
+        """Handles reset button."""
+        print("reset")
+        pass
+
+    def handle_stop_callback(self):
+        """Handles stop button."""
+        print("stop")
+        pass
 
 
 class GameDisplayState(tk.Frame):
@@ -116,13 +174,22 @@ class GameDisplayState(tk.Frame):
     """
 
     def __init__(self, parent,
+                 get_top_info_callback,
                  get_board_callback,
+                 handle_start_callback,
+                 handle_input_confirm_callback,
+                 handle_pause_callback,
+                 handle_resume_callback,
+                 handle_undo_last_move_callback,
+                 handle_reset_callback,
+                 handle_stop_callback,
                  **kwargs):
         super().__init__(parent)
         self.parent = parent
 
-        self.top_info = self.TopInfo(self, bg='blue', width=1,
-                                     height=1, **kwargs)
+        self.top_info = self.TopInfo(self, bg='blue', width=1, height=1,
+                                     get_top_info_callback=get_top_info_callback,
+                                     **kwargs)
         self.board_widget = (
             self.BoardWidget(self, bg='red', width=1, height=1,
                              get_board_callback=get_board_callback,
@@ -132,14 +199,22 @@ class GameDisplayState(tk.Frame):
         self.side_info = self.SideInfo(self, bg='green', width=1,
                                        height=1, **kwargs)
         self.bottom_bar = self.BottomBar(self, bg='purple', width=1,
-                                         height=1, **kwargs)
+                                         height=1,
+                                         handle_start_callback=handle_start_callback,
+                                         handle_input_confirm_callback=handle_input_confirm_callback,
+                                         handle_pause_callback=handle_pause_callback,
+                                         handle_resume_callback=handle_resume_callback,
+                                         handle_undo_last_move_callback=handle_undo_last_move_callback,
+                                         handle_reset_callback=handle_reset_callback,
+                                         handle_stop_callback=handle_stop_callback,
+                                         **kwargs)
 
         self.rowconfigure(0, weight=1)
-        self.rowconfigure(1, weight=5)
+        self.rowconfigure(1, weight=10)
         self.rowconfigure(2, weight=1)
 
         self.columnconfigure(0, weight=5)
-        self.columnconfigure(1, weight=3)
+        self.columnconfigure(1, weight=4)
 
         self.top_info.grid(row=0, column=0, rowspan=1, columnspan=2,
                            sticky='nsew', padx=20, pady=20)
@@ -153,8 +228,72 @@ class GameDisplayState(tk.Frame):
     class TopInfo(tk.Frame):
         """Contains information like score, turns remaining, etc."""
 
-        def __init__(self, parent, *args, **kwargs):
+        def __init__(self, parent, get_top_info_callback, *args, **kwargs):
             super().__init__(parent, **kwargs)
+
+            self.rowconfigure(0, weight=1)
+            self.rowconfigure(1, weight=1)
+
+            self.columnconfigure(0, weight=4)
+            self.columnconfigure((1, 2, 3, 4, 5), weight=1)
+            self.columnconfigure(6, weight=4)
+
+            self.game_state_label = tk.Label(self, text="")
+            self.cur_player_label = tk.Label(self, text="")
+            self.player_1_marble_color_label = tk.Label(self, text="")
+            self.player_1_turns_left_label = tk.Label(self, text="")
+            self.player_1_score_label = tk.Label(self, text="")
+            self.player_1_time_left_label = tk.Label(self, text="")
+            self.player_2_marble_color_label = tk.Label(self, text="")
+            self.player_2_turns_left_label = tk.Label(self, text="")
+            self.player_2_score_label = tk.Label(self, text="")
+            self.player_2_time_left_label = tk.Label(self, text="")
+
+            self.game_state_label.grid(row=0, column=1)
+            self.cur_player_label.grid(row=1, column=1)
+            self.player_1_marble_color_label.grid(row=0, column=2)
+            self.player_1_turns_left_label.grid(row=0, column=3)
+            self.player_1_score_label.grid(row=0, column=4)
+            self.player_1_time_left_label.grid(row=0, column=5)
+            self.player_2_marble_color_label.grid(row=1, column=2)
+            self.player_2_turns_left_label.grid(row=1, column=3)
+            self.player_2_score_label.grid(row=1, column=4)
+            self.player_2_time_left_label.grid(row=1, column=5)
+
+            self.update_labels(get_top_info_callback=get_top_info_callback)
+
+
+        def update_labels(self, get_top_info_callback):
+            info = get_top_info_callback()
+            self.set_labels(**info)
+
+        def set_labels(self,
+                       game_state,
+                       cur_player,
+                       player_1_marble_color,
+                       player_1_turns_left,
+                       player_1_score,
+                       player_1_time_left,
+                       player_2_marble_color,
+                       player_2_turns_left,
+                       player_2_score,
+                       player_2_time_left,
+                       **kwargs):
+            self.game_state_label.config(text=f'game state: {game_state}')
+            self.cur_player_label.config(text=f'cur player: {cur_player}')
+            self.player_1_marble_color_label.config(text=f'player 1 marble_color: {player_1_marble_color}')
+            self.player_1_turns_left_label.config(text=f'player 1 turns_left: {player_1_turns_left}')
+            self.player_1_score_label.config(text=f'player 1 score: {player_1_score}')
+            self.player_1_time_left_label.config(text=f'player 1 time_left: {player_1_time_left}')
+            self.player_2_marble_color_label.config(text=f'player 2 marble_color: {player_2_marble_color}')
+            self.player_2_turns_left_label.config(text=f'player 2 turns_left: {player_2_turns_left}')
+            self.player_2_score_label.config(text=f'player 2 score: {player_2_score}')
+            self.player_2_time_left_label.config(text=f'player 2 time_left: {player_2_time_left}')
+
+
+
+
+
 
     class BoardWidget(tk.Frame):
         """Displays the game board."""
@@ -247,8 +386,56 @@ class GameDisplayState(tk.Frame):
     class BottomBar(tk.Frame):
         """Contains all the buttons and user input fields."""
 
-        def __init__(self, parent, *args, **kwargs):
+        def __init__(self, parent,
+                     handle_start_callback=None,
+                     handle_input_confirm_callback=None,
+                     handle_pause_callback=None,
+                     handle_resume_callback=None,
+                     handle_undo_last_move_callback=None,
+                     handle_reset_callback=None,
+                     handle_stop_callback=None,
+                     *args, **kwargs):
             super().__init__(parent, **kwargs)
+
+            self.rowconfigure(0, weight=1)
+
+            self.columnconfigure((0, 1, 2, 3, 4, 5, 6), weight=1)
+
+            # start
+            self.start_button = tk.Button(self, text='Start', command=handle_start_callback)
+            self.start_button.grid(row=0, column=0)
+
+            # input action
+            self.input_action_entry = tk.Entry(self)
+            self.input_action_entry.insert(0, 'Enter your action...')
+            self.input_action_entry.bind('<FocusIn>', lambda event: self.input_action_entry.delete(0, 'end'))
+
+            def input_confirm(event):
+                handle_input_confirm_callback(self.input_action_entry.get())
+                self.input_action_entry.delete(0, 'end')
+
+            self.input_action_entry.bind('<Return>', lambda event: input_confirm(event))
+            self.input_action_entry.grid(row=0, column=1)
+
+            # pause
+            self.pause_button = tk.Button(self, text='Pause', command=handle_pause_callback)
+            self.pause_button.grid(row=0, column=2)
+
+            # resume
+            self.resume_button = tk.Button(self, text='Resume', command=handle_resume_callback)
+            self.resume_button.grid(row=0, column=3)
+
+            # undo last move
+            self.undo_last_move_button = tk.Button(self, text='Undo Last Move', command=handle_undo_last_move_callback)
+            self.undo_last_move_button.grid(row=0, column=4)
+
+            # reset
+            self.reset_button = tk.Button(self, text='Reset', command=handle_reset_callback)
+            self.reset_button.grid(row=0, column=5)
+
+            # stop
+            self.stop_button = tk.Button(self, text='Stop', command=handle_stop_callback)
+            self.stop_button.grid(row=0, column=6)
 
 
 class GamePage(tk.Frame):
@@ -266,7 +453,16 @@ class GamePage(tk.Frame):
 
         self.display_state = (
             GameDisplayState(parent=parent,
-                             get_board_callback=self.logical_state.get_board)
+                             get_top_info_callback=self.logical_state.get_top_info,
+                             get_board_callback=self.logical_state.get_board,
+                             handle_start_callback=self.logical_state.handle_start_callback,
+                             handle_input_confirm_callback=self.logical_state.handle_input_confirm_callback,
+                             handle_pause_callback=self.logical_state.handle_pause_callback,
+                             handle_resume_callback=self.logical_state.handle_resume_callback,
+                             handle_undo_last_move_callback=self.logical_state.handle_undo_last_move_callback,
+                             handle_reset_callback=self.logical_state.handle_reset_callback,
+                             handle_stop_callback=self.logical_state.handle_stop_callback,
+                             )
         )
         self.display_state.grid(row=0, column=0, sticky="nsew")
 

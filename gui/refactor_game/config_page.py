@@ -101,11 +101,11 @@ class ConfigDisplayState(tk.Frame):
         frame.grid(row=0, column=1, sticky='nsew')
 
     def _get_config(self):
-        return {
+        config ={
             'layout': self.comps['layout_combobox'].get(),
+
             'player_1_color': self.comps['player_1_color_combobox'].get(),
-            'player_1_operator': self.comps[
-                'player_1_operator_combobox'].get(),
+            'player_1_operator': self.comps['player_1_operator_combobox'].get(),
             'player_1_seconds_per_turn': _int_or_none(
                 self.comps['player_1_seconds_per_turn_combobox'].get()
             ),
@@ -122,6 +122,7 @@ class ConfigDisplayState(tk.Frame):
                 self.comps['player_2_turn_limit_combobox'].get()
             ),
         }
+        return config
 
     def _pack_start_button(self, parent, start_game_callback):
         """Packs the start button."""
@@ -283,5 +284,5 @@ def _int_or_none(string: str):
     """Attempts to cast to string, else returns None."""
     try:
         return int(string)
-    except ValueError:
+    except ValueError as e:
         return None
