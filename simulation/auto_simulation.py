@@ -112,13 +112,13 @@ class AutoSim(Process):
             "White Player": self.white_player_name,
             "Starting Board Layout": self.board_layout,
             "First Move": self.first_move,
-            "Time Limit Per Move (ms)": self.time_limit_per_move,
-            "Turn Limit Per Player": self.turn_limit_per_player,
+            "Time Limit": f"{self.time_limit_per_move}ms",
+            "Turn Limit": self.turn_limit_per_player,
             "Black Marbles Remaining": self.black_marbles_remaining,
             "White Marbles Remaining": self.white_marbles_remaining,
             "Winner Color": self.winner_colour,
             "Winner Name": self.winner,
-            "Time Elapsed": datetime.now() - start_time
+            "Game Duration": f"{(datetime.now() - start_time).total_seconds() *1000:.2f}ms"
         }
         self.results_list.append(results)
         print(f"Finished: {results}")
