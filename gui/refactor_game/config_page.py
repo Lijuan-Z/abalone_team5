@@ -43,11 +43,11 @@ class ConfigDisplayState(tk.Frame):
     """
 
     ASCII_TITLE = """
-          _           _                  
-    /\\   | |         | |                 
-   /  \\  | |__   __ _| | ___  _ __   ___ 
-  / /\\ \\ | '_ \\ / _` | |/ _ \\| '_ \\ / _ \\
- / ____ \\| |_) | (_| | | (_) | | | |  __/
+         _           _                  
+   /\\   | |         | |                 
+  /  \\  | |__   __ _| | ___  _ __   ___ 
+ / /\\ \\ | '_ \\ / _` | |/ _ \\| '_ \\ / _ \\
+/ ____ \\| |_) | (_| | | (_) | | | |  __/
 /_/    \\_\\_.__/ \\__,_|_|\\___/|_| |_|\\___| 
  
     """
@@ -69,6 +69,9 @@ class ConfigDisplayState(tk.Frame):
     def __init__(self, parent, next_page_callback, **kwargs):
         super().__init__(parent)
 
+        self.columnconfigure((0,1,2), weight=1)
+        self.rowconfigure(0, weight=1)
+
         self.parent = parent
         self.start_game_callback = next_page_callback
 
@@ -78,16 +81,27 @@ class ConfigDisplayState(tk.Frame):
         # dictionary of variables
         self.vars = {}
 
-        self._pack_title()
-        self._pack_choices()
-        self._pack_start_button(start_game_callback=self.start_game_callback)
+        frame = tk.Frame(self)
+        frame.columnconfigure(0, weight=1)
+        frame.columnconfigure(1, weight=1)
 
-        pprint(self.comps)
 
-    def _pack_start_button(self, start_game_callback):
-        """Packs the start button."""
+        frame.rowconfigure(0, weight=4) # blank space on top
+        frame.rowconfigure(1, weight=4) # title
+        frame.rowconfigure(2, weight=1) # layout options
+        frame.rowconfigure(3, weight=1) # blank space
+        frame.rowconfigure((4,5,6,7,8,9,10,11), weight=1), # options/labels
+        frame.rowconfigure(12, weight=1) # start button
+        frame.rowconfigure(13, weight=20) # blank space on bottom
 
-        config = config = {
+        self._pack_title(parent=frame)
+        self._pack_choices(parent=frame)
+        self._pack_start_button(parent=frame, start_game_callback=self.start_game_callback)
+
+        frame.grid(row=0, column=1, sticky='nsew')
+
+    def _get_config(self):
+        return {
             'layout': self.comps['layout_combobox'].get(),
             'player_1_color': self.comps['player_1_color_combobox'].get(),
             'player_1_operator': self.comps[
@@ -109,7 +123,11 @@ class ConfigDisplayState(tk.Frame):
             ),
         }
 
-        start_game_button = tk.Button(self,
+    def _pack_start_button(self, parent, start_game_callback):
+        """Packs the start button."""
+        config = self._get_config()
+
+        start_game_button = tk.Button(parent,
                                       text="Start Game",
                                       command=
                                       lambda: start_game_callback(
@@ -117,78 +135,89 @@ class ConfigDisplayState(tk.Frame):
                                       )
                                       )
 
-        start_game_button.grid(row=99, column=1, pady=20)
+        start_game_button.grid(row=12, column=0, columnspan=2, pady=20)
 
-    def _pack_title(self):
+    def _pack_title(self, parent):
         """Packs the title."""
         title_string = tk.StringVar()
         title_string.set(ConfigDisplayState.ASCII_TITLE)
 
-        title_label = tk.Label(self,
+        title_label = tk.Label(parent,
                                textvariable=title_string,
-                               font=('Courier', 15, 'bold'),
-                               anchor=tk.CENTER,
-                               justify=tk.LEFT)
+                               font=('Courier', 20, 'bold'))
 
         self.comps['title_label'] = title_label
-        self.comps['title_label'].grid(row=0,
+        self.comps['title_label'].grid(row=1,
                                        column=0,
-                                       columnspan=99,
-                                       pady=(0, 5))
+                                       columnspan=2,
+                                       pady=(0, 5),
+                                       sticky='new')
 
-    def _pack_choices(self):
+    def _pack_choices(self, parent):
         """Packs the choices."""
-        self._pack_selection_combobox("layout",
+
+        pady = (5, 0)
+
+        self._pack_selection_combobox(parent,
+                                      "layout",
                                       Layout.list(),
-                                      dict(row=1, column=1, pady=(5, 0)))
+                                      dict(row=2, column=0, columnspan=2, padx=50, pady=pady, sticky='n'))
 
-        self._pack_selection_combobox("player_1_operator",
+        self._pack_selection_combobox(parent,
+                                      "player_1_operator",
                                       Operator.list(),
-                                      dict(row=3, column=0, pady=(5, 0)))
+                                      dict(row=4, column=0, pady=pady, sticky='n'))
 
-        self._pack_selection_combobox("player_1_color",
+        self._pack_selection_combobox(parent,
+                                      "player_1_color",
                                       Color.list(),
-                                      dict(row=5, column=0, pady=(5, 0)))
+                                      dict(row=6, column=0, pady=pady, sticky='n'))
 
-        self._pack_selection_combobox("player_1_turn_limit",
+        self._pack_selection_combobox(parent,
+                                      "player_1_turn_limit",
                                       self.TURN_OPTIONS
                                       + [MiscOptions.UNLIMITED.value],
-                                      dict(row=7, column=0, pady=(5, 0)),
+                                      dict(row=8, column=0, pady=pady, sticky='n'),
                                       readonly=False,
                                       default_index=2)
 
-        self._pack_selection_combobox("player_1_seconds_per_turn",
+        self._pack_selection_combobox(parent,
+                                      "player_1_seconds_per_turn",
                                       self.TIME_OPTIONS
                                       + [MiscOptions.UNLIMITED.value],
-                                      dict(row=9, column=0, padx=(5, 0)),
+                                      dict(row=10, column=0, padx=pady, sticky='n'),
                                       readonly=False,
                                       default_index=5)
 
-        self._pack_selection_combobox("player_2_operator",
+        self._pack_selection_combobox(parent,
+                                      "player_2_operator",
                                       Operator.list(),
-                                      dict(row=3, column=2, pady=(5, 0)),
+                                      dict(row=4, column=1, pady=pady, sticky='n'),
                                       1)
 
-        self._pack_selection_combobox("player_2_color",
+        self._pack_selection_combobox(parent,
+                                      "player_2_color",
                                       Color.list(),
-                                      dict(row=5, column=2, pady=(5, 0)),
+                                      dict(row=6, column=1, pady=pady, sticky='n'),
                                       1)
 
-        self._pack_selection_combobox("player_2_turn_limit",
+        self._pack_selection_combobox(parent,
+                                      "player_2_turn_limit",
                                       self.TURN_OPTIONS
                                       + [MiscOptions.UNLIMITED.value],
-                                      dict(row=7, column=2, pady=(5, 0)),
+                                      dict(row=8, column=1, pady=pady, sticky='n'),
                                       readonly=False,
                                       default_index=2)
 
-        self._pack_selection_combobox("player_2_seconds_per_turn",
+        self._pack_selection_combobox(parent,
+                                      "player_2_seconds_per_turn",
                                       self.TIME_OPTIONS
                                       + [MiscOptions.UNLIMITED.value],
-                                      dict(row=9, column=2, pady=(5, 0)),
+                                      dict(row=10, column=1, pady=pady, sticky='n'),
                                       readonly=False,
                                       default_index=2)
 
-    def _pack_selection_combobox(self, option_string, options_list,
+    def _pack_selection_combobox(self, parent, option_string, options_list,
                                  grid_config, default_index=0, readonly=True):
         """Packs the layout selection dropdown."""
         formatted_option_string = option_string
@@ -196,12 +225,12 @@ class ConfigDisplayState(tk.Frame):
         formatted_option_string = " ".join(formatted_option_string)
         formatted_option_string = formatted_option_string.title()
 
-        layout_selection_label = tk.Label(self,
+        layout_selection_label = tk.Label(parent,
                                           text=f"{formatted_option_string}:")
         layout_selection_label.grid(**grid_config)
 
         layout_selection_combobox = (
-            ttk.Combobox(self,
+            ttk.Combobox(parent,
                          values=options_list,
                          state='readonly' if readonly else '',
                          background="#000000")
@@ -213,7 +242,7 @@ class ConfigDisplayState(tk.Frame):
         grid_config['row'] += 1
         self.comps[f'{option_string}_combobox'].grid(**grid_config)
 
-    def _pack_selection_entry(self, option_string,
+    def _pack_selection_entry(self, parent, option_string,
                               entry_init_string, grid_config):
         """Packs the layout selection dropdown."""
         formatted_option_string = option_string
@@ -221,11 +250,11 @@ class ConfigDisplayState(tk.Frame):
         formatted_option_string = " ".join(formatted_option_string)
         formatted_option_string = formatted_option_string.title()
 
-        layout_selection_label = tk.Label(self,
+        layout_selection_label = tk.Label(parent,
                                           text=f"{formatted_option_string}:")
         layout_selection_label.grid(**grid_config)
 
-        layout_selection_entry = ttk.Entry(self)
+        layout_selection_entry = ttk.Entry(parent)
         layout_selection_entry.insert(0, entry_init_string)
 
         self.comps[f'{option_string}_entry'] = layout_selection_entry
@@ -239,9 +268,15 @@ class ConfigPage(tk.Frame):
 
     def __init__(self, parent, **kwargs):
         super().__init__(parent)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
         self.display_state = ConfigDisplayState(parent=parent, **kwargs)
-        self.display_state.pack(expand=True, anchor=tk.CENTER)
+        self.display_state.grid(row=0, column=0, sticky='nesw')
+
+    def color_overrides(self):
+        """place to put overriding colors"""
+        pass
 
 
 def _int_or_none(string: str):
