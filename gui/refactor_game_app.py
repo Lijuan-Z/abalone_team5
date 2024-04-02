@@ -14,6 +14,9 @@ dark_mode_colors = {
     'Frame': ("#2D2D2D", "#FFFFFF"),
     'Select': ("#555555", "#FFFFFF"),
     'Scrollbar': ("#4E4E4E", "#2D2D2D"),
+
+    # 'GameDisplayState': ("#FFFFFF", "#FFFFFF"),
+    # 'GamePage': ("#FFFFFF", "#FFFFFF"),
 }
 
 
@@ -26,37 +29,39 @@ class GameApp(tk.Tk):
         :param args: any args to pass through to tk.Tk
         :param kwargs: any kwargs to pass through to tk.Tk
         """
-
         super().__init__()
         self.title("Abalone")
         self.resizable = True
         # self.attributes('-fullscreen', True)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
         self.current_page = None
         self.app_theme = None
+
         self.combobox_theme_init()
-        # self.dark_mode(root=self)
+        self.dark_mode(root=self)
 
         self.start_config(next_page_callback=self.start_game)
+        # self.start_game(config=None)
 
     def start_config(self, **kwargs):
         """Starts the config page."""
         if self.current_page:
             self.forget_packs_recursively(self)
         self.geometry("800x800")
-        self.current_page = ConfigPage(self,
-                                       **kwargs)
-        self.current_page.pack(anchor=tk.E, expand=True, fill=tk.BOTH)
-        self.dark_mode(root=self)
+        self.current_page = ConfigPage(self, **kwargs)
+        self.current_page.grid(row=0, column=0, sticky='nesw')
+        # self.dark_mode(root=self)
 
     def start_game(self, **kwargs):
         """Starts the game page."""
         if self.current_page:
             self.forget_packs_recursively(self)
-        self.geometry("400x400")
+        self.geometry("800x800")
         self.current_page = GamePage(self, **kwargs)
-        self.current_page.pack(anchor=tk.CENTER, expand=True)
-        self.dark_mode(root=self)
+        self.current_page.grid(row=0, column=0, sticky='nsew')
+        # self.dark_mode(root=self)
 
     def forget_packs_recursively(self, parent):
         """Recursively forgets all child widgets of the given parent widget.
@@ -110,8 +115,36 @@ class GameApp(tk.Tk):
         for widget in root.winfo_children():
             self.dark_mode(widget)
             widget_type = widget.winfo_class()
-            print(f"dark moding {widget_type}")
-            if widget_type in dark_mode_colors.keys():
+            parent_class = widget.__class__.__name__
+            # print(f"dark moding: {parent_class} of type: {widget_type}")
+            if widget.__class__.__name__ in dark_mode_colors.keys():
+                try:
+                    widget.configure(
+                        background=dark_mode_colors[parent_class][0])
+                except _tkinter.TclError as e:
+                    # print(e)
+                    pass
+                try:
+                    widget.configure(
+                        foreground=dark_mode_colors[parent_class][1])
+                except _tkinter.TclError as e:
+                    # print(e)
+                    pass
+
+                try:
+                    widget.configure(
+                        selectbackground=dark_mode_colors[parent_class][2])
+                except (_tkinter.TclError, IndexError) as e:
+                    # print(e)
+                    pass
+
+                try:
+                    widget.configure(
+                        fieldbackground=dark_mode_colors[parent_class][3])
+                except (_tkinter.TclError, IndexError) as e:
+                    # print(e)
+                    pass
+            elif widget_type in dark_mode_colors.keys():
                 try:
                     widget.configure(
                         background=dark_mode_colors[widget_type][0])
@@ -129,14 +162,15 @@ class GameApp(tk.Tk):
                     widget.configure(
                         selectbackground=dark_mode_colors[widget_type][2])
                 except (_tkinter.TclError, IndexError) as e:
-                    print(e)
+                    # print(e)
                     pass
 
                 try:
                     widget.configure(
                         fieldbackground=dark_mode_colors[widget_type][3])
                 except (_tkinter.TclError, IndexError) as e:
-                    print(e)
+                    # print(e)
                     pass
             else:
-                print(f"{widget_type} not recognized for coloring")
+                if widget_type not in ['TCombobox']:
+                    print(f"{widget_type} not recognized for coloring")
