@@ -1,5 +1,6 @@
 from datetime import datetime
 import random
+import logging
 
 from statespace.statespace import genall_groupmove_resultboard
 import hashlib
@@ -154,8 +155,8 @@ first_moves_dict = {
 
 
 def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remaining, eval_callback,
-                                          transposition_table,
-                                          is_first_move=False, t_table_filename="transposition_table.pkl"):
+                                          transposition_table, logger=logging.getLogger("idabs.log"), is_first_move=False,
+                                          t_table_filename="transposition_table.pkl"):
     """
     Makes calls to alpha_beta_search, incrementing the depth each loop.
 
@@ -168,15 +169,16 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
         player: a value, 0 or 1, indicating whose turn it is
         turns_remaining: the total remaining turns for the current player
         transposition_table: a transition table containing a board mapped to that board's evaluation
+        logger: a logger object to log the search results to a file
         is_first_move: a boolean indicating if this is the first move of the game. Used to pick from a list of random first moves.
         t_table_filename: Name of the file to load the t_table from if it has yet to be loaded
     Returns:
         best_move: the best move found from all iterations the alpha-beta search
     """
-
+    logger.info(f"\nCurrent Max Player: {player}")
     if is_first_move and player == 0:
         first_move = first_moves_dict[(hash_board_state(board), random.randint(1, 3))]
-        print(f"First Move: {first_move}")
+        logger.info(f"First Move: {first_move}")
         return first_move
 
     if transposition_table is None:
@@ -197,12 +199,18 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     # The loop will end before the time limit if the maximum depth (based on turns remaining) is reached.
     while depth <= total_turns_remaining:
         elapsed_time = (datetime.now() - start_time).total_seconds()
-        if elapsed_time*7 >= time_limit_seconds:
+        if elapsed_time*6 >= time_limit_seconds:
             depth -= 1
             break
         temp_move, _ = alpha_beta_search_transposition(board, board, float('-inf'), float('inf'), depth, player, player,
                                                        time_limit_seconds - elapsed_time, total_turns_remaining,
                                                        eval_callback, transposition_table)
+        logger.info(f"\n=======DEPTH {depth}========")
+        logger.info(
+            f"Best Move Search Time: {best_move_search_time * 1000:.2f}ms/{time_limit:.2f}ms")  # Display in milliseconds
+        logger.info(f"Total Elapsed Time: {elapsed_time * 1000:.2f}ms/{time_limit:.2f}ms ")
+        logger.info(f"Depth Reached: {depth}")
+        logger.info(f"Best Move: {best_move}")
         elapsed_time = (datetime.now() - start_time).total_seconds()
         if elapsed_time > time_limit_seconds:
             depth -= 1
@@ -211,11 +219,12 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
             best_move = temp_move
             best_move_search_time = elapsed_time
             depth += 1
-    # print("\n=======FINISHED========")
-    # print(f"Best Move Search Time: {best_move_search_time * 1000:.2f}ms/{time_limit:.2f}ms")  # Display in milliseconds
-    # print(f"Total Elapsed Time: {elapsed_time * 1000:.2f}ms/{time_limit:.2f}ms ")
-    # print(f"Depth Reached: {depth}")
-    # print(f"Best Move: {best_move}")
+    logger.info("\n=======FINISHED========")
+    logger.info(
+        f"Best Move Search Time: {best_move_search_time * 1000:.2f}ms/{time_limit:.2f}ms")  # Display in milliseconds
+    logger.info(f"Total Elapsed Time: {elapsed_time * 1000:.2f}ms/{time_limit:.2f}ms ")
+    logger.info(f"Depth Reached: {depth}")
+    logger.info(f"Best Move: {best_move}")
     # save_transposition_table_to_pickle(transposition_table, t_table_filename)
     return best_move, transposition_table
 

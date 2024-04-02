@@ -4,6 +4,7 @@ from datetime import datetime
 from itertools import product
 from multiprocessing import Process, Manager
 
+from logger import create_logger
 from statespace.search import iterative_deepening_alpha_beta_search as idab
 from statespace.statespace import apply_move
 from statespace.search import game_over
@@ -11,6 +12,10 @@ from heuristics import lisa_heuristic, cam_heuristic, kate_heuristic, \
     justin_heuristic
 import pandas as pd
 
+heuristic_list = [cam_heuristic, justin_heuristic, kate_heuristic, lisa_heuristic]
+turn_limits = [50]
+time_limits = [100]
+board_layouts = ["standard", "belgian_daisy", "german_daisy"]
 
 class AutoSim(Process):
     starting_boards = {
@@ -21,13 +26,13 @@ class AutoSim(Process):
                      87: 1, 86: 1, 85: 1, 84: 1, 77: 1, 76: 1, 75: 1},
 
         # belgian daisy
-        "belgian daisy": {11: 0, 12: 0, 21: 0, 22: 0, 23: 0, 32: 0, 33: 0,
+        "belgian_daisy": {11: 0, 12: 0, 21: 0, 22: 0, 23: 0, 32: 0, 33: 0,
                           99: 0, 98: 0, 89: 0, 88: 0, 87: 0, 78: 0, 77: 0,
                           14: 1, 15: 1, 24: 1, 25: 1, 26: 1, 35: 1, 36: 1,
                           95: 1, 96: 1, 84: 1, 85: 1, 86: 1, 74: 1, 75: 1},
 
         # german daisy
-        "german daisy": {21: 0, 22: 0, 31: 0, 32: 0, 33: 0, 42: 0, 43: 0,
+        "german_daisy": {21: 0, 22: 0, 31: 0, 32: 0, 33: 0, 42: 0, 43: 0,
                          67: 0, 68: 0, 77: 0, 78: 0, 79: 0, 88: 0, 89: 0,
                          25: 1, 26: 1, 35: 1, 36: 1, 37: 1, 46: 1, 47: 1,
                          63: 1, 64: 1, 73: 1, 74: 1, 75: 1, 84: 1, 85: 1}
@@ -61,6 +66,7 @@ class AutoSim(Process):
     def run(self):
         start_time = datetime.now()
         print(f"Simulating {self.black_player_name} vs. {self.white_player_name}, {self.board_layout}")
+        logger = create_logger(f"{self.black_player_name}_vs_{self.white_player_name}_{self.board_layout}_{self.turn_limit_per_player}_turns_{self.time_limit_per_move}ms.log")
         player_turn = 1  # Black starts
         while not game_over(self.board_state, self.turns_remaining[player_turn], player_turn):
             player_turn = 1 - player_turn
@@ -70,6 +76,7 @@ class AutoSim(Process):
                                        self.time_limit_per_move,
                                        self.turns_remaining[player_turn],
                                        transposition_table=self.transposition_tables[player_turn],
+                                       logger=logger,
                                        eval_callback=self.black_player_heuristic if player_turn == 0 else self.white_player_heuristic,
                                        is_first_move=True,
                                        t_table_filename=
@@ -83,6 +90,7 @@ class AutoSim(Process):
                                                                 self.turns_remaining[player_turn],
                                                                 transposition_table=self.transposition_tables[
                                                                     player_turn],
+                                                                logger=logger,
                                                                 eval_callback=self.black_player_heuristic if player_turn == 0 else self.white_player_heuristic,
                                                                 is_first_move=False,
                                                                 t_table_filename=
@@ -122,6 +130,7 @@ class AutoSim(Process):
         }
         self.results_list.append(results)
         print(f"Finished: {results}")
+        logger.info(results)
 
 
 def run_simulations(simulation_kwargs_list):
@@ -171,11 +180,6 @@ def write_results_to_excel(results, filename="game_results.xlsx"):
 
 
 if __name__ == '__main__':
-    heuristic_list = [cam_heuristic, justin_heuristic, kate_heuristic, lisa_heuristic]
-    turn_limits = [40]
-    time_limits = [5000]
-    board_layouts = ["standard", "belgian daisy", "german daisy"]
-
     # Generate the Cartesian product of all simulation arguments
     # this is such a dope function.
     simulation_args_list = list(product(turn_limits, time_limits, board_layouts, heuristic_list, heuristic_list))
@@ -197,9 +201,6 @@ if __name__ == '__main__':
     # Now call the run_simulations function with this list
     results, wins_counter = run_simulations(simulation_kwargs_list)
 
-    # Write results to excel
     write_results_to_excel(results)
-
-    # Print out the wins_counter
     for key, value in wins_counter.items():
         print(f"{key}: {value} wins")
