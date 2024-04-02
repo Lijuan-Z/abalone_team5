@@ -1,11 +1,10 @@
 """Currently a testing file for the best-move search algorithm."""
-from heuristics import justin_heuristic
-from statespace import *
-from statespace import external, debugutils, marblecoords
-from statespace.search import game_over, num_player_marbles, alpha_beta_search_transposition_xor_moves
+from heuristics import justin_heuristic, cam_heuristic
+from statespace.search import game_over, num_player_marbles, iterative_deepening_alpha_beta_search
 from statespace.search import iterative_deepening_alpha_beta_search_by_depth as id_abs_bd
-from statespace.search import alpha_beta_search_control, alpha_beta_search_transposition, alpha_beta_search_transposition_add_before
+from statespace.search import alpha_beta_search_control, alpha_beta_search_transposition
 from statespace.statespace import apply_move
+from statespace.transposition_table_IO import load_transposition_table_from_pickle
 
 
 def print_board(board, black_marble="🦖", white_marble="🐒", empty_space="🥥"):
@@ -123,4 +122,19 @@ if __name__ == '__main__':
     turns_remaining = 10
     max_player = 0
     depth = 5
-    id_abs_bd(starting_boards["belgian_daisy"], max_player, depth, turns_remaining, justin_heuristic.eval_state, alpha_beta_search_transposition)
+    eval_state = justin_heuristic.eval_state
+    transposition_table_filename = f"{eval_state.__name__}_turns{turns_remaining}_depth{depth}.pkl"
+
+    try:
+        transposition_table = load_transposition_table_from_pickle(transposition_table_filename)
+    except FileNotFoundError:
+        transposition_table = {}
+
+    id_abs_bd(board=starting_boards["belgian_daisy"],
+              player=max_player,
+              depth=depth,
+              turns_remaining=turns_remaining,
+              eval_callback=justin_heuristic.eval_state,
+              ab_callback=alpha_beta_search_transposition,
+              t_table_filename=transposition_table_filename,
+              transposition_table=transposition_table)
