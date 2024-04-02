@@ -7,7 +7,7 @@ from statespace.search import iterative_deepening_alpha_beta_search as idab
 from statespace.statespace import apply_move
 from statespace.search import game_over
 from heuristics import random, lisa_heuristic, cam_heuristic, kate_heuristic, \
-    justin_heuristic
+    justin_heuristic, agg_heuristic
 import pandas as pd
 
 from statespace.transposition_table_IO import load_transposition_table_from_pickle
@@ -32,7 +32,7 @@ def generate_writable_excel_path(base_path):
     return base_path
 
 
-file_list = [cam_heuristic, justin_heuristic, kate_heuristic, lisa_heuristic]
+file_list = [kate_heuristic, lisa_heuristic]
 starting_boards = {
     # standard
     0: {11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 21: 0, 22: 0,
@@ -68,8 +68,6 @@ for board_config_key in [0, 1, 2]:
             for evaluation_black in file_list:
                 for evaluation_white in file_list:
                     if evaluation_white != evaluation_black:
-                        layout = {0: "standard", 1: "belgian daisy", 2: "german daisy"}.get(board_config_key, "")
-
                         board_state = copy.deepcopy(starting_boards[board_config_key])
                         player_turn = 1  # Black starts
                         turns_remaining = {0: turn_limit, 1: turn_limit}
@@ -166,7 +164,7 @@ records.append(wins_counter)
 
 df = pd.DataFrame(records)
 
-base_excel_path = "game_results.xlsx"
+base_excel_path = "game_results7.xlsx"
 excel_path = generate_writable_excel_path(base_excel_path)
 print(f"Printing results to {excel_path}")
 with pd.ExcelWriter(excel_path, engine='xlsxwriter') as writer:
