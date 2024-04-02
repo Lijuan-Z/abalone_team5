@@ -175,10 +175,10 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     Returns:
         best_move: the best move found from all iterations the alpha-beta search
     """
-    logger.info(f"\nCurrent Max Player: {player}")
+    logger.info(f"Current Max Player: {player}")
     if is_first_move and player == 0:
         first_move = first_moves_dict[(hash_board_state(board), random.randint(1, 3))]
-        logger.info(f"First Move: {first_move}")
+        logger.info(f"First Move: {first_move}\n")
         return first_move
 
     if transposition_table is None:
@@ -205,12 +205,7 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
         temp_move, _ = alpha_beta_search_transposition(board, board, float('-inf'), float('inf'), depth, player, player,
                                                        time_limit_seconds - elapsed_time, total_turns_remaining,
                                                        eval_callback, transposition_table)
-        logger.info(f"\n=======DEPTH {depth}========")
-        logger.info(
-            f"Best Move Search Time: {best_move_search_time * 1000:.2f}ms/{time_limit:.2f}ms")  # Display in milliseconds
-        logger.info(f"Total Elapsed Time: {elapsed_time * 1000:.2f}ms/{time_limit:.2f}ms ")
-        logger.info(f"Depth Reached: {depth}")
-        logger.info(f"Best Move: {best_move}")
+
         elapsed_time = (datetime.now() - start_time).total_seconds()
         if elapsed_time > time_limit_seconds:
             depth -= 1
@@ -218,13 +213,19 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
         if temp_move is not None:
             best_move = temp_move
             best_move_search_time = elapsed_time
+            logger.info(f"\n=======DEPTH {depth}========")
+            logger.info(
+                f"Best Move Search Time: {best_move_search_time * 1000:.2f}ms/{time_limit:.2f}ms")  # Display in milliseconds
+            logger.info(f"Total Elapsed Time: {elapsed_time * 1000:.2f}ms/{time_limit:.2f}ms ")
+            logger.info(f"Depth Reached: {depth}")
+            logger.info(f"Best Move: {best_move}")
             depth += 1
     logger.info("\n=======FINISHED========")
     logger.info(
         f"Best Move Search Time: {best_move_search_time * 1000:.2f}ms/{time_limit:.2f}ms")  # Display in milliseconds
     logger.info(f"Total Elapsed Time: {elapsed_time * 1000:.2f}ms/{time_limit:.2f}ms ")
     logger.info(f"Depth Reached: {depth}")
-    logger.info(f"Best Move: {best_move}")
+    logger.info(f"Best Move: {best_move}\n")
     # save_transposition_table_to_pickle(transposition_table, t_table_filename)
     return best_move, transposition_table
 
