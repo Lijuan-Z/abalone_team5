@@ -1,0 +1,29 @@
+layout,belgian daisy,black,cam,white,justin,winner,Black,black marbles remaining,14,white marbles remaining,13,turns_remaining,{0: 0, 1: 1}
+layout,belgian daisy,black,cam,white,kate,winner,Black,black marbles remaining,14,white marbles remaining,9,turns_remaining,{0: 0, 1: 1}
+layout,belgian daisy,black,cam,white,lisa,winner,Black,black marbles remaining,14,white marbles remaining,13,turns_remaining,{0: 0, 1: 1}
+layout,belgian daisy,black,justin,white,cam,winner,White,black marbles remaining,13,white marbles remaining,14,turns_remaining,{0: 0, 1: 1}
+layout,belgian daisy,black,justin,white,kate,winner,Black,black marbles remaining,13,white marbles remaining,9,turns_remaining,{0: 0, 1: 1}
+layout,belgian daisy,black,justin,white,lisa,winner,Black,black marbles remaining,14,white marbles remaining,9,turns_remaining,{0: 0, 1: 1}
+layout,belgian daisy,black,kate,white,cam,winner,White,black marbles remaining,13,white marbles remaining,13,turns_remaining,{0: 0, 1: 1}
+layout,belgian daisy,black,kate,white,justin,winner,White,black marbles remaining,9,white marbles remaining,12,turns_remaining,{0: 0, 1: 1}
+layout,belgian daisy,black,kate,white,lisa,winner,White,black marbles remaining,14,white marbles remaining,14,turns_remaining,{0: 0, 1: 1}
+layout,belgian daisy,black,lisa,white,cam,winner,White,black marbles remaining,14,white marbles remaining,14,turns_remaining,{0: 0, 1: 1}
+layout,belgian daisy,black,lisa,white,justin,winner,White,black marbles remaining,13,white marbles remaining,14,turns_remaining,{0: 0, 1: 1}
+layout,belgian daisy,black,lisa,white,kate,winner,White,black marbles remaining,13,white marbles remaining,14,turns_remaining,{0: 0, 1: 1}
+layout,default,black,cam,white,justin,winner,Black,black marbles remaining,14,white marbles remaining,13,turns_remaining,{0: 0, 1: 1}
+layout,default,black,cam,white,kate,winner,Black,black marbles remaining,13,white marbles remaining,11,turns_remaining,{0: 0, 1: 1}
+layout,default,black,cam,white,lisa,winner,White,black marbles remaining,14,white marbles remaining,14,turns_remaining,{0: 0, 1: 1}
+layout,default,black,justin,white,cam,winner,Black,black marbles remaining,14,white marbles remaining,13,turns_remaining,{0: 0, 1: 1}
+layout,default,black,justin,white,kate,winner,Black,black marbles remaining,12,white marbles remaining,10,turns_remaining,{0: 0, 1: 1}
+layout,default,black,justin,white,lisa,winner,Black,black marbles remaining,14,white marbles remaining,11,turns_remaining,{0: 0, 1: 1}
+layout,default,black,kate,white,cam,winner,White,black marbles remaining,13,white marbles remaining,14,turns_remaining,{0: 0, 1: 1}
+layout,default,black,kate,white,justin,winner,White,black marbles remaining,13,white marbles remaining,13,turns_remaining,{0: 0, 1: 1}
+layout,default,black,kate,white,lisa,winner,Black,black marbles remaining,14,white marbles remaining,11,turns_remaining,{0: 0, 1: 1}
+layout,default,black,lisa,white,cam,winner,White,black marbles remaining,10,white marbles remaining,14,turns_remaining,{0: 0, 1: 1}
+layout,default,black,lisa,white,justin,winner,White,black marbles remaining,14,white marbles remaining,14,turns_remaining,{0: 0, 1: 1}
+layout,default,black,lisa,white,kate,winner,White,black marbles remaining,12,white marbles remaining,14,turns_remaining,{0: 0, 1: 1}
+=====winner count information=====
+Count of 'cam': 10
+Count of 'justin': 9
+Count of 'kate': 3
+Count of 'lisa': 2

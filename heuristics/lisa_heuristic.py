@@ -1,4 +1,4 @@
-def eval_state(init_board, ply_board, max_player,total_turns_remaining):
+def eval_state(init_board, ply_board, max_player,*args, **kwargs):
 
     max_player_init_pos = [key for key, value in init_board.items() if value == max_player]
 
