@@ -50,6 +50,7 @@ class GameApp(tk.Tk):
         if self.current_page:
             self.forget_packs_recursively(self)
         self.geometry("800x800")
+        self.center(self)
         self.current_page = ConfigPage(self, **kwargs)
         self.current_page.grid(row=0, column=0, sticky='nesw')
         # self.dark_mode(root=self)
@@ -58,10 +59,29 @@ class GameApp(tk.Tk):
         """Starts the game page."""
         if self.current_page:
             self.forget_packs_recursively(self)
-        self.geometry("800x800")
+        self.geometry("1200x800")
+        self.center(self)
         self.current_page = GamePage(self, **kwargs)
         self.current_page.grid(row=0, column=0, sticky='nsew')
         # self.dark_mode(root=self)
+
+
+    def center(self, win):
+        """
+        centers a tkinter window
+        :param win: the main window or Toplevel window to center
+        """
+        win.update_idletasks()
+        width = win.winfo_width()
+        frm_width = win.winfo_rootx() - win.winfo_x()
+        win_width = width + 2 * frm_width
+        height = win.winfo_height()
+        titlebar_height = win.winfo_rooty() - win.winfo_y()
+        win_height = height + titlebar_height + frm_width
+        x = win.winfo_screenwidth() // 2 - win_width // 2
+        y = win.winfo_screenheight() // 2 - win_height // 2
+        win.geometry('{}x{}+{}+{}'.format(width, height, x, y//5))
+        win.deiconify()
 
     def forget_packs_recursively(self, parent):
         """Recursively forgets all child widgets of the given parent widget.
