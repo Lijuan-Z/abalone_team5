@@ -51,7 +51,6 @@ class GameLogicalState:
         else:
             self.config = config
 
-
         self.turn_timer = None
 
         self.players = {
@@ -85,21 +84,14 @@ class GameDisplayState(tk.Frame):
     Display state is state of the 'frontend'
     """
 
-    class Component(Enum):
-        TOP_INFO_WIDGET = 0
-        BOARD_WIDGET = 1
-        SIDE_INFO_WIDGET = 2
-        BOTTOM_BAR_WIDGET = 3
-
     def __init__(self, parent, **kwargs):
         super().__init__(parent)
         self.parent = parent
 
-        # dictionary of components
-        self.comps = {}
-
-        # dictionary of variables
-        self.vars = {}
+        self.top_info = self.TopInfo(self, bg='blue', width=1, height=1)
+        self.board_widget = self.BoardWidget(self, bg='red', width=1, height=1)
+        self.side_info = self.SideInfo(self, bg='green', width=1, height=1)
+        self.bottom_bar = self.BottomBar(self, bg='purple', width=1, height=1)
 
         self.rowconfigure(0, weight=1)
         self.rowconfigure(1, weight=5)
@@ -108,66 +100,38 @@ class GameDisplayState(tk.Frame):
         self.columnconfigure(0, weight=5)
         self.columnconfigure(1, weight=3)
 
-        box1 = tk.Frame(self, bg='red', width=1, height=1)
-        box2 = tk.Frame(self, bg='blue', width=1, height=1)
-        box3 = tk.Frame(self, bg='green', width=1, height=1)
-        box4 = tk.Frame(self, bg='purple', width=1, height=1)
+        self.top_info.grid(row=0, column=0, rowspan=1, columnspan=2,
+                           sticky='nsew', padx=20, pady=20)
+        self.board_widget.grid(row=1, column=0, rowspan=1, columnspan=1,
+                               sticky='nsew', padx=20, pady=20)
+        self.side_info.grid(row=1, column=1, rowspan=1, columnspan=1,
+                            sticky='nsew', padx=20, pady=20)
+        self.bottom_bar.grid(row=2, column=0, rowspan=1, columnspan=2,
+                             sticky='nsew', padx=20, pady=20)
 
-        box1.grid(row=0, column=0, rowspan=1, columnspan=2,
-                  sticky='nsew', padx=20, pady=20)
-        box2.grid(row=1, column=0, rowspan=1, columnspan=1,
-                  sticky='nsew', padx=20, pady=20)
-        box3.grid(row=1, column=1, rowspan=1, columnspan=1,
-                  sticky='nsew', padx=20, pady=20)
-        box4.grid(row=2, column=0, rowspan=1, columnspan=2,
-                  sticky='nsew', padx=20, pady=20)
+    class TopInfo(tk.Frame):
+        """Contains information like score, turns remaining, etc."""
 
-        # self._pack_top_info_widget()
-        # self._pack_board_widget()
-        # self._pack_side_info_widget()
-        # self._pack_bottom_bar_widget()
+        def __init__(self, parent, *args, **kwargs):
+            super().__init__(parent, **kwargs)
 
-    def _pack_top_info_widget(self):
-        """Packs the widget that contains the game board display."""
-        widget = tk.Frame(self, background="red")
-        widget.grid(row=0, rowspan=1, column=0, columnspan=1, padx=8, pady=8)
-        self.comps[self.Component.TOP_INFO_WIDGET] = widget
+    class BoardWidget(tk.Frame):
+        """Displays the game board."""
 
-    def _pack_board_widget(self):
-        """Packs the widget that contains the game board display."""
-        widget = tk.Canvas(self, bg="green")
-        widget.grid(row=1, rowspan=1, column=1, columnspan=1)
-        self.comps[self.Component.BOARD_WIDGET] = widget
+        def __init__(self, parent, *args, **kwargs):
+            super().__init__(parent, **kwargs)
 
-    def _pack_side_info_widget(self):
-        """Packs the widget that contains the game board display."""
-        widget = tk.Canvas(self, bg="blue")
-        widget.grid(row=2, rowspan=1, column=2, columnspan=1)
-        self.comps[self.Component.SIDE_INFO_WIDGET] = widget
+    class SideInfo(tk.Frame):
+        """Contains widgets like the p1 log, p2 log, and AI recommendations"""
 
-    def _pack_bottom_bar_widget(self):
-        """Packs the widget that contains the game board display."""
-        widget = tk.Canvas(self, bg="cyan")
-        widget.grid(row=3, rowspan=1, column=3, columnspan=1)
-        self.comps[self.Component.BOTTOM_BAR_WIDGET] = widget
+        def __init__(self, parent, *args, **kwargs):
+            super().__init__(parent, **kwargs)
 
-    def color_overrides(self):
-        try:
-            self.comps[self.Component.TOP_INFO_WIDGET].configure(
-                bg="#FF0F00"
-            )
-            self.comps[self.Component.BOARD_WIDGET].configure(
-                bg="#00FFFF"
-            )
-            self.comps[self.Component.SIDE_INFO_WIDGET].configure(
-                bg="#00FFFF"
-            )
-            self.comps[self.Component.BOTTOM_BAR_WIDGET].configure(
-                bg="#00FFFF"
-            )
-        except KeyError as e:
-            print("Error with override colors in game_page:", e)
-        pass
+    class BottomBar(tk.Frame):
+        """Contains all the buttons and user input fields."""
+
+        def __init__(self, parent, *args, **kwargs):
+            super().__init__(parent, **kwargs)
 
 
 class GamePage(tk.Frame):
@@ -185,8 +149,3 @@ class GamePage(tk.Frame):
 
         self.display_state = GameDisplayState(parent=parent)
         self.display_state.grid(row=0, column=0, sticky="nsew")
-
-    def color_overrides(self):
-        return
-        self.display_state.color_overrides()
-        pass
