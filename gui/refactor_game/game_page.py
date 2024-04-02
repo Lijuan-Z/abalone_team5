@@ -101,6 +101,27 @@ class GameDisplayState(tk.Frame):
         # dictionary of variables
         self.vars = {}
 
+        self.rowconfigure(0, weight=1)
+        self.rowconfigure(1, weight=5)
+        self.rowconfigure(2, weight=1)
+
+        self.columnconfigure(0, weight=5)
+        self.columnconfigure(1, weight=3)
+
+        box1 = tk.Frame(self, bg='red', width=1, height=1)
+        box2 = tk.Frame(self, bg='blue', width=1, height=1)
+        box3 = tk.Frame(self, bg='green', width=1, height=1)
+        box4 = tk.Frame(self, bg='purple', width=1, height=1)
+
+        box1.grid(row=0, column=0, rowspan=1, columnspan=2,
+                  sticky='nsew', padx=20, pady=20)
+        box2.grid(row=1, column=0, rowspan=1, columnspan=1,
+                  sticky='nsew', padx=20, pady=20)
+        box3.grid(row=1, column=1, rowspan=1, columnspan=1,
+                  sticky='nsew', padx=20, pady=20)
+        box4.grid(row=2, column=0, rowspan=1, columnspan=2,
+                  sticky='nsew', padx=20, pady=20)
+
         # self._pack_top_info_widget()
         # self._pack_board_widget()
         # self._pack_side_info_widget()
@@ -154,24 +175,16 @@ class GamePage(tk.Frame):
 
     def __init__(self, parent, config, **kwargs):
         super().__init__(parent)
-        self.configure(background="red")
+        # self.configure(background="white")
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
 
-        label = tk.Label(self, text="hello", background='cyan', padx=100, pady=100)
-        label.grid(padx=390, pady=30, sticky='new')
+        self.default_config = config
 
-        # super().configure(background='')
-        # self.grid_columnconfigure(0, weight=1)
-        # self.grid_columnconfigure(0, weight=1)
+        self.logical_state = GameLogicalState(config=config)
 
-        # self.default_config = config
-
-        # self.logical_state = GameLogicalState(config=config)
-        #
-        # self.display_state = GameDisplayState(parent=parent)
-        #
-        # self.display_state.grid(row=0, column=0)
+        self.display_state = GameDisplayState(parent=parent)
+        self.display_state.grid(row=0, column=0, sticky="nsew")
 
     def color_overrides(self):
         return
