@@ -14,6 +14,7 @@ dark_mode_colors = {
     'Frame': ("#2D2D2D", "#FFFFFF"),
     'Select': ("#555555", "#FFFFFF"),
     'Scrollbar': ("#4E4E4E", "#2D2D2D"),
+    'Canvas': ("#4E4E4E", "#2D2D2D")
 
     # 'GameDisplayState': ("#FFFFFF", "#FFFFFF"),
     # 'GamePage': ("#FFFFFF", "#FFFFFF"),
