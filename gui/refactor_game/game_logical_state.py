@@ -1,0 +1,176 @@
+"""Handles the state of the actual game and triggering updates in display."""
+
+from gui.refactor_game.config_page import Layout, Color, Operator
+from gui.refactor_game.data.player import Player
+
+
+class GameLogicalState:
+    """Stores and mutates the logical state of the game.
+
+    Logical state is state of the 'backend'
+    """
+    STARTING_BOARDS = {
+        # default
+        Layout.STANDARD.value: {11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 21: 0,
+                                22: 0, 23: 0, 24: 0, 25: 0, 26: 0, 33: 0,
+                                34: 0, 35: 0, 99: 1, 98: 1, 97: 1, 96: 1,
+                                95: 1, 89: 1, 88: 1, 87: 1, 86: 1, 85: 1,
+                                84: 1, 77: 1, 76: 1, 75: 1},
+
+        # belgian daisy
+        Layout.BELGIAN_DAISY.value: {11: 0, 12: 0, 21: 0, 22: 0, 23: 0, 32: 0,
+                                     33: 0, 99: 0, 98: 0, 89: 0, 88: 0, 87: 0,
+                                     78: 0, 77: 0, 14: 1, 15: 1, 24: 1, 25: 1,
+                                     26: 1, 35: 1, 36: 1, 95: 1, 96: 1, 84: 1,
+                                     85: 1, 86: 1, 74: 1, 75: 1},
+
+        # german daisy
+        Layout.GERMAN_DAISY.value: {21: 0, 22: 0, 31: 0, 32: 0, 33: 0, 42: 0,
+                                    43: 0, 67: 0, 68: 0, 77: 0, 78: 0, 79: 0,
+                                    88: 0, 89: 0, 25: 1, 26: 1, 35: 1, 36: 1,
+                                    37: 1, 46: 1, 47: 1, 63: 1, 64: 1, 73: 1,
+                                    74: 1, 75: 1, 84: 1, 85: 1},
+    }
+
+    def __init__(self, config, **kwargs):
+        if config is None:
+            self.config = {'layout': Layout.STANDARD.value,
+                           'player_1_color': Color.BLACK.value,
+                           'player_1_operator': Operator.HUMAN.value,
+                           'player_1_seconds_per_turn': 30,
+                           'player_1_turn_limit': 40,
+                           'player_2_color': Color.WHITE.value,
+                           'player_2_operator': Operator.AI.value,
+                           'player_2_seconds_per_turn': None,
+                           'player_2_turn_limit': 40}
+        else:
+            self.config = config
+
+        self.board = self.STARTING_BOARDS[self.config['layout']]
+
+        self.one_second_pass_timer = None
+
+        self.players = {
+            Player.ONE: Player(
+                color=self.config['player_1_color'],
+                operator=self.config['player_1_operator'],
+                turn_time=self.config['player_1_seconds_per_turn'],
+                turns_left=self.config['player_1_turn_limit'],
+            ),
+            Player.TWO: Player(
+                color=self.config['player_2_color'],
+                operator=self.config['player_2_operator'],
+                turn_time=self.config['player_2_seconds_per_turn'],
+                turns_left=self.config['player_2_turn_limit']
+            )
+        }
+
+        self.current_player = (
+            Player.ONE if self.players[Player.ONE].color == Color.BLACK
+            else Player.TWO
+        )
+
+        self.next_player = (
+            Player.TWO if (self.players[Player.TWO]).color == Color.WHITE
+            else Player.ONE
+        )
+
+        self.game_state = "NO GAME STARTED"
+
+    def get_board(self):
+        """Returns the board.
+
+        :rtype: dict[int, int]
+        """
+        return self.board
+
+    def get_top_info(self):
+        """Returns the information needed for the top info widget"""
+        player_1 = self.players[Player.ONE]
+        player_2 = self.players[Player.TWO]
+        info = {
+            'game_state': self.game_state,
+            'cur_player': f"{'Player_1' if self.current_player == Player.ONE else 'Player_2'}({self.players[self.current_player].color})",
+            'player_1_marble_color': player_1.color,
+            'player_1_turns_left': player_1.turns_left if player_1.turns_left is not None else "Unlimited",
+            'player_1_score': player_1.score,
+            'player_1_time_left': player_1.time_left.get() if player_1.time_left is not None else "Unlimited",
+            'player_2_marble_color': player_2.color,
+            'player_2_turns_left': player_2.turns_left if player_2.turns_left is not None else "Unlimited",
+            'player_2_score': player_2.score,
+            'player_2_time_left': player_2.time_left.get() if player_2.time_left is not None else "Unlimited"
+        }
+
+        return info
+
+    def swap_players(self):
+        self.current_player, self.next_player = self.next_player, self.current_player
+
+    def execute_string_input(self, action_string, update_board_callback):
+        origin_half, destination_half = action_string.split('-')
+
+        origin_coord_strings = [origin_half[(i - 1) * 2:2 * i]for i in range(int(len(origin_half) / 2), 0, -1)]
+        destination_coord_strings = [destination_half[(i - 1) * 2:2 * i]for i in range(int(len(destination_half) / 2), 0, -1)]
+
+        for origin_coord_string, destination_coord_string in zip(origin_coord_strings, destination_coord_strings):
+            origin_column_digit = (ord(origin_coord_string[0].upper()) - 64)
+            origin_row_digit = int(origin_coord_string[1])
+
+            destination_column_digit = (ord(destination_coord_string[0].upper()) - 64)
+            destination_row_digit = int(destination_coord_string[1])
+
+            marble_color = self.board[origin_column_digit*10 + origin_row_digit]
+            del self.board[origin_column_digit*10 + origin_row_digit]
+            self.board[destination_column_digit*10 + destination_row_digit] = marble_color
+
+        update_board_callback(self.board)
+
+
+    def handle_start_callback(self, caller):
+        """Handles start button."""
+        print("start")
+        pass
+
+    def handle_input_confirm_callback(self, user_input, update_board_callback, update_labels_callback):
+        """Handles action input confirm event."""
+        print("input confirm")
+        print(f"user_input: {user_input}")
+        self.execute_string_input(
+            action_string=user_input,
+            update_board_callback=update_board_callback
+        )
+        cur_player = self.players[self.current_player]
+        new_log = LogItem(user_input,
+                          self.board.copy,
+                          cur_player.time_left.get() - cur_player.turn_time)
+        cur_player.log.append(new_log)
+        cur_player.time_left.set(cur_player.turn_time)
+        cur_player.turns_left -= 1
+        self.swap_players()
+        update_labels_callback()
+        pass
+
+    def handle_pause_callback(self):
+        """Handles pause button."""
+        print("pause")
+        pass
+
+    def handle_resume_callback(self):
+        """Handles resume button."""
+        print("resume")
+        pass
+
+    def handle_undo_last_move_callback(self):
+        """Handles undo last move button."""
+        print("undo")
+        pass
+
+    def handle_reset_callback(self):
+        """Handles reset button."""
+        print("reset")
+        pass
+
+    def handle_stop_callback(self):
+        """Handles stop button."""
+        print("stop")
+        pass
