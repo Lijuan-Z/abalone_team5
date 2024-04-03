@@ -108,7 +108,7 @@ class AutoSim(Process):
             self.winner = self.black_player_name
         elif self.black_marbles_remaining < self.white_marbles_remaining:
             self.winner_colour = "White"
-            self.winner = self.black_player_name
+            self.winner = self.white_player_name
         else:
             self.winner_colour = "Tie"
             self.winner = "N/A"
