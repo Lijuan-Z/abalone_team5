@@ -16,6 +16,11 @@ from gui.refactor_game.config_page import Color, Layout, Operator
 
 from pprint import pprint
 
+class LogItem():
+    def __init__(self, move, result_board, time_taken):
+        self.move = move
+        self.board = result_board
+        self.time_taken = time_taken
 
 class Player():
     """Represents a player."""
@@ -30,6 +35,7 @@ class Player():
         self.time_left = None if turn_time is None else tk.IntVar(None,
                                                                   turn_time)
         self.score = 0
+        self.log = []
 
 
 class GameLogicalState:
@@ -130,15 +136,60 @@ class GameLogicalState:
 
         return info
 
-    def handle_start_callback(self):
+    def swap_players(self):
+        self.current_player, self.next_player = self.next_player, self.current_player
+
+    def execute_string_input(self, action_string, update_board_callback):
+        origin_half, destination_half = action_string.split('-')
+
+        origin_coord_strings = [origin_half[(i - 1) * 2:2 * i]for i in range(int(len(origin_half) / 2), 0, -1)]
+        destination_coord_strings = [destination_half[(i - 1) * 2:2 * i]for i in range(int(len(destination_half) / 2), 0, -1)]
+
+        for origin_coord_string, destination_coord_string in zip(origin_coord_strings, destination_coord_strings):
+            origin_column_digit = (ord(origin_coord_string[0].upper()) - 64)
+            origin_row_digit = int(origin_coord_string[1])
+
+            destination_column_digit = (ord(destination_coord_string[0].upper()) - 64)
+            destination_row_digit = int(destination_coord_string[1])
+
+            marble_color = self.board[origin_column_digit*10 + origin_row_digit]
+            del self.board[origin_column_digit*10 + origin_row_digit]
+            self.board[destination_column_digit*10 + destination_row_digit] = marble_color
+
+
+
+
+        # for coord in line.split(',', ):
+        #     coord = coord[0].upper() + coord[1:]
+        #     column_digit = (ord(coord[0]) - 64)
+        #     row_digit = int(coord[1])
+        #     color = 0 if coord[2] == 'b' else 1
+        #     board[column_digit*10 + row_digit] = color
+        update_board_callback(self.board)
+
+
+    def handle_start_callback(self, caller):
         """Handles start button."""
         print("start")
         pass
 
-    def handle_input_confirm_callback(self, user_input):
+    def handle_input_confirm_callback(self, user_input, update_board_callback, update_labels_callback):
         """Handles action input confirm event."""
         print("input confirm")
         print(f"user_input: {user_input}")
+        self.execute_string_input(
+            action_string=user_input,
+            update_board_callback=update_board_callback
+        )
+        cur_player = self.players[self.current_player]
+        new_log = LogItem(user_input,
+                          self.board.copy,
+                          cur_player.time_left.get() - cur_player.turn_time)
+        cur_player.log.append(new_log)
+        cur_player.time_left.set(cur_player.turn_time)
+        cur_player.turns_left -= 1
+        self.swap_players()
+        update_labels_callback()
         pass
 
     def handle_pause_callback(self):
@@ -200,6 +251,8 @@ class GameDisplayState(tk.Frame):
                                        height=1, **kwargs)
         self.bottom_bar = self.BottomBar(self, bg='purple', width=1,
                                          height=1,
+                                         update_labels_callback=self.top_info.update_labels,
+                                         update_board_callback=self.board_widget.update_board,
                                          handle_start_callback=handle_start_callback,
                                          handle_input_confirm_callback=handle_input_confirm_callback,
                                          handle_pause_callback=handle_pause_callback,
@@ -219,7 +272,7 @@ class GameDisplayState(tk.Frame):
         self.top_info.grid(row=0, column=0, rowspan=1, columnspan=2,
                            sticky='nsew', padx=20, pady=20)
         self.board_widget.grid(row=1, column=0, rowspan=1, columnspan=1,
-                               sticky='nsew', padx=20, pady=20)
+                               sticky='nsew', padx=50, pady=20)
         self.side_info.grid(row=1, column=1, rowspan=1, columnspan=1,
                             sticky='nsew', padx=20, pady=20)
         self.bottom_bar.grid(row=2, column=0, rowspan=1, columnspan=2,
@@ -230,6 +283,7 @@ class GameDisplayState(tk.Frame):
 
         def __init__(self, parent, get_top_info_callback, *args, **kwargs):
             super().__init__(parent, **kwargs)
+            self.get_top_info_callback = get_top_info_callback
 
             self.rowconfigure(0, weight=1)
             self.rowconfigure(1, weight=1)
@@ -260,11 +314,11 @@ class GameDisplayState(tk.Frame):
             self.player_2_score_label.grid(row=1, column=4)
             self.player_2_time_left_label.grid(row=1, column=5)
 
-            self.update_labels(get_top_info_callback=get_top_info_callback)
+            self.update_labels()
 
 
-        def update_labels(self, get_top_info_callback):
-            info = get_top_info_callback()
+        def update_labels(self):
+            info = self.get_top_info_callback()
             self.set_labels(**info)
 
         def set_labels(self,
@@ -300,9 +354,12 @@ class GameDisplayState(tk.Frame):
         CIRCLE_RADIUS = 30
         COLUMNS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
 
-        def __init__(self, parent, get_board_callback, *args, **kwargs):
+        def __init__(self, parent,
+                     get_board_callback,
+                     *args, **kwargs):
             super().__init__(parent, **kwargs)
             self.canvas = tk.Canvas(self, bg="pink")
+            self.canvas.bind("<Button-1>", lambda event: print(f'{event.x}:{event.y}'))
 
             self.columnconfigure(0, weight=1)
             self.rowconfigure(0, weight=1)
@@ -312,6 +369,9 @@ class GameDisplayState(tk.Frame):
                       lambda event: self.update_board(
                           get_board_callback()
                       ))
+
+        def click_coord_to_marble_coord(self, coord):
+            pass
 
         def update_board(self, board: dict[int, int]):
             """Updates the canvas to draw the given board."""
@@ -334,7 +394,7 @@ class GameDisplayState(tk.Frame):
                         x = x_offset + (2 * col + 1) * r + abs(row) * r
                         y = y_offset - r * row * math.sqrt(3)
 
-                        color_value = 'lightgrey'
+                        color_value = '#7E7E7E'
                         text_color = 'black'
 
                         k = row if row > 0 else 0
@@ -387,13 +447,15 @@ class GameDisplayState(tk.Frame):
         """Contains all the buttons and user input fields."""
 
         def __init__(self, parent,
-                     handle_start_callback=None,
-                     handle_input_confirm_callback=None,
-                     handle_pause_callback=None,
-                     handle_resume_callback=None,
-                     handle_undo_last_move_callback=None,
-                     handle_reset_callback=None,
-                     handle_stop_callback=None,
+                     update_labels_callback,
+                     update_board_callback,
+                     handle_start_callback,
+                     handle_input_confirm_callback,
+                     handle_pause_callback,
+                     handle_resume_callback,
+                     handle_undo_last_move_callback,
+                     handle_reset_callback,
+                     handle_stop_callback,
                      *args, **kwargs):
             super().__init__(parent, **kwargs)
 
@@ -411,7 +473,7 @@ class GameDisplayState(tk.Frame):
             self.input_action_entry.bind('<FocusIn>', lambda event: self.input_action_entry.delete(0, 'end'))
 
             def input_confirm(event):
-                handle_input_confirm_callback(self.input_action_entry.get())
+                handle_input_confirm_callback(user_input=self.input_action_entry.get(), update_board_callback=update_board_callback, update_labels_callback=update_labels_callback)
                 self.input_action_entry.delete(0, 'end')
 
             self.input_action_entry.bind('<Return>', lambda event: input_confirm(event))
