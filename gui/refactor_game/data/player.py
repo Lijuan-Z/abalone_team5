@@ -1,3 +1,4 @@
+import threading
 import tkinter as tk
 import abc
 
@@ -18,6 +19,28 @@ class Player(abc.ABC):
         self._score = 0
         self._log = []
 
+        self._turn_timer = None
+        self._update_top_info_callback = None
+
+    def do_timer_tick(self):
+        self._turn_timer = threading.Timer(1, self.do_timer_tick)
+        self._turn_time_taken += 1
+        self._update_top_info_callback()
+        self._turn_timer.start()
+
+    def cancel_timer(self):
+        try:
+            self._turn_timer.cancel()
+        except Exception as e:
+            print(e)
+
+    def start_turn_timer(self):
+        self._turn_timer = threading.Timer(1, self.do_timer_tick)
+        self._turn_timer.start()
+
+    def bind_top_info_callback(self, update_top_info_callback):
+        self._update_top_info_callback = update_top_info_callback
+
     @property
     def color(self):
         return self._color
@@ -29,6 +52,12 @@ class Player(abc.ABC):
     @property
     def score(self):
         return self._score
+
+    def increment_score(self):
+        self._score += 1
+
+    def decrement_score(self):
+        self._score -= 1
 
     @property
     def log(self):

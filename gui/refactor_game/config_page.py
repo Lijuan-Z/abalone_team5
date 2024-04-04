@@ -129,13 +129,11 @@ class ConfigDisplayState(tk.Frame):
 
     def _pack_start_button(self, parent, start_game_callback):
         """Packs the start button."""
-        config = self._get_config()
-
         start_game_button = tk.Button(parent,
                                       text="Start Game",
                                       command=
                                       lambda: start_game_callback(
-                                          config=config
+                                          config=self._get_config()
                                       )
                                       )
 
@@ -189,7 +187,7 @@ class ConfigDisplayState(tk.Frame):
                                       self.TIME_OPTIONS,
                                       dict(row=10, column=0, padx=pady, sticky='n'),
                                       readonly=False,
-                                      default_index=5)
+                                      default_index=4)
 
         self._pack_selection_combobox(parent,
                                       "player_2_operator",

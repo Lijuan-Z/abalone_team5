@@ -1,4 +1,5 @@
 """Handles the state of the actual game and triggering updates in display."""
+import tkinter as tk
 
 from gui.refactor_game.config_page import Layout, Color, Operator
 from gui.refactor_game.data.log import LogItem
@@ -79,7 +80,7 @@ class GameLogicalState:
             else Player.ONE
         )
 
-        self.game_state = "NO GAME STARTED"
+        self.game_state = "No Game Started"
 
     def get_board(self):
         """Returns the board.
@@ -110,25 +111,50 @@ class GameLogicalState:
 
         return info
 
+    def cancel_player_turn_timers(self):
+        try:
+            self.players[self.current_player].cancel_timer()
+        except Exception as e:
+            print(e)
+
+        try:
+            self.players[self.next_player].cancel_timer()
+        except Exception as e:
+            print(e)
+
     def swap_players(self):
         self.current_player, self.next_player = self.next_player, self.current_player
+        print()
 
     def execute_string_input(self, action_string):
         origin_half, destination_half = action_string.split('-')
 
-        origin_coord_strings = [origin_half[(i - 1) * 2:2 * i]for i in range(int(len(origin_half) / 2), 0, -1)]
-        destination_coord_strings = [destination_half[(i - 1) * 2:2 * i]for i in range(int(len(destination_half) / 2), 0, -1)]
+        origin_coord_strings = [origin_half[(i - 1) * 2:2 * i] for i in
+                                range(int(len(origin_half) / 2), 0, -1)]
+        destination_coord_strings = [destination_half[(i - 1) * 2:2 * i] for i
+                                     in
+                                     range(int(len(destination_half) / 2), 0,
+                                           -1)]
 
-        for origin_coord_string, destination_coord_string in zip(origin_coord_strings, destination_coord_strings):
+        for origin_coord_string, destination_coord_string in zip(
+                origin_coord_strings, destination_coord_strings):
+
             origin_column_digit = (ord(origin_coord_string[0].upper()) - 64)
             origin_row_digit = int(origin_coord_string[1])
 
-            destination_column_digit = (ord(destination_coord_string[0].upper()) - 64)
+            if destination_coord_string.upper() == "N0":
+                del self.board[origin_column_digit * 10 + origin_row_digit]
+                self.players[self.current_player].increment_score()
+                continue
+
+            destination_column_digit = (
+                        ord(destination_coord_string[0].upper()) - 64)
             destination_row_digit = int(destination_coord_string[1])
 
-            marble_color = self.board[origin_column_digit*10 + origin_row_digit]
-            del self.board[origin_column_digit*10 + origin_row_digit]
-            self.board[destination_column_digit*10 + destination_row_digit] = marble_color
+            marble_color = self.board[
+                origin_column_digit * 10 + origin_row_digit]
+            del self.board[origin_column_digit * 10 + origin_row_digit]
+            self.board[destination_column_digit * 10 + destination_row_digit] = marble_color
 
     def create_log_item(self, user_input, result_board):
         """creates a log item"""
@@ -137,10 +163,17 @@ class GameLogicalState:
 
         return LogItem(user_input, result_board)
 
-    def handle_start_callback(self, caller):
+    def handle_start_callback(self):
         """Handles start button."""
-        print("start")
-        pass
+        self.display_slave.bottom_bar.start_button.configure(state=tk.DISABLED)
+        self.display_slave.bottom_bar.input_action_entry.configure(state=tk.NORMAL)
+        self.display_slave.bottom_bar.pause_button.configure(state=tk.NORMAL)
+        self.display_slave.bottom_bar.reset_button.configure(state=tk.NORMAL)
+
+        self.game_state = "Playing"
+        self.players[self.current_player].start_turn_timer()
+
+        self.display_slave.top_info.update_labels()
 
     def handle_input_confirm_callback(self, user_input):
         """Handles action input confirm event."""
@@ -148,22 +181,37 @@ class GameLogicalState:
         self.execute_string_input(
             action_string=user_input,
         )
+
         self.display_slave.board.update_board()
 
         cur_player = self.players[self.current_player]
+
         new_log = LogItem(user_input,
                           self.board.copy,
                           cur_player.turn_time_taken)
         cur_player.log.append(new_log)
+
         cur_player.reset_turn_time_taken()
+
         cur_player.decrement_turns_left()
+
+        cur_player.cancel_timer()
+
         self.swap_players()
+
+        new_cur_player = self.players[self.current_player]
+        new_cur_player.start_turn_timer()
 
         self.display_slave.top_info.update_labels()
 
     def handle_pause_callback(self):
         """Handles pause button."""
-        print("pause")
+        self.cancel_player_turn_timers()
+
+        self.display_slave.bottom_bar.pause_button.configure(state=tk.DISABLED)
+        self.display_slave.bottom_bar.start_button.configure(state=tk.NORMAL)
+        self.display_slave.bottom_bar.reset_button.configure(state=tk.NORMAL)
+
 
     def handle_resume_callback(self):
         """Handles resume button."""
@@ -183,3 +231,5 @@ class GameLogicalState:
 
     def bind_display(self, display_state):
         self.display_slave = display_state
+        self.players[Player.ONE].bind_top_info_callback(self.display_slave.top_info.update_labels)
+        self.players[Player.TWO].bind_top_info_callback(self.display_slave.top_info.update_labels)
