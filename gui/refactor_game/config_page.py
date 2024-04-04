@@ -127,6 +127,9 @@ class ConfigDisplayState(tk.Frame):
         }
         return config
 
+    def _set_config(self, config):
+        """TODO: have this set the current config to the incoming one."""
+
     def _pack_start_button(self, parent, start_game_callback):
         """Packs the start button."""
         start_game_button = tk.Button(parent,

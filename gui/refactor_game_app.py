@@ -43,7 +43,7 @@ class GameApp(tk.Tk):
         self.combobox_theme_init()
         self.dark_mode(root=self)
 
-        self.start_config(next_page_callback=self.start_game)
+        self.start_config()
         # self.start_game(config=None)
 
     def start_config(self, **kwargs):
@@ -52,7 +52,7 @@ class GameApp(tk.Tk):
             self.forget_packs_recursively(self)
         self.geometry("800x800")
         self.center(self)
-        self.current_page = ConfigPage(self, **kwargs)
+        self.current_page = ConfigPage(self, next_page_callback=self.start_game, **kwargs)
         self.current_page.grid(row=0, column=0, sticky='nesw')
         self.dark_mode(root=self)
 
@@ -62,7 +62,7 @@ class GameApp(tk.Tk):
             self.forget_packs_recursively(self)
         self.geometry("1200x800")
         self.center(self)
-        self.current_page = GamePage(self, **kwargs)
+        self.current_page = GamePage(self, back_to_config_callback=self.start_config, **kwargs)
         self.current_page.grid(row=0, column=0, sticky='nsew')
         self.dark_mode(root=self)
 

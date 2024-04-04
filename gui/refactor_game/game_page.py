@@ -7,7 +7,7 @@ from gui.refactor_game.game_logical_state import GameLogicalState
 class GamePage(tk.Frame):
     """Parent tkinter frame that ties the logical and display classes."""
 
-    def __init__(self, parent, config, **kwargs):
+    def __init__(self, parent, config, back_to_config_callback, **kwargs):
         super().__init__(parent)
         # self.configure(background="white")
         self.grid_columnconfigure(0, weight=1)
@@ -15,7 +15,7 @@ class GamePage(tk.Frame):
 
         self.default_config = config
 
-        self.logical_state = GameLogicalState(config=config)
+        self.logical_state = GameLogicalState(config=config, back_to_config_callback=back_to_config_callback)
 
         self.display_state = (
             GameDisplayState(

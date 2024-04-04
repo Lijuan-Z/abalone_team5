@@ -34,9 +34,11 @@ class GameLogicalState:
                                     74: 1, 75: 1, 84: 1, 85: 1},
     }
 
-    def __init__(self, config, **kwargs):
+    def __init__(self, config, back_to_config_callback, **kwargs):
 
         self.display_slave = None
+
+        self.back_to_config_callback = back_to_config_callback
 
         if config is None:
             self.config = {'layout': Layout.STANDARD.value,
@@ -227,7 +229,8 @@ class GameLogicalState:
 
     def handle_stop_callback(self):
         """Handles stop button."""
-        print("stop")
+        self.back_to_config_callback(config=self.config)
+
 
     def bind_display(self, display_state):
         self.display_slave = display_state
