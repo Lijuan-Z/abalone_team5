@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from statespace.statespace import genall_groupmove_resultboard
+from statespace.statespace import genall_groupmove_resultboard, apply_move
 
 
 def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remaining, eval_callback):
@@ -94,7 +94,8 @@ def alpha_beta_search(init_board, ply_board, alpha, beta, total_depth, depth, ma
         best_value = float('-inf')
         groupmove_resultboard = genall_groupmove_resultboard(ply_board, cur_ply_player)
         try:
-            groupmove_resultboard.insert(0, (path[total_depth - depth], ply_board))
+            best_gm_rb = [gm_rb for gm_rb in groupmove_resultboard if gm_rb[0] == path[total_depth - depth]][0]
+            groupmove_resultboard.insert(0, best_gm_rb)
         except Exception:
             path.append(depth)
         for i, (move, result_board) in enumerate(groupmove_resultboard):
@@ -114,7 +115,8 @@ def alpha_beta_search(init_board, ply_board, alpha, beta, total_depth, depth, ma
         best_value = float('inf')
         groupmove_resultboard = genall_groupmove_resultboard(ply_board, cur_ply_player)
         try:
-            groupmove_resultboard.insert(0, (path[total_depth - depth], ply_board))
+            best_gm_rb = [gm_rb for gm_rb in groupmove_resultboard if gm_rb[0] == path[total_depth - depth]][0]
+            groupmove_resultboard.insert(0, best_gm_rb)
         except Exception:
             path.append(depth)
         for i, (move, result_board) in enumerate(groupmove_resultboard):
