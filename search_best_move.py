@@ -65,15 +65,17 @@ if __name__ == '__main__':
     cur_player = 1
     depth = 5
     turns_remaining = [5, 5]
+    path = [None]
 
     while not game_over(board_state, turns_remaining[cur_player], cur_player):
         cur_player = 1 - cur_player
 
-        move = id_abs_bd(board=board_state,
+        move, path = id_abs_bd(board=board_state,
                          player=cur_player,
                          depth=depth,
                          turns_remaining=turns_remaining[cur_player],
-                         eval_callback=cam_heuristic.eval_state)
+                         eval_callback=cam_heuristic.eval_state,
+                         path=path[1:])
 
         apply_move(board_state, move)
         print_board(board_state)

@@ -1,5 +1,4 @@
 from datetime import datetime
-import random
 
 from statespace.statespace import genall_groupmove_resultboard
 
