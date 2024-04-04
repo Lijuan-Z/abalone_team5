@@ -30,3 +30,4 @@ class GamePage(tk.Frame):
 
         self.display_state.board.update_board()
         self.display_state.top_info.update_labels()
+        self.display_state.side_info.dynamic_init()

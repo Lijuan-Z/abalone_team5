@@ -130,7 +130,6 @@ class GameLogicalState:
             del self.board[origin_column_digit*10 + origin_row_digit]
             self.board[destination_column_digit*10 + destination_row_digit] = marble_color
 
-
     def create_log_item(self, user_input, result_board):
         """creates a log item"""
         time_left = self.players[self.current_player].turn_time
