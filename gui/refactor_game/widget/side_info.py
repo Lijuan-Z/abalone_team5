@@ -143,10 +143,29 @@ class AIInfo(tk.Frame):
                                     relief=tk.FLAT)
         self.frame_title.grid(row=0, column=0, sticky='nw')
 
-        self.ai_recommendation_log = tk.Text(self, width=10, height=10)
-        self.ai_recommendation_log.insert(tk.END, "current recommendation")
+        # self.ai_recommendation_log = tk.Text(self, width=10, height=10)
+        # self.ai_recommendation_log.insert(tk.END, "current recommendation")
+        #
+        # self.ai_recommendation_log.grid(row=2, column=0, rowspan=1,
+        #                                 columnspan=1, sticky='nsew')
 
-        self.ai_recommendation_log.grid(row=2, column=0, rowspan=1,
+        def temp_accept_latest():
+            state = self.parent.parent.observed_logical_state
+            ai_player = state.players[state.current_player]
+            latest_recommendation = ai_player._recommendation_history[-1].move
+            action_entry = self.parent.parent.bottom_bar.input_action_entry
+            action_entry.delete(0, tk.END)
+            action_entry.insert(0, latest_recommendation)
+
+            entry_action = action_entry.get()
+            state.handle_input_confirm_callback(user_input=entry_action)
+            action_entry.delete(0, 'end')
+
+        self.accept_latest_recommendation_button = (
+            tk.Button(self, text="Accept Latest Recommendation",
+                      command=temp_accept_latest)
+        )
+        self.accept_latest_recommendation_button.grid(row=2, column=0, rowspan=1,
                                         columnspan=1, sticky='nsew')
 
     def update(self, player):
