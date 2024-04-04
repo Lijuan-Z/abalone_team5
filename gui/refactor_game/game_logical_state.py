@@ -133,6 +133,9 @@ class GameLogicalState:
     def execute_string_input(self, action_string):
         origin_half, destination_half = action_string.split('-')
 
+        if len(origin_half) != len(destination_half):
+            raise ValueError("Must have equal number of origin and destination marbles")
+
         origin_coord_strings = [origin_half[(i - 1) * 2:2 * i] for i in
                                 range(int(len(origin_half) / 2), 0, -1)]
         destination_coord_strings = [destination_half[(i - 1) * 2:2 * i] for i
