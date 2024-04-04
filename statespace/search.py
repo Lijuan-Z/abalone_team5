@@ -62,6 +62,7 @@ def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_r
         print(f"Search Time: {elapsed_time * 1000:.2f}ms")  # Display in milliseconds
         print(f"Depth: {cur_depth}")
         print(f"Best Move: {best_move}")
+        print(f"Cur path: {path}")
         cur_depth += 1
 
     return best_move, path
@@ -94,9 +95,11 @@ def alpha_beta_search(init_board, ply_board, alpha, beta, depth, max_player, cur
         best_path = []
         # best_index = None
         groupmove_resultboard = genall_groupmove_resultboard(ply_board, cur_ply_player)
-        if total_best_path:
+        try:
             # groupmove_resultboard.insert(0, (groupmove_resultboard[total_best_path[depth - 2]], ply_board))
-            groupmove_resultboard.insert(0, (total_best_path[depth - 2], ply_board))
+            groupmove_resultboard.insert(0, (total_best_path[depth - 1], ply_board))
+        except:
+            pass
         for i, (move, result_board) in enumerate(groupmove_resultboard):
             _, value, path = alpha_beta_search(init_board,result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback, total_best_path)
             if value > best_value:
@@ -117,9 +120,11 @@ def alpha_beta_search(init_board, ply_board, alpha, beta, depth, max_player, cur
         best_path = []
         # best_index = None
         groupmove_resultboard = genall_groupmove_resultboard(ply_board, cur_ply_player)
-        if total_best_path:
+        try:
             # groupmove_resultboard.insert(0, (groupmove_resultboard[total_best_path[depth - 2]], ply_board))
-            groupmove_resultboard.insert(0, (total_best_path[depth - 2], ply_board))
+            groupmove_resultboard.insert(0, (total_best_path[depth - 1], ply_board))
+        except:
+            pass
         for i, (move, result_board) in enumerate(groupmove_resultboard):
             _, value, path = alpha_beta_search(init_board,result_board, alpha, beta, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback, total_best_path)
             if value < best_value:
