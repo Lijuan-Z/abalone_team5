@@ -97,7 +97,10 @@ def alpha_beta_search(init_board, ply_board, alpha, beta, total_depth, depth, ma
             best_gm_rb = [gm_rb for gm_rb in groupmove_resultboard if gm_rb[0] == path[total_depth - depth]][0]
             groupmove_resultboard.insert(0, best_gm_rb)
         except Exception:
-            path.append(depth)
+            try:
+                path[total_depth - depth]
+            except Exception:
+                path.append(depth)
         for i, (move, result_board) in enumerate(groupmove_resultboard):
             _, value = alpha_beta_search(init_board,result_board, alpha, beta, total_depth, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback, path)
             if value > best_value:
@@ -118,7 +121,10 @@ def alpha_beta_search(init_board, ply_board, alpha, beta, total_depth, depth, ma
             best_gm_rb = [gm_rb for gm_rb in groupmove_resultboard if gm_rb[0] == path[total_depth - depth]][0]
             groupmove_resultboard.insert(0, best_gm_rb)
         except Exception:
-            path.append(depth)
+            try:
+                path[total_depth - depth]
+            except Exception:
+                path.append(depth)
         for i, (move, result_board) in enumerate(groupmove_resultboard):
             _, value = alpha_beta_search(init_board,result_board, alpha, beta, total_depth, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback, path)
             if value < best_value:
