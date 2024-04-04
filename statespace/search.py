@@ -52,20 +52,23 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
 def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_remaining, eval_callback, path):
     start_time = datetime.now()
     cur_depth = 1
+    cur_path = path
     best_move = None
 
     while cur_depth <= depth and cur_depth <= turns_remaining:
-        temp_move, _ = alpha_beta_search(board, board, float('-inf'), float('inf'), cur_depth, cur_depth, player, player, 0, turns_remaining, eval_callback, path)
+        temp_move, _ = alpha_beta_search(board, board, float('-inf'), float('inf'), cur_depth, cur_depth, player, player, 0, turns_remaining, eval_callback, cur_path)
         elapsed_time = (datetime.now() - start_time).total_seconds()
         best_move = temp_move
+        if best_move != cur_path[0]:
+            cur_path = [best_move]
         print("\n=======PLY FINISHED========")
         print(f"Search Time: {elapsed_time * 1000:.2f}ms")  # Display in milliseconds
         print(f"Depth: {cur_depth}")
         print(f"Best Move: {best_move}")
-        print(f"Path: {path}")
+        print(f"Path: {cur_path}")
         cur_depth += 1
 
-    return best_move, path
+    return best_move, cur_path
 
 
 def alpha_beta_search(init_board, ply_board, alpha, beta, total_depth, depth, max_player, cur_ply_player, time_limit, total_turns_remaining, eval_callback, path):
