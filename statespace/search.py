@@ -182,10 +182,7 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
         return first_move
 
     if transposition_table is None:
-        try:
-            transposition_table = load_transposition_table_from_pickle(t_table_filename)
-        except FileNotFoundError:
-            transposition_table = {}
+        transposition_table = {}
 
     start_time = datetime.now()
     depth = 1
@@ -224,7 +221,6 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     logger.info(f"Total Elapsed Time: {elapsed_time * 1000:.2f}ms/{time_limit:.2f}ms ")
     logger.info(f"Depth Reached: {depth}")
     logger.info(f"Best Move: {best_move}\n")
-    # save_transposition_table_to_pickle(transposition_table, t_table_filename)
     return best_move, transposition_table, elapsed_time
 
 

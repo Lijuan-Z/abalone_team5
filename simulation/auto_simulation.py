@@ -12,6 +12,8 @@ from heuristics import lisa_heuristic, cam_heuristic, kate_heuristic, \
     justin_heuristic
 import pandas as pd
 
+from statespace.transposition_table_IO import load_transposition_table_from_json, save_transposition_table_to_json
+
 heuristic_list = [cam_heuristic, justin_heuristic, kate_heuristic, lisa_heuristic]
 turn_limits = [50]
 time_limits = [100]
@@ -46,7 +48,6 @@ class AutoSim(Process):
         self.turns_remaining = {0: turn_limit_per_player, 1: turn_limit_per_player}
         self.time_limit_per_move = time_limit_per_move
         self.board_layout = board_layout
-        self.transposition_tables = [{}, {}]
         self.first_move = None
 
         self.black_player_heuristic = black_player_heuristic.eval_state
@@ -60,13 +61,19 @@ class AutoSim(Process):
         self.winner_colour = ""
         self.winner = "N/A"
 
+        self.transposition_tables = [
+            load_transposition_table_from_json(f"{self.black_player_name}_black.json"),
+            load_transposition_table_from_json(f"{self.white_player_name}_white.json")]
         self.wins_counter = wins_counter
         self.results_list = results_list
+
 
     def run(self):
         start_time = datetime.now()
         print(f"Simulating {self.black_player_name} vs. {self.white_player_name}, {self.board_layout}")
         logger = create_logger(f"{self.black_player_name}_vs_{self.white_player_name}_{self.board_layout}_{self.turn_limit_per_player}_turns_{self.time_limit_per_move}ms.log")
+        logger.info(f"Simulating {self.black_player_name} vs. {self.white_player_name}, {self.board_layout}")
+
         player_turn = 1  # Black starts
         while not game_over(self.board_state, self.turns_remaining[player_turn], player_turn):
             player_turn = 1 - player_turn
@@ -84,7 +91,7 @@ class AutoSim(Process):
                 apply_move(self.board_state, self.first_move)
                 continue
 
-            move, self.transposition_tables[player_turn] = idab(self.board_state,
+            move, self.transposition_tables[player_turn], elapsed_time = idab(self.board_state,
                                                                 player_turn,
                                                                 self.time_limit_per_move,
                                                                 self.turns_remaining[player_turn],
@@ -131,6 +138,8 @@ class AutoSim(Process):
         self.results_list.append(results)
         print(f"Finished: {results}")
         logger.info(results)
+        save_transposition_table_to_json(self.transposition_tables[0], f"{self.black_player_name}_black.json")
+        save_transposition_table_to_json(self.transposition_tables[1], f"{self.white_player_name}_white.json")
 
 
 def run_simulations(simulation_kwargs_list):
