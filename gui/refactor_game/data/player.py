@@ -3,9 +3,11 @@ import tkinter as tk
 import abc
 
 from gui.refactor_game.config_page import Operator, Color
+from gui.refactor_game.data.log import LogItem
 from heuristics import cam_heuristic
 from statespace.marblecoords import is_out_of_bounds
 from statespace.search import iterative_deepening_alpha_beta_search
+from statespace.statespace import apply_move
 from statespace.transposition_table_IO import \
     load_transposition_table_from_pickle
 
@@ -124,6 +126,21 @@ class AIPlayer(Player):
         next_move, elapsed_time = self.ai_search_result(game=game)
         print(next_move, elapsed_time)
         print(self.move_to_action(next_move))
+
+        self._calculation_time_last_turn = elapsed_time
+
+        result_board = apply_move(board=game.board.copy(), groupmove=next_move)
+
+        self._recommendation_history.append(
+            LogItem(player=self,
+                    move=self.move_to_action(next_move),
+                    result_board=result_board,
+                    time_taken=elapsed_time)
+        )
+
+
+        for log_item in self._recommendation_history:
+            print(str(log_item))
         pass
 
     @property
