@@ -55,7 +55,7 @@ def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_r
     cur_depth = 1
     best_move = None
 
-    while cur_depth <= depth:
+    while cur_depth <= depth and cur_depth <= turns_remaining:
         temp_move, _ = alpha_beta_search(board, board, float('-inf'), float('inf'), cur_depth, player, player, 0, turns_remaining, eval_callback, )
         elapsed_time = (datetime.now() - start_time).total_seconds()
         best_move = temp_move
