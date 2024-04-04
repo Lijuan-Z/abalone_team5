@@ -28,7 +28,7 @@ class SideInfo(tk.Frame):
         player2 = state.players[Player.TWO]
         self.combined_log.update(player1=player1, player2=player2)
         self.player1_info_frame.update(state.players[Player.ONE])
-        # self.player2_info_frame.update(state.players[Player.TWO])
+        self.player2_info_frame.update(state.players[Player.TWO])
 
     def dynamic_init(self):
         self.combined_log = CombinedLog(self)
@@ -116,6 +116,8 @@ class HumanInfo(tk.Frame):
             self.log_entry.insert(tk.END, f"{str(log)}\n")
         self.log_entry.see(tk.END)
 
+        self.log_entry.insert(tk.END, f"\n\nTotal Aggregate Time: {sum([log_item.time_taken for log_item in player.log])}s")
+
 
 class AIInfo(tk.Frame):
 
@@ -146,3 +148,14 @@ class AIInfo(tk.Frame):
 
         self.ai_recommendation_log.grid(row=2, column=0, rowspan=1,
                                         columnspan=1, sticky='nsew')
+
+    def update(self, player):
+        self.log_entry.delete('1.0', tk.END)
+        self.log_entry.insert(tk.END, "\n\n")
+        for log in player._recommendation_history:
+            self.log_entry.insert(tk.END, f"{str(log)}\n")
+
+        self.log_entry.insert(tk.END, f"\n\nTotal Aggregate Time: {sum([log.time_taken for log in player._recommendation_history])}s")
+
+
+        self.log_entry.see(tk.END)
