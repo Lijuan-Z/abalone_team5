@@ -132,9 +132,11 @@ class AIPlayer(Player):
         self._calculation_time_max = turn_time
         self._calculation_time_last_turn = 0
         self._recommendation_history = []
+        self.is_first_move = True
 
     def start_turn(self, game):
         next_move, elapsed_time = self.ai_search_result(game=game)
+        self.is_first_move = False
         print(next_move, elapsed_time)
         print(self.move_to_action(next_move))
 
@@ -187,7 +189,7 @@ class AIPlayer(Player):
         # need change time to milliseconds?
         input_time_limit = self.turn_time_max
         move, _, elapsed_time = iterative_deepening_alpha_beta_search(game.board, input_player_turn, input_time_limit * 1000,
-                                                                      self.turns_left, strategy, transposition_table)
+                                                                      self.turns_left, strategy, transposition_table, is_first_move=self.is_first_move)
         return move, elapsed_time
 
     def move_to_action(self, move):

@@ -177,7 +177,7 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     if is_first_move and player == 0:
         first_move = first_moves_dict[(hash_board_state(board), random.randint(1, 3))]
         print(f"First Move: {first_move}")
-        return first_move
+        return first_move, transposition_table, 0
 
     if transposition_table is None:
         try:
@@ -227,7 +227,7 @@ def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_r
     if is_first_move and player == 0:
         first_move = first_moves_dict[(hash_board_state(board), random.randint(1, 3))]
         print(f"First Move: {first_move}")
-        return first_move
+        return first_move, transposition_table
 
     if transposition_table is None:
         try:
