@@ -157,14 +157,8 @@ class AIPlayer(Player):
         #     self._transposition_table = {}
 
         transposition_table_file_name = "./transposition_table.json"
-        self._transposition_table = {}
-        try:
-            self._transposition_table = load_transposition_table_from_json(
-                transposition_table_file_name)
-            print(f"loaded transposition table from {transposition_table_file_name}")
-        except FileNotFoundError:
-            print(f"no table found: {transposition_table_file_name}")
-            self._transposition_table = {}
+        self._transposition_table = load_transposition_table_from_json(
+            transposition_table_file_name)
 
     def start_turn(self, game):
         next_move, elapsed_time = self.ai_search_result(game=game)
