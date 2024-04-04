@@ -15,8 +15,8 @@ class TopInfo(tk.Frame):
         self.columnconfigure((1, 2, 3, 4, 5), weight=1)
         self.columnconfigure(6, weight=4)
 
-        self.game_state_label = tk.Label(self, text="")
         self.cur_player_label = tk.Label(self, text="")
+        self.game_state_label = tk.Label(self, text="")
         self.player_1_marble_color_label = tk.Label(self, text="")
         self.player_1_turns_left_label = tk.Label(self, text="")
         self.player_1_score_label = tk.Label(self, text="")
@@ -26,8 +26,8 @@ class TopInfo(tk.Frame):
         self.player_2_score_label = tk.Label(self, text="")
         self.player_2_time_left_label = tk.Label(self, text="")
 
-        self.game_state_label.grid(row=0, column=1)
-        self.cur_player_label.grid(row=1, column=1)
+        self.cur_player_label.grid(row=0, column=1)
+        self.game_state_label.grid(row=1, column=1)
         self.player_1_marble_color_label.grid(row=0, column=2)
         self.player_1_turns_left_label.grid(row=0, column=3)
         self.player_1_score_label.grid(row=0, column=4)
@@ -48,26 +48,28 @@ class TopInfo(tk.Frame):
                    player_1_turns_left,
                    player_1_score,
                    player_1_time_left,
+                   player_1_operator,
                    player_2_marble_color,
                    player_2_turns_left,
                    player_2_score,
                    player_2_time_left,
+                   player_2_operator,
                    **kwargs):
         self.game_state_label.config(text=f'game state: {game_state}')
         self.cur_player_label.config(text=f'cur player: {cur_player}')
         self.player_1_marble_color_label.config(
-            text=f'player 1 marble_color: {player_1_marble_color}')
+            text=f'Player1: {player_1_operator}-{player_1_marble_color}')
         self.player_1_turns_left_label.config(
-            text=f'player 1 turns_left: {player_1_turns_left}')
+            text=f'Player1 Turn Left: {player_1_turns_left}')
         self.player_1_score_label.config(
-            text=f'player 1 score: {player_1_score}')
+            text=f'Player1 Score: {player_1_score}')
         self.player_1_time_left_label.config(
-            text=f'player 1 time_left: {player_1_time_left}')
+            text=f'Player1 Time Left: {player_1_time_left}')
         self.player_2_marble_color_label.config(
-            text=f'player 2 marble_color: {player_2_marble_color}')
+            text=f'Player2: {player_2_operator}-{player_2_marble_color}')
         self.player_2_turns_left_label.config(
-            text=f'player 2 turns_left: {player_2_turns_left}')
+            text=f'Player2 Turns Left: {player_2_turns_left}')
         self.player_2_score_label.config(
-            text=f'player 2 score: {player_2_score}')
+            text=f'Player2 Score: {player_2_score}')
         self.player_2_time_left_label.config(
-            text=f'player 2 time_left: {player_2_time_left}')
+            text=f'Player2 Time_left: {player_2_time_left}')

@@ -33,7 +33,8 @@ class Color(ExtendedEnum):
 
 class MiscOptions(ExtendedEnum):
     """Miscellaneous options."""
-    UNLIMITED = "Unlimited"
+    UNLIMITED_STRING = "Unlimited"
+    UNLIMITED_QUANTITY = float('inf')
 
 
 class ConfigDisplayState(tk.Frame):
@@ -56,6 +57,7 @@ class ConfigDisplayState(tk.Frame):
         "10",
         "30",
         "40",
+        MiscOptions.UNLIMITED_STRING.value,
     ]
 
     TIME_OPTIONS = [
@@ -64,6 +66,7 @@ class ConfigDisplayState(tk.Frame):
         "10",
         "30",
         "90",
+        MiscOptions.UNLIMITED_STRING.value,
     ]
 
     def __init__(self, parent, next_page_callback, **kwargs):
@@ -176,16 +179,14 @@ class ConfigDisplayState(tk.Frame):
 
         self._pack_selection_combobox(parent,
                                       "player_1_turn_limit",
-                                      self.TURN_OPTIONS
-                                      + [MiscOptions.UNLIMITED.value],
+                                      self.TURN_OPTIONS,
                                       dict(row=8, column=0, pady=pady, sticky='n'),
                                       readonly=False,
                                       default_index=2)
 
         self._pack_selection_combobox(parent,
                                       "player_1_seconds_per_turn",
-                                      self.TIME_OPTIONS
-                                      + [MiscOptions.UNLIMITED.value],
+                                      self.TIME_OPTIONS,
                                       dict(row=10, column=0, padx=pady, sticky='n'),
                                       readonly=False,
                                       default_index=5)
@@ -204,16 +205,14 @@ class ConfigDisplayState(tk.Frame):
 
         self._pack_selection_combobox(parent,
                                       "player_2_turn_limit",
-                                      self.TURN_OPTIONS
-                                      + [MiscOptions.UNLIMITED.value],
+                                      self.TURN_OPTIONS,
                                       dict(row=8, column=1, pady=pady, sticky='n'),
                                       readonly=False,
                                       default_index=2)
 
         self._pack_selection_combobox(parent,
                                       "player_2_seconds_per_turn",
-                                      self.TIME_OPTIONS
-                                      + [MiscOptions.UNLIMITED.value],
+                                      self.TIME_OPTIONS,
                                       dict(row=10, column=1, pady=pady, sticky='n'),
                                       readonly=False,
                                       default_index=2)
@@ -282,7 +281,7 @@ class ConfigPage(tk.Frame):
 
 def _int_or_none(string: str):
     """Attempts to cast to string, else returns None."""
-    try:
+    if string == MiscOptions.UNLIMITED_STRING.value:
+        return MiscOptions.UNLIMITED_QUANTITY.value
+    else:
         return int(string)
-    except ValueError as e:
-        return None

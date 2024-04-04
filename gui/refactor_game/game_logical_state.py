@@ -2,7 +2,7 @@
 
 from gui.refactor_game.config_page import Layout, Color, Operator
 from gui.refactor_game.data.log import LogItem
-from gui.refactor_game.data.player import Player
+from gui.refactor_game.data.player import Player, PlayerFactory
 
 
 class GameLogicalState:
@@ -55,27 +55,27 @@ class GameLogicalState:
         self.one_second_pass_timer = None
 
         self.players = {
-            Player.ONE: Player(
-                color=self.config['player_1_color'],
+            Player.ONE: PlayerFactory.make_player(
                 operator=self.config['player_1_operator'],
+                color=self.config['player_1_color'],
                 turn_time=self.config['player_1_seconds_per_turn'],
                 turns_left=self.config['player_1_turn_limit'],
             ),
-            Player.TWO: Player(
-                color=self.config['player_2_color'],
+            Player.TWO: PlayerFactory.make_player(
                 operator=self.config['player_2_operator'],
+                color=self.config['player_2_color'],
                 turn_time=self.config['player_2_seconds_per_turn'],
                 turns_left=self.config['player_2_turn_limit']
             )
         }
 
         self.current_player = (
-            Player.ONE if self.players[Player.ONE].color == Color.BLACK
+            Player.ONE if self.players[Player.ONE].color == Color.BLACK.value
             else Player.TWO
         )
 
         self.next_player = (
-            Player.TWO if (self.players[Player.TWO]).color == Color.WHITE
+            Player.TWO if self.current_player == Player.ONE
             else Player.ONE
         )
 
@@ -92,17 +92,20 @@ class GameLogicalState:
         """Returns the information needed for the top info widget"""
         player_1 = self.players[Player.ONE]
         player_2 = self.players[Player.TWO]
+        cur_player = self.players[self.current_player]
         info = {
             'game_state': self.game_state,
-            'cur_player': f"{'Player_1' if self.current_player == Player.ONE else 'Player_2'}({self.players[self.current_player].color})",
+            'cur_player': f"{f'Player_1-{player_1.operator}' if self.current_player == Player.ONE else f'Player_2-{player_2.operator}'}-{cur_player.color}",
             'player_1_marble_color': player_1.color,
             'player_1_turns_left': player_1.turns_left if player_1.turns_left is not None else "Unlimited",
             'player_1_score': player_1.score,
-            'player_1_time_left': player_1.time_left.get() if player_1.time_left is not None else "Unlimited",
+            'player_1_time_left': player_1.turn_time_max - player_1.turn_time_taken,
+            'player_1_operator': player_1.operator,
             'player_2_marble_color': player_2.color,
             'player_2_turns_left': player_2.turns_left if player_2.turns_left is not None else "Unlimited",
             'player_2_score': player_2.score,
-            'player_2_time_left': player_2.time_left.get() if player_2.time_left is not None else "Unlimited"
+            'player_2_time_left': player_2.turn_time_max - player_2.turn_time_taken,
+            'player_2_operator': player_2.operator,
         }
 
         return info
@@ -127,8 +130,13 @@ class GameLogicalState:
             del self.board[origin_column_digit*10 + origin_row_digit]
             self.board[destination_column_digit*10 + destination_row_digit] = marble_color
 
-        self.display_slave.board.update_board()
 
+    def create_log_item(self, user_input, result_board):
+        """creates a log item"""
+        time_left = self.players[self.current_player].turn_time
+        time_per_turn = self.players[self.current_player].time_left
+
+        return LogItem(user_input, result_board)
 
     def handle_start_callback(self, caller):
         """Handles start button."""
@@ -137,19 +145,21 @@ class GameLogicalState:
 
     def handle_input_confirm_callback(self, user_input):
         """Handles action input confirm event."""
-        print("input confirm")
-        print(f"user_input: {user_input}")
+
         self.execute_string_input(
             action_string=user_input,
         )
+        self.display_slave.board.update_board()
+
         cur_player = self.players[self.current_player]
         new_log = LogItem(user_input,
                           self.board.copy,
-                          cur_player.time_left.get() - cur_player.turn_time)
+                          cur_player.turn_time_taken)
         cur_player.log.append(new_log)
-        cur_player.time_left.set(cur_player.turn_time)
-        cur_player.turns_left -= 1
+        cur_player.reset_turn_time_taken()
+        cur_player.decrement_turns_left()
         self.swap_players()
+
         self.display_slave.top_info.update_labels()
 
     def handle_pause_callback(self):
