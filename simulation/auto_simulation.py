@@ -180,12 +180,23 @@ def generate_writable_excel_path(base_path="game_results.xlsx"):
     return base_path
 
 
-def write_results_to_excel(results, filename="game_results.xlsx"):
-    df = pd.DataFrame(results)
-    excel_path = generate_writable_excel_path(filename)
-    with pd.ExcelWriter(excel_path, engine='xlsxwriter') as writer:
-        df.to_excel(writer, sheet_name='Game Results', index=False)
-    print(f"Results have been written to {excel_path}")
+def write_results_to_excel(results, base_filename="game_results.xlsx"):
+    dir_name = os.path.dirname(base_filename)
+    if dir_name:
+        os.makedirs(dir_name, exist_ok=True)
+
+    if os.path.exists(base_filename):
+        with pd.ExcelWriter(base_filename, engine='openpyxl', mode='a') as writer:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            sheet_name = f'Game Results {timestamp}'
+            df = pd.DataFrame(results)
+            df.to_excel(writer, sheet_name=sheet_name, index=False)
+    else:
+        with pd.ExcelWriter(base_filename, engine='xlsxwriter') as writer:
+            df = pd.DataFrame(results)
+            df.to_excel(writer, sheet_name='Game Results', index=False)
+
+    print(f"Results have been added to {base_filename}")
 
 
 if __name__ == '__main__':
@@ -209,7 +220,8 @@ if __name__ == '__main__':
 
     # Now call the run_simulations function with this list
     results, wins_counter = run_simulations(simulation_kwargs_list)
-
+    for key, value in wins_counter.items():
+        print(f"{key}: {value} wins")
     write_results_to_excel(results)
     for key, value in wins_counter.items():
         print(f"{key}: {value} wins")
