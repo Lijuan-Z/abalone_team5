@@ -158,13 +158,6 @@ class GameLogicalState:
             del self.board[origin_column_digit * 10 + origin_row_digit]
             self.board[destination_column_digit * 10 + destination_row_digit] = marble_color
 
-    def create_log_item(self, user_input, result_board):
-        """creates a log item"""
-        time_left = self.players[self.current_player].turn_time
-        time_per_turn = self.players[self.current_player].time_left
-
-        return LogItem(user_input, result_board)
-
     def handle_start_callback(self):
         """Handles start button."""
         self.display_slave.bottom_bar.start_button.configure(state=tk.DISABLED)
@@ -188,10 +181,12 @@ class GameLogicalState:
 
         cur_player = self.players[self.current_player]
 
-        new_log = LogItem(user_input,
+        new_log = LogItem(cur_player,
+                          user_input,
                           self.board.copy,
                           cur_player.turn_time_taken)
         cur_player.log.append(new_log)
+        print("\n".join([str(item) for item in cur_player.log]))
 
         cur_player.reset_turn_time_taken()
 
@@ -211,13 +206,16 @@ class GameLogicalState:
         self.cancel_player_turn_timers()
 
         self.display_slave.bottom_bar.pause_button.configure(state=tk.DISABLED)
-        self.display_slave.bottom_bar.start_button.configure(state=tk.NORMAL)
+        self.display_slave.bottom_bar.resume_button.configure(state=tk.NORMAL)
         self.display_slave.bottom_bar.reset_button.configure(state=tk.NORMAL)
 
 
     def handle_resume_callback(self):
         """Handles resume button."""
-        print("resume")
+        self.players[self.current_player].start_turn_timer()
+
+        self.display_slave.bottom_bar.resume_button.configure(state=tk.DISABLED)
+        self.display_slave.bottom_bar.pause_button.configure(state=tk.NORMAL)
 
     def handle_undo_last_move_callback(self):
         """Handles undo last move button."""
