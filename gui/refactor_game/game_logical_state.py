@@ -199,6 +199,7 @@ class GameLogicalState:
 
         new_cur_player = self.players[self.current_player]
         new_cur_player.start_turn_timer()
+        new_cur_player.start_turn(game=self)
 
         self.display_slave.top_info.update_labels()
 

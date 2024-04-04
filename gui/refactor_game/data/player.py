@@ -2,7 +2,12 @@ import threading
 import tkinter as tk
 import abc
 
-from gui.refactor_game.config_page import Operator
+from gui.refactor_game.config_page import Operator, Color
+from heuristics import cam_heuristic
+from statespace.marblecoords import is_out_of_bounds
+from statespace.search import iterative_deepening_alpha_beta_search
+from statespace.transposition_table_IO import \
+    load_transposition_table_from_pickle
 
 
 class Player(abc.ABC):
@@ -23,7 +28,7 @@ class Player(abc.ABC):
         self._update_top_info_callback = None
 
     @abc.abstractmethod
-    def start_turn(self):
+    def start_turn(self, game):
         pass
 
     def do_timer_tick(self):
@@ -94,7 +99,7 @@ class HumanPlayer(Player):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def start_turn(self):
+    def start_turn(self, game):
         pass
 
     @property
@@ -115,8 +120,10 @@ class AIPlayer(Player):
         self._calculation_time_last_turn = 0
         self._recommendation_history = []
 
-    def start_turn(self):
-
+    def start_turn(self, game):
+        next_move, elapsed_time = self.ai_search_result(game=game)
+        print(next_move, elapsed_time)
+        print(self.move_to_action(next_move))
         pass
 
     @property
@@ -128,6 +135,39 @@ class AIPlayer(Player):
     def turn_time_taken(self) -> int or None:
         """Returns the time per turn."""
         return self._calculation_time_last_turn
+
+    def ai_search_result(self, game):
+        input_player_turn = 0 if self.color == Color.BLACK.value else 1
+        strategy = cam_heuristic.eval_state
+
+        transposition_table_file_name = "./transposition_table_ui.pkl"
+        transposition_table = {}
+        try:
+            transposition_table = load_transposition_table_from_pickle(
+                transposition_table_file_name)
+        except FileNotFoundError:
+            transposition_table = {}
+
+        # need change time to milliseconds?
+        input_time_limit = self.turn_time_max
+        move, _, elapsed_time = iterative_deepening_alpha_beta_search(game.board, input_player_turn, input_time_limit * 1000,
+                                                                      self.turns_left, strategy, transposition_table)
+        return move, elapsed_time
+
+    def move_to_action(self, move):
+        source_pos, direction = move
+        print(source_pos, direction)
+        source = ""
+        destination = ""
+        for pos in source_pos:
+            source += (chr((pos[0] // 10) + 96) + str(pos[0] % 10))
+            dest = pos[0] + direction
+            if not is_out_of_bounds(dest):
+                destination += (chr((dest // 10) + 96) + str(dest % 10))
+            else:
+                destination = "n0"
+        action = source + "-" + destination
+        return action
 
 
 class PlayerFactory:

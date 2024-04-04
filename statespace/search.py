@@ -196,7 +196,7 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     # The loop will end before the time limit if the maximum depth (based on turns remaining) is reached.
     while depth <= total_turns_remaining:
         elapsed_time = (datetime.now() - start_time).total_seconds()
-        if elapsed_time >= time_limit_seconds * 0.5:
+        if elapsed_time >= time_limit_seconds * 0.1:
             depth -= 1
             break
         temp_move, _ = alpha_beta_search_transposition(board, board, float('-inf'), float('inf'), depth, player, player,
