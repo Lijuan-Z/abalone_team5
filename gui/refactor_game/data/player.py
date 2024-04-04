@@ -22,6 +22,10 @@ class Player(abc.ABC):
         self._turn_timer = None
         self._update_top_info_callback = None
 
+    @abc.abstractmethod
+    def start_turn(self):
+        pass
+
     def do_timer_tick(self):
         self._turn_timer = threading.Timer(1, self.do_timer_tick)
         self._turn_time_taken += 1
@@ -90,6 +94,9 @@ class HumanPlayer(Player):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+    def start_turn(self):
+        pass
+
     @property
     def turn_time_max(self) -> int or None:
         """Returns the time per turn."""
@@ -106,6 +113,11 @@ class AIPlayer(Player):
         super().__init__(turn_time=float("inf"), **kwargs)
         self._calculation_time_max = turn_time
         self._calculation_time_last_turn = 0
+        self._recommendation_history = []
+
+    def start_turn(self):
+
+        pass
 
     @property
     def turn_time_max(self) -> int or None:

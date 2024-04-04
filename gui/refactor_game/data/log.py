@@ -6,4 +6,4 @@ class LogItem():
         self.time_taken = time_taken
 
     def __str__(self):
-        return f'{self.player.color} : {self.move} : {self.time_taken}'
+        return f'{self.player.color}:<{self.move}>:({self.time_taken}s)'
