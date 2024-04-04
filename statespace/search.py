@@ -216,7 +216,7 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     print(f"Depth Reached: {depth}")
     print(f"Best Move: {best_move}")
     save_transposition_table_to_pickle(transposition_table, t_table_filename)
-    return best_move, transposition_table
+    return best_move, transposition_table, elapsed_time
 
 
 def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_remaining, eval_callback, ab_callback,

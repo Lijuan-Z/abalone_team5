@@ -1,6 +1,7 @@
 """Classes and methods to simulate 2 sets of heuristics competing."""
 import time
 
+from statespace.transposition_table_IO import load_transposition_table_from_pickle
 from .base_simulation import Simulation
 from statespace.search import iterative_deepening_alpha_beta_search as idab
 from statespace.statespace import apply_move
@@ -46,16 +47,32 @@ class VersusSimulation(Simulation):
         # time_limit = 30
         self.update_display()
         is_first_move = True
-
+        transposition_tables = [{}, {}]
         while not game_over(self.board_state,
                             turns_remaining[player_turn],
                             player_turn):
             player_turn = 1 - player_turn
-            move = idab(self.board_state,
-                        player_turn, time_limit,
-                        turns_remaining[player_turn],
-                        strategy[player_turn], is_first_move=is_first_move)
-            is_first_move = False
+            if is_first_move:
+                first_move = idab(self.board_state,
+                                  player_turn,
+                                  time_limit,
+                                  turns_remaining[player_turn],
+                                  transposition_table=transposition_tables[
+                                      player_turn],
+                                  eval_callback=strategy[player_turn],
+                                  is_first_move=is_first_move,)
+                apply_move(self.board_state, first_move)
+                is_first_move = False
+                continue
+
+            move, transposition_tables[player_turn] = idab(self.board_state,
+                                                           player_turn,
+                                                           time_limit,
+                                                           turns_remaining[player_turn],
+                                                           transposition_table=transposition_tables[
+                                                               player_turn],
+                                                           eval_callback=strategy[player_turn],
+                                                           is_first_move=is_first_move)
             if move is None:
                 break
 
