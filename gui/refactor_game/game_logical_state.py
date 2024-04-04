@@ -53,7 +53,7 @@ class GameLogicalState:
         else:
             self.config = config
 
-        self.board = self.STARTING_BOARDS[self.config['layout']]
+        self.board = self.STARTING_BOARDS[self.config['layout']].copy()
 
         self.one_second_pass_timer = None
 
@@ -164,14 +164,19 @@ class GameLogicalState:
         self.display_slave.bottom_bar.input_action_entry.configure(state=tk.NORMAL)
         self.display_slave.bottom_bar.pause_button.configure(state=tk.NORMAL)
         self.display_slave.bottom_bar.reset_button.configure(state=tk.NORMAL)
+        self.display_slave.bottom_bar.undo_last_move_button.configure(state=tk.NORMAL)
 
         self.game_state = "Playing"
+
+        self.players[self.current_player].start_turn(game=self)
         self.players[self.current_player].start_turn_timer()
 
         self.display_slave.top_info.update_labels()
 
     def handle_input_confirm_callback(self, user_input):
         """Handles action input confirm event."""
+
+        pre_move_board = self.board.copy()
 
         self.execute_string_input(
             action_string=user_input,
@@ -181,10 +186,11 @@ class GameLogicalState:
 
         cur_player = self.players[self.current_player]
 
-        new_log = LogItem(cur_player,
-                          user_input,
-                          self.board.copy,
-                          cur_player.turn_time_taken)
+        new_log = LogItem(player=cur_player,
+                          move=user_input,
+                          original_board=pre_move_board,
+                          result_board=self.board.copy(),
+                          time_taken=cur_player.turn_time_taken)
         cur_player.log.append(new_log)
         print("\n".join([str(item) for item in cur_player.log]))
         self.display_slave.side_info.update_all()
@@ -221,7 +227,28 @@ class GameLogicalState:
 
     def handle_undo_last_move_callback(self):
         """Handles undo last move button."""
-        print("undo")
+        cur_player = self.players[self.current_player]
+        prev_player = self.players[self.next_player]
+
+        cur_player.handle_undo()
+        prev_player.handle_undo()
+
+        cur_player.reset_turn_time_taken()
+        cur_player.cancel_timer()
+
+        prev_log = prev_player.log.pop()
+
+        self.board = prev_log.original_board
+
+        self.swap_players()
+        new_cur_player = self.players[self.current_player]
+        new_cur_player.increment_turns_left()
+        new_cur_player.start_turn_timer()
+        new_cur_player.start_turn(game=self)
+
+        self.display_slave.side_info.update_all()
+        self.display_slave.board.update_board()
+        self.display_slave.top_info.update_labels()
 
     def handle_reset_callback(self):
         """Handles reset button."""
@@ -229,6 +256,7 @@ class GameLogicalState:
 
     def handle_stop_callback(self):
         """Handles stop button."""
+        self.cancel_player_turn_timers()
         self.back_to_config_callback(config=self.config)
 
 

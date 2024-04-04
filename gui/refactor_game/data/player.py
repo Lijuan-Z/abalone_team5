@@ -60,6 +60,9 @@ class Player(abc.ABC):
     def turns_left(self):
         return self._turns_left
 
+    def increment_turns_left(self):
+        self._turns_left += 1
+
     @property
     def score(self):
         return self._score
@@ -96,6 +99,10 @@ class Player(abc.ABC):
         """Returns the time per turn."""
         pass
 
+    @abc.abstractmethod
+    def handle_undo(self):
+        pass
+
 
 class HumanPlayer(Player):
     def __init__(self, **kwargs):
@@ -114,6 +121,10 @@ class HumanPlayer(Player):
         """Returns the time per turn."""
         return self._turn_time_taken
 
+    def handle_undo(self):
+        pass
+
+
 
 class AIPlayer(Player):
     def __init__(self, turn_time, **kwargs):
@@ -129,11 +140,13 @@ class AIPlayer(Player):
 
         self._calculation_time_last_turn = elapsed_time
 
-        result_board = apply_move(board=game.board.copy(), groupmove=next_move)
+        result_board = game.board.copy()
+        apply_move(result_board, groupmove=next_move)
 
         self._recommendation_history.append(
             LogItem(player=self,
                     move=self.move_to_action(next_move),
+                    original_board=game.board.copy(),
                     result_board=result_board,
                     time_taken=elapsed_time)
         )
@@ -142,6 +155,11 @@ class AIPlayer(Player):
 
         for log_item in self._recommendation_history:
             print(str(log_item))
+        pass
+
+    def handle_undo(self):
+        self._recommendation_history.pop()
+        self._calculation_time_last_turn = 100000
         pass
 
     @property
@@ -183,7 +201,7 @@ class AIPlayer(Player):
             if not is_out_of_bounds(dest):
                 destination += (chr((dest // 10) + 96) + str(dest % 10))
             else:
-                destination = "n0"
+                destination += "n0"
         action = source + "-" + destination
         return action
 
