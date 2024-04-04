@@ -35,7 +35,6 @@ class GameLogicalState:
     }
 
     def __init__(self, config, back_to_config_callback, **kwargs):
-
         self.display_slave = None
 
         self.back_to_config_callback = back_to_config_callback
@@ -71,6 +70,9 @@ class GameLogicalState:
                 turns_left=self.config['player_2_turn_limit']
             )
         }
+
+        self.players[Player.ONE].special_init()
+        self.players[Player.TWO].special_init()
 
         self.current_player = (
             Player.ONE if self.players[Player.ONE].color == Color.BLACK.value

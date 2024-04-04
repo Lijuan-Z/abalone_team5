@@ -281,7 +281,9 @@ def alpha_beta_search_transposition(init_board, ply_board, alpha, beta, depth, m
     if cur_ply_player == max_player:
         best_move = None
         best_value = float('-inf')
-        for move, result_board in genall_groupmove_resultboard(ply_board, cur_ply_player):
+        x = genall_groupmove_resultboard(ply_board, cur_ply_player)
+        sorted_x = sorted(x, key=lambda item: len(item[0][0]), reverse=True)
+        for move, result_board in sorted_x:
             _, value = alpha_beta_search_transposition(init_board, result_board, alpha, beta, depth - 1, max_player,
                                                        1 - cur_ply_player, time_limit, total_turns_remaining - 1,
                                                        eval_callback, transposition_table)
@@ -295,7 +297,9 @@ def alpha_beta_search_transposition(init_board, ply_board, alpha, beta, depth, m
     else:
         best_move = None
         best_value = float('inf')
-        for move, result_board in genall_groupmove_resultboard(ply_board, cur_ply_player):
+        x = genall_groupmove_resultboard(ply_board, cur_ply_player)
+        sorted_x = sorted(x, key=lambda item: len(item[0][0]), reverse=True)
+        for move, result_board in sorted_x:
             _, value = alpha_beta_search_transposition(init_board, result_board, alpha, beta, depth - 1, max_player,
                                                        1 - cur_ply_player, time_limit, total_turns_remaining - 1,
                                                        eval_callback, transposition_table)

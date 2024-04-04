@@ -9,7 +9,7 @@ from statespace.marblecoords import is_out_of_bounds
 from statespace.search import iterative_deepening_alpha_beta_search
 from statespace.statespace import apply_move
 from statespace.transposition_table_IO import \
-    load_transposition_table_from_pickle
+    load_transposition_table_from_pickle, load_transposition_table_from_json
 
 
 class Player(abc.ABC):
@@ -28,6 +28,11 @@ class Player(abc.ABC):
 
         self._turn_timer = None
         self._update_top_info_callback = None
+
+    @abc.abstractmethod
+    def special_init(self):
+        """Initialization specific to the players called at logical state init"""
+        pass
 
     @abc.abstractmethod
     def start_turn(self, game):
@@ -124,6 +129,10 @@ class HumanPlayer(Player):
     def handle_undo(self):
         pass
 
+    def special_init(self):
+        """Initialization specific to the players called at logical state init"""
+        pass
+
 
 
 class AIPlayer(Player):
@@ -133,6 +142,29 @@ class AIPlayer(Player):
         self._calculation_time_last_turn = 0
         self._recommendation_history = []
         self.is_first_move = True
+
+    def special_init(self):
+        """Initialization specific to the players called at logical state init"""
+
+        # transposition_table_file_name = "./transposition_table.pkl"
+        # self._transposition_table = {}
+        # try:
+        #     self._transposition_table = load_transposition_table_from_pickle(
+        #         transposition_table_file_name)
+        #     print("loaded transposition_table_from_pickle")
+        # except FileNotFoundError:
+        #     print("no table found: ./transposition_table.pkl")
+        #     self._transposition_table = {}
+
+        transposition_table_file_name = "./transposition_table.json"
+        self._transposition_table = {}
+        try:
+            self._transposition_table = load_transposition_table_from_json(
+                transposition_table_file_name)
+            print(f"loaded transposition table from {transposition_table_file_name}")
+        except FileNotFoundError:
+            print(f"no table found: {transposition_table_file_name}")
+            self._transposition_table = {}
 
     def start_turn(self, game):
         next_move, elapsed_time = self.ai_search_result(game=game)
@@ -174,22 +206,16 @@ class AIPlayer(Player):
         """Returns the time per turn."""
         return self._calculation_time_last_turn
 
+
     def ai_search_result(self, game):
         input_player_turn = 0 if self.color == Color.BLACK.value else 1
         strategy = cam_heuristic.eval_state
 
-        transposition_table_file_name = "./transposition_table_ui.pkl"
-        transposition_table = {}
-        try:
-            transposition_table = load_transposition_table_from_pickle(
-                transposition_table_file_name)
-        except FileNotFoundError:
-            transposition_table = {}
 
         # need change time to milliseconds?
         input_time_limit = self.turn_time_max
         move, _, elapsed_time = iterative_deepening_alpha_beta_search(game.board, input_player_turn, input_time_limit * 1000,
-                                                                      self.turns_left, strategy, transposition_table, is_first_move=self.is_first_move)
+                                                                      self.turns_left, strategy, self._transposition_table, is_first_move=self.is_first_move)
         return move, elapsed_time
 
     def move_to_action(self, move):
