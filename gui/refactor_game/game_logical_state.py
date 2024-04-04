@@ -1,6 +1,7 @@
 """Handles the state of the actual game and triggering updates in display."""
 
 from gui.refactor_game.config_page import Layout, Color, Operator
+from gui.refactor_game.data.log import LogItem
 from gui.refactor_game.data.player import Player
 
 
@@ -33,6 +34,9 @@ class GameLogicalState:
     }
 
     def __init__(self, config, **kwargs):
+
+        self.display_slave = None
+
         if config is None:
             self.config = {'layout': Layout.STANDARD.value,
                            'player_1_color': Color.BLACK.value,
@@ -106,7 +110,7 @@ class GameLogicalState:
     def swap_players(self):
         self.current_player, self.next_player = self.next_player, self.current_player
 
-    def execute_string_input(self, action_string, update_board_callback):
+    def execute_string_input(self, action_string):
         origin_half, destination_half = action_string.split('-')
 
         origin_coord_strings = [origin_half[(i - 1) * 2:2 * i]for i in range(int(len(origin_half) / 2), 0, -1)]
@@ -123,7 +127,7 @@ class GameLogicalState:
             del self.board[origin_column_digit*10 + origin_row_digit]
             self.board[destination_column_digit*10 + destination_row_digit] = marble_color
 
-        update_board_callback(self.board)
+        self.display_slave.board.update_board()
 
 
     def handle_start_callback(self, caller):
@@ -131,13 +135,12 @@ class GameLogicalState:
         print("start")
         pass
 
-    def handle_input_confirm_callback(self, user_input, update_board_callback, update_labels_callback):
+    def handle_input_confirm_callback(self, user_input):
         """Handles action input confirm event."""
         print("input confirm")
         print(f"user_input: {user_input}")
         self.execute_string_input(
             action_string=user_input,
-            update_board_callback=update_board_callback
         )
         cur_player = self.players[self.current_player]
         new_log = LogItem(user_input,
@@ -147,30 +150,27 @@ class GameLogicalState:
         cur_player.time_left.set(cur_player.turn_time)
         cur_player.turns_left -= 1
         self.swap_players()
-        update_labels_callback()
-        pass
+        self.display_slave.top_info.update_labels()
 
     def handle_pause_callback(self):
         """Handles pause button."""
         print("pause")
-        pass
 
     def handle_resume_callback(self):
         """Handles resume button."""
         print("resume")
-        pass
 
     def handle_undo_last_move_callback(self):
         """Handles undo last move button."""
         print("undo")
-        pass
 
     def handle_reset_callback(self):
         """Handles reset button."""
         print("reset")
-        pass
 
     def handle_stop_callback(self):
         """Handles stop button."""
         print("stop")
-        pass
+
+    def bind_display(self, display_state):
+        self.display_slave = display_state

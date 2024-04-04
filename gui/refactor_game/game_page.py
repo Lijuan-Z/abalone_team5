@@ -18,18 +18,15 @@ class GamePage(tk.Frame):
         self.logical_state = GameLogicalState(config=config)
 
         self.display_state = (
-            GameDisplayState(parent=parent,
-                             get_top_info_callback=self.logical_state.get_top_info,
-                             get_board_callback=self.logical_state.get_board,
-                             handle_start_callback=self.logical_state.handle_start_callback,
-                             handle_input_confirm_callback=self.logical_state.handle_input_confirm_callback,
-                             handle_pause_callback=self.logical_state.handle_pause_callback,
-                             handle_resume_callback=self.logical_state.handle_resume_callback,
-                             handle_undo_last_move_callback=self.logical_state.handle_undo_last_move_callback,
-                             handle_reset_callback=self.logical_state.handle_reset_callback,
-                             handle_stop_callback=self.logical_state.handle_stop_callback,
-                             )
+            GameDisplayState(
+                parent=parent,
+                observed_logical_state=self.logical_state
+            )
         )
+
+        self.logical_state.bind_display(self.display_state)
+
         self.display_state.grid(row=0, column=0, sticky="nsew")
 
-        self.display_state.board_widget.update_board(self.logical_state.board)
+        self.display_state.board.update_board()
+        self.display_state.top_info.update_labels()

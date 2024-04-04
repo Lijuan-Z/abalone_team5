@@ -5,3 +5,4 @@ class SideInfo(tk.Frame):
 
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, **kwargs)
+        self.parent = parent

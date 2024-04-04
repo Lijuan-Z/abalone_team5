@@ -4,9 +4,9 @@ import tkinter as tk
 class TopInfo(tk.Frame):
     """Contains information like score, turns remaining, etc."""
 
-    def __init__(self, parent, get_top_info_callback, *args, **kwargs):
+    def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, **kwargs)
-        self.get_top_info_callback = get_top_info_callback
+        self.parent = parent
 
         self.rowconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
@@ -37,10 +37,8 @@ class TopInfo(tk.Frame):
         self.player_2_score_label.grid(row=1, column=4)
         self.player_2_time_left_label.grid(row=1, column=5)
 
-        self.update_labels()
-
     def update_labels(self):
-        info = self.get_top_info_callback()
+        info = self.parent.observed_logical_state.get_top_info()
         self.set_labels(**info)
 
     def set_labels(self,

@@ -7,9 +7,10 @@ class Board(tk.Frame):
     COLUMNS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
 
     def __init__(self, parent,
-                 get_board_callback,
                  *args, **kwargs):
         super().__init__(parent, **kwargs)
+        self.parent = parent
+
         self.canvas = tk.Canvas(self, bg="pink")
         self.canvas.bind("<Button-1>", lambda event: print(f'{event.x}:{event.y}'))
 
@@ -18,15 +19,15 @@ class Board(tk.Frame):
 
         self.canvas.grid(row=0, column=0, sticky='nsew')
         self.bind("<Configure>",
-                  lambda event: self.update_board(
-                      get_board_callback()
-                  ))
+                  lambda event: self.update_board())
 
     def click_coord_to_marble_coord(self, coord):
         pass
 
-    def update_board(self, board: dict[int, int]):
+    def update_board(self):
         """Updates the canvas to draw the given board."""
+        board = self.parent.observed_logical_state.get_board()
+
         self.update()
 
         canvas_width = self.canvas.winfo_width()
