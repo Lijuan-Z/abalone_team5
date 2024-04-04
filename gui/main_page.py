@@ -4,6 +4,11 @@ import random
 import threading
 import tkinter as tk
 
+from heuristics import cam_heuristic
+from statespace.marblecoords import is_out_of_bounds
+from statespace.search import iterative_deepening_alpha_beta_search
+from statespace.transposition_table_IO import load_transposition_table_from_pickle
+
 
 class GameGUI(tk.Frame):
     """GameGUI displays the game board and executes game logic."""
@@ -418,7 +423,7 @@ class GameGUI(tk.Frame):
                 self.white_time_var.set(
                     f"White time left: {self.time_left['white']}")
         elif ((self.paused is False and self.player_turn == owner and
-              self.time_left[self.player_turn] == 0) and
+               self.time_left[self.player_turn] == 0) and
               GameGUI.SESSION_ID == session_id):
             print('reached')
             self.reset_game()
@@ -433,6 +438,43 @@ class GameGUI(tk.Frame):
         self.update_display()
         self.start_turn()
 
+    def move_to_action(self, move):
+        source_pos, direction = move
+        print(source_pos, direction)
+        source = ""
+        destination = ""
+        for pos in source_pos:
+            source += (chr((pos[0] // 10) + 96) + str(pos[0] % 10))
+            dest = pos[0] + direction
+            if not is_out_of_bounds(dest):
+                destination += (chr((dest // 10) + 96) + str(dest % 10))
+        action = source + "-" + destination
+        return action
+
+    def ai_search_result(self):
+        board = {}
+        for key, value in self.positions.items():
+            if value['color'] == 'black':
+                board[(ord(key[0]) - 96) * 10 + int(key[1])] = 0
+            elif value['color'] == 'white':
+                board[(ord(key[0]) - 96) * 10 + int(key[1])] = 1
+        input_player_turn = 0 if self.player_turn == 'black' else 1
+        strategy = cam_heuristic.eval_state
+
+        transposition_table_file_name = "./transposition_table_ui.pkl"
+        transposition_table = {}
+        try:
+            transposition_table = load_transposition_table_from_pickle(
+                transposition_table_file_name)
+        except FileNotFoundError:
+            transposition_table = {}
+
+        # need change time to milliseconds?
+        input_time_limit = self.time_left[self.player_turn]
+        move, _, elapsed_time = iterative_deepening_alpha_beta_search(board, input_player_turn, input_time_limit * 100,
+                                                     self.num_moves[self.player_turn], strategy, transposition_table)
+        return move, elapsed_time
+
     def start_turn(self):
         """Starts a new turn, executing logic based on if human or computer."""
         if self.total_move_number > 0:
@@ -443,21 +485,25 @@ class GameGUI(tk.Frame):
                               session_id=GameGUI.SESSION_ID)
             if self.config['color_selection'] != self.player_turn:
                 print('Computer turn')
-                action = self.actions[self.current_action_index]
+                calculation_time = None
+
+                if self.current_action_index == 0 and self.player_turn == 'black':
+                    # random actions for black first move
+                    index_selected = random.randint(0, len(self.actions) - 1)
+                    action = self.actions[index_selected]
+                else:
+                    move, calculation_time = self.ai_search_result()
+                    action = self.move_to_action(move)
                 self.current_action_index += 1
                 self.ai_next_var.set("Calculating...")
-                calculation_time = random.randint(1, 8)
                 self.ai_recommendation_history.append(
-                    (action, calculation_time))
+                    (action, calculation_time if calculation_time is not None else 0))
                 self.action_entry.config(state="disabled")
                 self.pause_button.config(state="disabled")
                 self.resume_button.config(state="disabled")
                 self.reset_button.config(state="disabled")
                 self.undo_button.config(state="disabled")
-                timer = threading.Timer(calculation_time,
-                                        lambda: self.ai_next_move_callback(
-                                            action))
-                timer.start()
+                self.ai_next_move_callback(action)
             else:
                 print('Human turn')
                 self.action_entry.config(state="normal")
