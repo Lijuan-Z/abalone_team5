@@ -182,7 +182,7 @@ class AIPlayer(Player):
         game.display_slave.side_info.update_all()
 
         for log_item in self._recommendation_history:
-            print(str(log_item))
+            print("recommendation_history: ", str(log_item))
         pass
 
     def handle_undo(self):

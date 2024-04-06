@@ -197,7 +197,7 @@ class GameLogicalState:
                           result_board=self.board.copy(),
                           time_taken=cur_player.turn_time_taken)
         cur_player.log.append(new_log)
-        print("\n".join([str(item) for item in cur_player.log]))
+        print('Actual:', "\n".join([str(item) for item in cur_player.log]))
         self.display_slave.side_info.update_all()
 
         cur_player.reset_turn_time_taken()

@@ -42,21 +42,21 @@ class Board(tk.Frame):
 
         action_entry = self.parent.bottom_bar.input_action_entry
 
-        if char == 't':
+        if char == 'r':
             if "entry" in str(self.parent.focus_get()):
-                print("entry highlighted, deleting 't' character")
+                print("entry highlighted, deleting 'r' character")
                 action_entry.delete(len(action_entry.get()) - 1, tk.END)
             action_entry.insert(tk.END, '-')
-        elif char == 'y':
+        elif char == ' ':
             if "entry" in str(self.parent.focus_get()):
-                print("entry highlighted, deleting 'y' character")
+                print("entry highlighted, deleting ' ' character")
                 action_entry.delete(len(action_entry.get()) - 1, tk.END)
             entry_action = action_entry.get()
             self.parent.observed_logical_state.handle_input_confirm_callback(user_input=entry_action)
             action_entry.delete(0, 'end')
-        elif char == 'h':
+        elif char == 'q':
             if "entry" in str(self.parent.focus_get()):
-                print("entry highlighted, deleting 'g' character")
+                print("entry highlighted, deleting 'q' character")
                 action_entry.delete(len(action_entry.get()) - 1, tk.END)
             temp_accept_latest()
 
