@@ -63,9 +63,9 @@ def print_board(board, black_marble="🦖", white_marble="🐒", empty_space="�
 if __name__ == '__main__':
     board_state = starting_boards["standard"]
     cur_player = 1
-    depth = 5
-    turns_remaining = [5, 5]
-    path = [None]
+    depth = 6
+    turns_remaining = [10, 10]
+    path = []
 
     while not game_over(board_state, turns_remaining[cur_player], cur_player):
         cur_player = 1 - cur_player
