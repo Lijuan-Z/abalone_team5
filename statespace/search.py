@@ -92,18 +92,20 @@ def alpha_beta_search(init_board, ply_board, alpha, beta, total_depth, depth, ma
         return None, eval_callback(init_board=init_board, ply_board=ply_board,
                                    total_turns_remaining=total_turns_remaining, max_player=max_player,
                                    time_limit=time_limit)
-    if cur_ply_player == max_player:
-        best_move = None
-        best_value = float('-inf')
-        groupmove_resultboard = genall_groupmove_resultboard(ply_board, cur_ply_player)
+
+    best_move = None
+    groupmove_resultboard = genall_groupmove_resultboard(ply_board, cur_ply_player)
+    try:
+        best_gm_rb = [gm_rb for gm_rb in groupmove_resultboard if gm_rb[0] == path[total_depth - depth]][0]
+        groupmove_resultboard.insert(0, best_gm_rb)
+    except Exception:
         try:
-            best_gm_rb = [gm_rb for gm_rb in groupmove_resultboard if gm_rb[0] == path[total_depth - depth]][0]
-            groupmove_resultboard.insert(0, best_gm_rb)
+            path[total_depth - depth]
         except Exception:
-            try:
-                path[total_depth - depth]
-            except Exception:
-                path.append(depth)
+            path.append(depth)
+
+    if cur_ply_player == max_player:
+        best_value = float('-inf')
         for i, (move, result_board) in enumerate(groupmove_resultboard):
             _, value = alpha_beta_search(init_board,result_board, alpha, beta, total_depth, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback, path)
             if value > best_value:
@@ -113,21 +115,8 @@ def alpha_beta_search(init_board, ply_board, alpha, beta, total_depth, depth, ma
                 break
             if value > alpha:
                 alpha = value
-        if path[total_depth - depth] is depth:
-            path[total_depth - depth] = best_move
-        return best_move, best_value
     else:
-        best_move = None
         best_value = float('inf')
-        groupmove_resultboard = genall_groupmove_resultboard(ply_board, cur_ply_player)
-        try:
-            best_gm_rb = [gm_rb for gm_rb in groupmove_resultboard if gm_rb[0] == path[total_depth - depth]][0]
-            groupmove_resultboard.insert(0, best_gm_rb)
-        except Exception:
-            try:
-                path[total_depth - depth]
-            except Exception:
-                path.append(depth)
         for i, (move, result_board) in enumerate(groupmove_resultboard):
             _, value = alpha_beta_search(init_board,result_board, alpha, beta, total_depth, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback, path)
             if value < best_value:
@@ -137,9 +126,10 @@ def alpha_beta_search(init_board, ply_board, alpha, beta, total_depth, depth, ma
                 break
             if value < beta:
                 beta = value
-        if path[total_depth - depth] is depth:
-            path[total_depth - depth] = best_move
-        return best_move, best_value
+
+    if path[total_depth - depth] is depth:
+        path[total_depth - depth] = best_move
+    return best_move, best_value
 
 def num_player_marbles(player, board):
     """
