@@ -47,18 +47,27 @@ class Board(tk.Frame):
                 print("entry highlighted, deleting 'r' character")
                 action_entry.delete(len(action_entry.get()) - 1, tk.END)
             action_entry.insert(tk.END, '-')
-        elif char == ' ':
+        elif char == '':
             if "entry" in str(self.parent.focus_get()):
-                print("entry highlighted, deleting ' ' character")
+                print("entry highlighted, deleting 'ctrl+r' character")
                 action_entry.delete(len(action_entry.get()) - 1, tk.END)
             entry_action = action_entry.get()
             self.parent.observed_logical_state.handle_input_confirm_callback(user_input=entry_action)
             action_entry.delete(0, 'end')
-        elif char == 'q':
+        elif char == '':
             if "entry" in str(self.parent.focus_get()):
-                print("entry highlighted, deleting 'q' character")
+                print("entry highlighted, deleting 'ctrl+e' character")
                 action_entry.delete(len(action_entry.get()) - 1, tk.END)
             temp_accept_latest()
+
+        elif char == 'q':
+            if "entry" in str(self.parent.focus_get()):
+                print("entry highlighted, deleting 't' character")
+                action_entry.delete(len(action_entry.get()) - 1, tk.END)
+            action_entry.delete(0, tk.END)
+
+        else:
+            print(char)
 
 
     def click_coord_to_marble_coord(self, click_x, click_y):

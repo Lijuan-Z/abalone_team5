@@ -229,7 +229,7 @@ class GameLogicalState:
 
     def handle_resume_callback(self):
         """Handles resume button."""
-        self.players[self.current_player].start_turn_timer()
+        self.players[self.current_player].start_turn_timer(game=self)
 
         self.display_slave.bottom_bar.resume_button.configure(state=tk.DISABLED)
         self.display_slave.bottom_bar.pause_button.configure(state=tk.NORMAL)

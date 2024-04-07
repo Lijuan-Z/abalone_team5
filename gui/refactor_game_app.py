@@ -1,6 +1,6 @@
 import _tkinter
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, font
 
 from gui.refactor_game.config_page import ConfigPage
 from gui.refactor_game.game_page import GamePage
@@ -36,6 +36,15 @@ class GameApp(tk.Tk):
 
         self.title("Abalone")
         self.resizable = True
+        # self.defaultFont = font.Font(family="Times New Roman", size=50)
+        self.default_font = font.nametofont("TkDefaultFont")
+        self.default_font.configure(size=12)
+
+        self.default_font = font.nametofont("TkTextFont")
+        self.default_font.configure(size=12)
+
+        self.default_font = font.nametofont("TkFixedFont")
+        self.default_font.configure(size=14)
         # self.attributes('-fullscreen', True)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
