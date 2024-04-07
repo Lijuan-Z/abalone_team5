@@ -174,7 +174,6 @@ class GameLogicalState:
         self.game_state = "Playing"
 
         self.players[self.current_player].start_turn(game=self)
-        self.players[self.current_player].start_turn_timer()
 
         self.display_slave.top_info.update_labels()
 
@@ -209,7 +208,6 @@ class GameLogicalState:
         self.swap_players()
 
         new_cur_player = self.players[self.current_player]
-        new_cur_player.start_turn_timer()
         new_cur_player.start_turn(game=self)
 
         self.display_slave.top_info.update_labels()
@@ -248,7 +246,6 @@ class GameLogicalState:
         self.swap_players()
         new_cur_player = self.players[self.current_player]
         new_cur_player.increment_turns_left()
-        new_cur_player.start_turn_timer()
         new_cur_player.start_turn(game=self)
 
         self.display_slave.side_info.update_all()

@@ -114,6 +114,7 @@ class HumanPlayer(Player):
         super().__init__(**kwargs)
 
     def start_turn(self, game):
+        self.start_turn_timer()
         pass
 
     @property
@@ -161,29 +162,32 @@ class AIPlayer(Player):
             transposition_table_file_name)
 
     def start_turn(self, game):
-        next_move, elapsed_time = self.ai_search_result(game=game)
-        self.is_first_move = False
-        print(next_move, elapsed_time)
-        print(self.move_to_action(next_move))
+        self.start_turn_timer()
+        def after_search_callback(next_move, elapsed_time):
+            self.is_first_move = False
+            print(next_move, elapsed_time)
+            print(self.move_to_action(next_move))
 
-        self._calculation_time_last_turn = elapsed_time
+            self._calculation_time_last_turn = elapsed_time
 
-        result_board = game.board.copy()
-        apply_move(result_board, groupmove=next_move)
+            result_board = game.board.copy()
+            apply_move(result_board, groupmove=next_move)
 
-        self._recommendation_history.append(
-            LogItem(player=self,
-                    move=self.move_to_action(next_move),
-                    original_board=game.board.copy(),
-                    result_board=result_board,
-                    time_taken=elapsed_time)
-        )
+            self._recommendation_history.append(
+                LogItem(player=self,
+                        move=self.move_to_action(next_move),
+                        original_board=game.board.copy(),
+                        result_board=result_board,
+                        time_taken=elapsed_time)
+            )
 
-        game.display_slave.side_info.update_all()
+            game.display_slave.side_info.update_all()
 
-        for log_item in self._recommendation_history:
-            print("recommendation_history: ", str(log_item))
-        pass
+            for log_item in self._recommendation_history:
+                print("recommendation_history: ", str(log_item))
+
+        search_thread = threading.Thread(target=self.ai_search_result, kwargs={"game": game, "after_search_callback": after_search_callback})
+        search_thread.start()
 
     def handle_undo(self):
         self._recommendation_history.pop()
@@ -198,10 +202,12 @@ class AIPlayer(Player):
     @property
     def turn_time_taken(self) -> int or None:
         """Returns the time per turn."""
-        return self._calculation_time_last_turn
+        # return self._calculation_time_last_turn
+        return self._turn_time_taken
 
 
-    def ai_search_result(self, game):
+
+    def ai_search_result(self, game, after_search_callback):
         input_player_turn = 0 if self.color == Color.BLACK.value else 1
         strategy = cam_heuristic.eval_state
 
@@ -210,7 +216,7 @@ class AIPlayer(Player):
         input_time_limit = self.turn_time_max
         move, _, elapsed_time = iterative_deepening_alpha_beta_search(game.board, input_player_turn, input_time_limit * 1000,
                                                                       self.turns_left, strategy, self._transposition_table, is_first_move=self.is_first_move)
-        return move, elapsed_time
+        after_search_callback(move, elapsed_time)
 
     def move_to_action(self, move):
         source_pos, direction = move
