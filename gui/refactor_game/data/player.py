@@ -46,8 +46,8 @@ class Player(abc.ABC):
         if self._turn_timer_stop:
             return
         self._turn_time_taken += 1
-        # self._update_top_info_callback()
-        game.parent.display_state.top_info.player_time_left_stringvar[self.player_num].set(self.turn_time_max - self.turn_time_taken)
+        self._update_top_info_callback()
+        # game.parent.display_state.top_info.player_time_left_stringvar[self.player_num].set(self.turn_time_max - self.turn_time_taken)
         game.parent.after(10, self.do_timer_tick, game)
 
     def cancel_timer(self):
@@ -163,7 +163,6 @@ class AIPlayer(Player):
             transposition_table_file_name)
 
     def start_turn(self, game):
-        self.start_turn_timer(game)
         def after_search_callback(next_move, elapsed_time):
             self.is_first_move = False
             print(next_move, elapsed_time)
@@ -171,8 +170,8 @@ class AIPlayer(Player):
 
             print('cancelling timer')
             self.cancel_timer()
-            self._calculation_time_last_turn = elapsed_time
-            self._turn_time_taken = elapsed_time
+            self._calculation_time_last_turn = elapsed_time * 100
+            self._turn_time_taken = elapsed_time * 100
             self._update_top_info_callback()
 
             result_board = game.board.copy()
@@ -183,7 +182,7 @@ class AIPlayer(Player):
                         move=self.move_to_action(next_move),
                         original_board=game.board.copy(),
                         result_board=result_board,
-                        time_taken=elapsed_time)
+                        time_taken=round(elapsed_time, 2))
             )
 
             game.display_slave.side_info.update_all()
@@ -192,6 +191,7 @@ class AIPlayer(Player):
                 print("recommendation_history: ", str(log_item))
 
         search_thread = threading.Thread(target=self.ai_search_result, kwargs={"game": game, "after_search_callback": after_search_callback})
+        self.start_turn_timer(game)
         search_thread.start()
 
     def handle_undo(self):
@@ -222,7 +222,7 @@ class AIPlayer(Player):
         request = {
             'board': game.board,
             'player': input_player_turn,
-            'time_limit': input_time_limit * 1000,  # Adjust time unit
+            'time_limit': input_time_limit * 10,  # Adjust time unit
             'turns_remaining': self.turns_left,
             'transposition_table': self._transposition_table,
             'is_first_move': self.is_first_move

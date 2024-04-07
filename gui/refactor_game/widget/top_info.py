@@ -74,7 +74,7 @@ class TopInfo(tk.Frame):
             text=f'Player1 Score: {player_1_score}')
         # self.player_1_time_left_label.config(
         #     text=f'Player1 Time Left: {player_1_time_left}')
-        self.player_time_left_stringvar[Player.ONE].set(f'Player1 Time Left: {player_1_time_left}')
+        self.player_time_left_stringvar[Player.ONE].set(f'Player1 Time Left: {round(player_1_time_left / 100, 2):0.2f}')
         self.player_2_marble_color_label.config(
             text=f'Player2: {player_2_operator}-{player_2_marble_color}')
         self.player_2_turns_left_label.config(
@@ -83,4 +83,4 @@ class TopInfo(tk.Frame):
             text=f'Player2 Score: {player_2_score}')
         # self.player_2_time_left_label.config(
         #     text=f'Player2 Time_left: {player_2_time_left}')
-        self.player_time_left_stringvar[Player.TWO].set(f'Player2 Time_left: {player_2_time_left}')
+        self.player_time_left_stringvar[Player.TWO].set(f'Player2 Time_left: {round(player_2_time_left / 100, 2):0.2f}')

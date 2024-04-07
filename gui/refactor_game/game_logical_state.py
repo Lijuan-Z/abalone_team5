@@ -63,7 +63,7 @@ class GameLogicalState:
                 player_num=Player.ONE,
                 operator=self.config['player_1_operator'],
                 color=self.config['player_1_color'],
-                turn_time=self.config['player_1_seconds_per_turn'],
+                turn_time=self.config['player_1_seconds_per_turn'] * 100,
                 turns_left=self.config['player_1_turn_limit'],
                 **kwargs
             ),
@@ -71,7 +71,7 @@ class GameLogicalState:
                 player_num=Player.TWO,
                 operator=self.config['player_2_operator'],
                 color=self.config['player_2_color'],
-                turn_time=self.config['player_2_seconds_per_turn'],
+                turn_time=self.config['player_2_seconds_per_turn'] * 100,
                 turns_left=self.config['player_2_turn_limit'],
                 **kwargs
             )
@@ -200,7 +200,7 @@ class GameLogicalState:
                           move=user_input,
                           original_board=pre_move_board,
                           result_board=self.board.copy(),
-                          time_taken=cur_player.turn_time_taken)
+                          time_taken=round(cur_player.turn_time_taken/100, 2))
         cur_player.log.append(new_log)
         print('Actual:', "\n".join([str(item) for item in cur_player.log]))
         self.display_slave.side_info.update_all()
