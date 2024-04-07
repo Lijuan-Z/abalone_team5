@@ -24,13 +24,16 @@ dark_mode_colors = {
 class GameApp(tk.Tk):
     """GameApp runs the tkinter app and controls switching between GUIs."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, backend_conn, *args, **kwargs):
         """Initializes a new GameApp instance.
 
         :param args: any args to pass through to tk.Tk
         :param kwargs: any kwargs to pass through to tk.Tk
         """
         super().__init__()
+
+        self.backend_conn = backend_conn
+
         self.title("Abalone")
         self.resizable = True
         # self.attributes('-fullscreen', True)
@@ -62,7 +65,7 @@ class GameApp(tk.Tk):
             self.forget_packs_recursively(self)
         self.geometry("1200x800")
         self.center(self)
-        self.current_page = GamePage(self, back_to_config_callback=self.start_config, **kwargs)
+        self.current_page = GamePage(self, back_to_config_callback=self.start_config, backend_conn=self.backend_conn, **kwargs)
         self.current_page.grid(row=0, column=0, sticky='nsew')
         self.dark_mode(root=self)
 

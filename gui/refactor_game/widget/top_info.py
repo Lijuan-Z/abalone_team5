@@ -1,5 +1,7 @@
 import tkinter as tk
 
+from gui.refactor_game.data.player import Player
+
 
 class TopInfo(tk.Frame):
     """Contains information like score, turns remaining, etc."""
@@ -15,16 +17,23 @@ class TopInfo(tk.Frame):
         self.columnconfigure((1, 2, 3, 4, 5), weight=1)
         self.columnconfigure(6, weight=4)
 
+        self.player_time_left_stringvar = {}
+        self.player_time_left_stringvar[Player.ONE] = tk.StringVar()
+        self.player_time_left_stringvar[Player.ONE].set("")
+
+        self.player_time_left_stringvar[Player.TWO] = tk.StringVar()
+        self.player_time_left_stringvar[Player.TWO].set("")
+
         self.cur_player_label = tk.Label(self, text="")
         self.game_state_label = tk.Label(self, text="")
         self.player_1_marble_color_label = tk.Label(self, text="")
         self.player_1_turns_left_label = tk.Label(self, text="")
         self.player_1_score_label = tk.Label(self, text="")
-        self.player_1_time_left_label = tk.Label(self, text="")
+        self.player_1_time_left_label = tk.Label(self, textvariable=self.player_time_left_stringvar[Player.ONE])
         self.player_2_marble_color_label = tk.Label(self, text="")
         self.player_2_turns_left_label = tk.Label(self, text="")
         self.player_2_score_label = tk.Label(self, text="")
-        self.player_2_time_left_label = tk.Label(self, text="")
+        self.player_2_time_left_label = tk.Label(self, textvariable=self.player_time_left_stringvar[Player.TWO])
 
         self.cur_player_label.grid(row=0, column=1)
         self.game_state_label.grid(row=1, column=1)
@@ -63,13 +72,15 @@ class TopInfo(tk.Frame):
             text=f'Player1 Turn Left: {player_1_turns_left}')
         self.player_1_score_label.config(
             text=f'Player1 Score: {player_1_score}')
-        self.player_1_time_left_label.config(
-            text=f'Player1 Time Left: {player_1_time_left}')
+        # self.player_1_time_left_label.config(
+        #     text=f'Player1 Time Left: {player_1_time_left}')
+        self.player_time_left_stringvar[Player.ONE].set(f'Player1 Time Left: {player_1_time_left}')
         self.player_2_marble_color_label.config(
             text=f'Player2: {player_2_operator}-{player_2_marble_color}')
         self.player_2_turns_left_label.config(
             text=f'Player2 Turns Left: {player_2_turns_left}')
         self.player_2_score_label.config(
             text=f'Player2 Score: {player_2_score}')
-        self.player_2_time_left_label.config(
-            text=f'Player2 Time_left: {player_2_time_left}')
+        # self.player_2_time_left_label.config(
+        #     text=f'Player2 Time_left: {player_2_time_left}')
+        self.player_time_left_stringvar[Player.TWO].set(f'Player2 Time_left: {player_2_time_left}')

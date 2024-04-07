@@ -60,16 +60,20 @@ class GameLogicalState:
 
         self.players = {
             Player.ONE: PlayerFactory.make_player(
+                player_num=Player.ONE,
                 operator=self.config['player_1_operator'],
                 color=self.config['player_1_color'],
                 turn_time=self.config['player_1_seconds_per_turn'],
                 turns_left=self.config['player_1_turn_limit'],
+                **kwargs
             ),
             Player.TWO: PlayerFactory.make_player(
+                player_num=Player.TWO,
                 operator=self.config['player_2_operator'],
                 color=self.config['player_2_color'],
                 turn_time=self.config['player_2_seconds_per_turn'],
-                turns_left=self.config['player_2_turn_limit']
+                turns_left=self.config['player_2_turn_limit'],
+                **kwargs
             )
         }
 

@@ -1,6 +1,7 @@
 import threading
 import tkinter as tk
 import abc
+from time import sleep
 
 from gui.refactor_game.config_page import Operator, Color
 from gui.refactor_game.data.log import LogItem
@@ -17,7 +18,8 @@ class Player(abc.ABC):
     ONE = 0
     TWO = 1
 
-    def __init__(self, color, operator, turn_time, turns_left):
+    def __init__(self, player_num, color, operator, turn_time, turns_left, **kwargs):
+        self.player_num = player_num
         self._color = color
         self._operator = operator
         self._turns_left = turns_left
@@ -37,21 +39,23 @@ class Player(abc.ABC):
         pass
 
     def start_turn(self, game):
+        self._turn_time_taken = 0
         self.start_turn_timer(game)
 
     def do_timer_tick(self, game):
         if self._turn_timer_stop:
             return
         self._turn_time_taken += 1
-        self._update_top_info_callback()
-        game.parent.after(1000, self.do_timer_tick, game)
+        # self._update_top_info_callback()
+        game.parent.display_state.top_info.player_time_left_stringvar[self.player_num].set(self.turn_time_max - self.turn_time_taken)
+        game.parent.after(10, self.do_timer_tick, game)
 
     def cancel_timer(self):
         self._turn_timer_stop = True
 
     def start_turn_timer(self, game):
         self._turn_timer_stop = False
-        game.parent.after(1000, self.do_timer_tick, game)
+        game.parent.after(10, self.do_timer_tick, game)
 
 
     def bind_top_info_callback(self, update_top_info_callback):
@@ -133,8 +137,9 @@ class HumanPlayer(Player):
 
 
 class AIPlayer(Player):
-    def __init__(self, turn_time, **kwargs):
+    def __init__(self, turn_time, backend_conn, **kwargs):
         super().__init__(turn_time=float("inf"), **kwargs)
+        self.backend_conn = backend_conn
         self._calculation_time_max = turn_time
         self._calculation_time_last_turn = 0
         self._recommendation_history = []
@@ -209,13 +214,24 @@ class AIPlayer(Player):
 
     def ai_search_result(self, game, after_search_callback):
         input_player_turn = 0 if self.color == Color.BLACK.value else 1
-        strategy = cam_heuristic.eval_state
 
 
         # need change time to milliseconds?
         input_time_limit = self.turn_time_max
-        move, _, elapsed_time = iterative_deepening_alpha_beta_search(game.board, input_player_turn, input_time_limit * 1000,
-                                                                      self.turns_left, strategy, self._transposition_table, is_first_move=self.is_first_move)
+
+        request = {
+            'board': game.board,
+            'player': input_player_turn,
+            'time_limit': input_time_limit * 1000,  # Adjust time unit
+            'turns_remaining': self.turns_left,
+            'transposition_table': self._transposition_table,
+            'is_first_move': self.is_first_move
+        }
+        self.backend_conn.send(request)
+
+
+        move, elapsed_time = self.backend_conn.recv()
+
         after_search_callback(move, elapsed_time)
 
     def move_to_action(self, move):

@@ -15,7 +15,7 @@ class GamePage(tk.Frame):
 
         self.default_config = config
 
-        self.logical_state = GameLogicalState(parent=self, config=config, back_to_config_callback=back_to_config_callback)
+        self.logical_state = GameLogicalState(parent=self, config=config, back_to_config_callback=back_to_config_callback, **kwargs)
 
         self.display_state = (
             GameDisplayState(
