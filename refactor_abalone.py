@@ -1,10 +1,11 @@
 """Runs the REFACTORED abalone program with a GUI."""
-from multiprocessing import Pipe
+from multiprocessing import Pipe, freeze_support
 
 from gui.refactor_game_app import GameApp
 from backend.ai_daemon import AIDaemon
 
 if __name__ == '__main__':
+    freeze_support()
 
     parent_conn, child_conn = Pipe()
 
