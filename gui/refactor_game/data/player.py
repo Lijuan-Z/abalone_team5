@@ -27,6 +27,8 @@ class Player(abc.ABC):
         self._log = []
 
         self._turn_timer = None
+        self._turn_timer_stop = True
+
         self._update_top_info_callback = None
 
     @abc.abstractmethod
@@ -34,25 +36,23 @@ class Player(abc.ABC):
         """Initialization specific to the players called at logical state init"""
         pass
 
-    @abc.abstractmethod
     def start_turn(self, game):
-        pass
+        self.start_turn_timer(game)
 
-    def do_timer_tick(self):
-        self._turn_timer = threading.Timer(1, self.do_timer_tick)
+    def do_timer_tick(self, game):
+        if self._turn_timer_stop:
+            return
         self._turn_time_taken += 1
         self._update_top_info_callback()
-        self._turn_timer.start()
+        game.parent.after(1000, self.do_timer_tick, game)
 
     def cancel_timer(self):
-        try:
-            self._turn_timer.cancel()
-        except Exception as e:
-            print(e)
+        self._turn_timer_stop = True
 
-    def start_turn_timer(self):
-        self._turn_timer = threading.Timer(1, self.do_timer_tick)
-        self._turn_timer.start()
+    def start_turn_timer(self, game):
+        self._turn_timer_stop = False
+        game.parent.after(1000, self.do_timer_tick, game)
+
 
     def bind_top_info_callback(self, update_top_info_callback):
         self._update_top_info_callback = update_top_info_callback
@@ -113,10 +113,6 @@ class HumanPlayer(Player):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def start_turn(self, game):
-        self.start_turn_timer()
-        pass
-
     @property
     def turn_time_max(self) -> int or None:
         """Returns the time per turn."""
@@ -162,13 +158,17 @@ class AIPlayer(Player):
             transposition_table_file_name)
 
     def start_turn(self, game):
-        self.start_turn_timer()
+        self.start_turn_timer(game)
         def after_search_callback(next_move, elapsed_time):
             self.is_first_move = False
             print(next_move, elapsed_time)
             print(self.move_to_action(next_move))
 
+            print('cancelling timer')
+            self.cancel_timer()
             self._calculation_time_last_turn = elapsed_time
+            self._turn_time_taken = elapsed_time
+            self._update_top_info_callback()
 
             result_board = game.board.copy()
             apply_move(result_board, groupmove=next_move)

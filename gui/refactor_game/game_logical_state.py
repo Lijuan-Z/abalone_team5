@@ -34,7 +34,9 @@ class GameLogicalState:
                                     74: 1, 75: 1, 84: 1, 85: 1},
     }
 
-    def __init__(self, config, back_to_config_callback, **kwargs):
+    def __init__(self, parent, config, back_to_config_callback, **kwargs):
+        self.parent = parent
+
         self.display_slave = None
 
         self.back_to_config_callback = back_to_config_callback
