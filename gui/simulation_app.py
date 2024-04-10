@@ -1,6 +1,6 @@
 """Interface for game simulations."""
 import tkinter as tk
-from .simulation_page import SimulationGUI
+from gui.simulation.simulation_page import SimulationGUI
 
 class SimApp(tk.Tk):
     """GameApp runs the tkinter app and controls switching between GUIs."""

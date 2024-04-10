@@ -177,7 +177,7 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     if is_first_move and player == 0:
         first_move = first_moves_dict[(hash_board_state(board), random.randint(1, 3))]
         print(f"First Move: {first_move}")
-        return first_move
+        return first_move, transposition_table, 0
 
     if transposition_table is None:
         try:
@@ -196,7 +196,7 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     # The loop will end before the time limit if the maximum depth (based on turns remaining) is reached.
     while depth <= total_turns_remaining:
         elapsed_time = (datetime.now() - start_time).total_seconds()
-        if elapsed_time >= time_limit_seconds * 0.5:
+        if elapsed_time >= time_limit_seconds * 0.1:
             depth -= 1
             break
         temp_move, _ = alpha_beta_search_transposition(board, board, float('-inf'), float('inf'), depth, player, player,
@@ -227,7 +227,7 @@ def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_r
     if is_first_move and player == 0:
         first_move = first_moves_dict[(hash_board_state(board), random.randint(1, 3))]
         print(f"First Move: {first_move}")
-        return first_move
+        return first_move, transposition_table
 
     if transposition_table is None:
         try:
@@ -281,7 +281,9 @@ def alpha_beta_search_transposition(init_board, ply_board, alpha, beta, depth, m
     if cur_ply_player == max_player:
         best_move = None
         best_value = float('-inf')
-        for move, result_board in genall_groupmove_resultboard(ply_board, cur_ply_player):
+        x = genall_groupmove_resultboard(ply_board, cur_ply_player)
+        sorted_x = sorted(x, key=lambda item: len(item[0][0]), reverse=True)
+        for move, result_board in sorted_x:
             _, value = alpha_beta_search_transposition(init_board, result_board, alpha, beta, depth - 1, max_player,
                                                        1 - cur_ply_player, time_limit, total_turns_remaining - 1,
                                                        eval_callback, transposition_table)
@@ -295,7 +297,9 @@ def alpha_beta_search_transposition(init_board, ply_board, alpha, beta, depth, m
     else:
         best_move = None
         best_value = float('inf')
-        for move, result_board in genall_groupmove_resultboard(ply_board, cur_ply_player):
+        x = genall_groupmove_resultboard(ply_board, cur_ply_player)
+        sorted_x = sorted(x, key=lambda item: len(item[0][0]), reverse=True)
+        for move, result_board in sorted_x:
             _, value = alpha_beta_search_transposition(init_board, result_board, alpha, beta, depth - 1, max_player,
                                                        1 - cur_ply_player, time_limit, total_turns_remaining - 1,
                                                        eval_callback, transposition_table)

@@ -1,7 +1,7 @@
 """ This module holds the Game App. """
 import tkinter as tk
-from .main_page import GameGUI
-from .config_page import ConfigGUI
+from gui.game.main_page import GameGUI
+from gui.game.config_page import ConfigGUI
 
 
 class GameApp(tk.Tk):
