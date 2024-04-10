@@ -3,6 +3,7 @@ from pprint import pprint
 
 from heuristics import cam_heuristic
 from statespace.search import iterative_deepening_alpha_beta_search
+from statespace.transposition_table_IO import save_transposition_table_to_json
 
 
 class AIDaemon(Process):
@@ -20,7 +21,7 @@ class AIDaemon(Process):
 
             strategy = cam_heuristic.eval_state
 
-            move, _, elapsed_time = iterative_deepening_alpha_beta_search(
+            move, t_table, elapsed_time = iterative_deepening_alpha_beta_search(
                 eval_callback=strategy,
                 **game_state
             )
