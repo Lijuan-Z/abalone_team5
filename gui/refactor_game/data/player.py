@@ -141,15 +141,11 @@ class AIPlayer(Player):
         self._calculation_time_max = turn_time
         self._calculation_time_last_turn = 0
         self._recommendation_history = []
-        self._transposition_table = {}
-        self._transposition_table_file_name = ""
         self.is_first_move = True
 
     def special_init(self):
         """Initialization specific to the players called at logical state init"""
-        self._transposition_table_file_name = f"./transposition_table_{self.color}.json"
-        self._transposition_table = load_transposition_table_from_json(
-            self._transposition_table_file_name)
+        pass
 
     def start_turn(self, game):
         def after_search_callback(next_move, elapsed_time):
@@ -211,13 +207,11 @@ class AIPlayer(Player):
             'player': input_player_turn,
             'time_limit': input_time_limit * 10,  # Adjust time unit
             'turns_remaining': self.turns_left,
-            'transposition_table': self._transposition_table,
             'is_first_move': self.is_first_move
         }
         self.backend_conn.send(request)
 
-        move, self._transposition_table, elapsed_time = self.backend_conn.recv()
-        save_transposition_table_to_json(self._transposition_table, self._transposition_table_file_name)
+        move, elapsed_time = self.backend_conn.recv()
         after_search_callback(move, elapsed_time)
 
     def move_to_action(self, move):
