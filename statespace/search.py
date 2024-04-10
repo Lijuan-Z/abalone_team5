@@ -70,7 +70,7 @@ def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_r
     return best_move, cur_path
 
 
-def alpha_beta_search(init_board, ply_board, alpha, beta, total_depth, depth, max_player, cur_ply_player, time_limit, total_turns_remaining, eval_callback, path):
+def alpha_beta_search(init_board, ply_board, alpha, beta, total_depth, depth, max_player, cur_ply_player, time_limit, total_turns_remaining, eval_callback, path = None):
     """
     Determines which function should be called as the starting point of the alpha-beta search, based on the
     player value.
@@ -97,13 +97,15 @@ def alpha_beta_search(init_board, ply_board, alpha, beta, total_depth, depth, ma
     best_gm_rb = None
     continue_search = True
     groupmove_resultboard = genall_groupmove_resultboard(ply_board, cur_ply_player)
-    try:
-        best_gm_rb = groupmove_resultboard[path[total_depth - depth]]
-    except Exception:
+    if path is not None:
         try:
-            path[total_depth - depth]
+            best_gm_rb = groupmove_resultboard[path[total_depth - depth]]
+            del groupmove_resultboard[path[total_depth - depth]]
         except Exception:
-            path.append(None)
+            try:
+                path[total_depth - depth]
+            except Exception:
+                path.append(None)
 
     if cur_ply_player == max_player:
         best_value = float('-inf')
@@ -119,7 +121,7 @@ def alpha_beta_search(init_board, ply_board, alpha, beta, total_depth, depth, ma
                 alpha = value
         if continue_search is True:
             for i, (move, result_board) in enumerate(groupmove_resultboard):
-                _, _, value = alpha_beta_search(init_board,result_board, alpha, beta, total_depth, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback, path)
+                _, _, value = alpha_beta_search(init_board,result_board, alpha, beta, total_depth, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
                 if value > best_value:
                     best_value = value
                     best_move = move
@@ -137,12 +139,12 @@ def alpha_beta_search(init_board, ply_board, alpha, beta, total_depth, depth, ma
                 best_move = best_gm_rb[0]
                 best_move_index = path[total_depth - depth]
             if value <= alpha:
-                continue_search = True
+                continue_search = False
             if value < beta:
                 beta = value
         if continue_search is True:
             for i, (move, result_board) in enumerate(groupmove_resultboard):
-                _, _, value = alpha_beta_search(init_board,result_board, alpha, beta, total_depth, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback, path)
+                _, _, value = alpha_beta_search(init_board,result_board, alpha, beta, total_depth, depth - 1, max_player, 1 - cur_ply_player, time_limit, total_turns_remaining - 1, eval_callback)
                 if value < best_value:
                     best_value = value
                     best_move = move
@@ -152,7 +154,7 @@ def alpha_beta_search(init_board, ply_board, alpha, beta, total_depth, depth, ma
                 if value < beta:
                     beta = value
 
-    if path[total_depth - depth] is None:
+    if path and path[total_depth - depth] is None:
         path[total_depth - depth] = best_move_index
     return best_move, best_move_index, best_value
 
