@@ -24,6 +24,7 @@ class Board(tk.Frame):
         self.bind("<Configure>",
                   lambda event: self.update_board())
         self.parent.parent.bind("<KeyPress>", lambda event: self.handle_key_press(event.char))
+        self.parent.bind("<Button-1>", lambda event: self.parent.focus())
 
     def handle_key_press(self, char):
         """if you type f in the window, it will put a dash in the input entry"""

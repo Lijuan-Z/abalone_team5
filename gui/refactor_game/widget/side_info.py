@@ -116,7 +116,7 @@ class HumanInfo(tk.Frame):
             self.log_entry.insert(tk.END, f"{str(log)}\n")
         self.log_entry.see(tk.END)
 
-        self.log_entry.insert(tk.END, f"\n\nTotal Aggregate Time: {sum([log_item.time_taken for log_item in player.log])}s")
+        self.log_entry.insert(tk.END, f"\n\nTotal Aggregate Time: {sum([log_item.time_taken for log_item in player.log]):0.2f}s")
 
 
 class AIInfo(tk.Frame):
@@ -174,7 +174,7 @@ class AIInfo(tk.Frame):
         for log in player._recommendation_history:
             self.log_entry.insert(tk.END, f"{str(log)}\n")
 
-        self.log_entry.insert(tk.END, f"\n\nTotal Aggregate Time: {sum([log.time_taken for log in player._recommendation_history])}s")
+        self.log_entry.insert(tk.END, f"\n\nTotal Aggregate Time: {sum([log.time_taken for log in player._recommendation_history]):0.2f}s")
 
 
         self.log_entry.see(tk.END)
