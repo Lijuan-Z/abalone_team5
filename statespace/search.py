@@ -4,7 +4,8 @@ import random
 from statespace.statespace import genall_groupmove_resultboard
 import hashlib
 
-from statespace.transposition_table_IO import load_transposition_table_from_pickle, save_transposition_table_to_pickle
+from statespace.transposition_table_IO import load_transposition_table_from_pickle, save_transposition_table_to_pickle, \
+    load_transposition_table_from_json, save_transposition_table_to_json
 
 # A dictionary of unique 64-bit integer hashes representing each position paired with each color marble.
 hashed_positions = {
@@ -155,7 +156,7 @@ first_moves_dict = {
 
 def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remaining, eval_callback,
                                           transposition_table,
-                                          is_first_move=False, t_table_filename="transposition_table.pkl"):
+                                          is_first_move=False, t_table_filename="transposition_table.json"):
     """
     Makes calls to alpha_beta_search, incrementing the depth each loop.
 
@@ -178,12 +179,6 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
         first_move = first_moves_dict[(hash_board_state(board), random.randint(1, 3))]
         print(f"First Move: {first_move}")
         return first_move, transposition_table, 0
-
-    if transposition_table is None:
-        try:
-            transposition_table = load_transposition_table_from_pickle(t_table_filename)
-        except FileNotFoundError:
-            transposition_table = {}
 
     start_time = datetime.now()
     depth = 1
@@ -215,7 +210,6 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     print(f"Total Elapsed Time: {elapsed_time * 1000:.2f}ms/{time_limit:.2f}ms ")
     print(f"Depth Reached: {depth}")
     print(f"Best Move: {best_move}")
-    save_transposition_table_to_pickle(transposition_table, t_table_filename)
     return best_move, transposition_table, elapsed_time
 
 
