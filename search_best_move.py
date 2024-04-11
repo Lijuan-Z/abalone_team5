@@ -63,9 +63,9 @@ def print_board(board, black_marble="🦖", white_marble="🐒", empty_space="�
 
 
 if __name__ == '__main__':
-    board_state = starting_boards["standard"]
+    board_state = starting_boards["sample_1"]
     cur_player = 1
-    depth = 5
+    depth = 4
     turns_remaining = [5, 5]
     path = []
     transposition_table = {}

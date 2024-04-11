@@ -292,7 +292,7 @@ def alpha_beta_search_transposition(init_board, ply_board, alpha, beta, total_de
     if path is not None:
         try:
             best_gm_rb = groupmove_resultboard[path[total_depth - depth]]
-            del groupmove_resultboard[path[total_depth - depth]]
+            # del groupmove_resultboard[path[total_depth - depth]]
         except Exception:
             try:
                 path[total_depth - depth]
