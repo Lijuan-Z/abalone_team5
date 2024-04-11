@@ -200,7 +200,7 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     if is_first_move and player == 0:
         first_move = first_moves_dict[(hash_board_state(board), random.randint(1, 10))]
         print(f"First Move: {first_move}")
-        return first_move, path, transposition_table, 1.25
+        return first_move, path, transposition_table, 0
 
     start_time = datetime.now()
     depth = 1
