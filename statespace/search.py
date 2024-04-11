@@ -216,7 +216,7 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
         if elapsed_time >= time_limit_seconds * 0.1:
             depth -= 1
             break
-        temp_move, _, _ = alpha_beta_search_transposition(board, board, float('-inf'), float('inf'), depth, player, player,
+        temp_move, temp_index, _ = alpha_beta_search_transposition(board, board, float('-inf'), float('inf'), depth, player, player,
                                                        time_limit_seconds - elapsed_time, total_turns_remaining,
                                                        eval_callback, transposition_table, cur_path)
         elapsed_time = (datetime.now() - start_time).total_seconds()
