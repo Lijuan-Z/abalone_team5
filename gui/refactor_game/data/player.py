@@ -9,8 +9,6 @@ from heuristics import cam_heuristic
 from statespace.marblecoords import is_out_of_bounds
 from statespace.search import iterative_deepening_alpha_beta_search
 from statespace.statespace import apply_move
-from statespace.transposition_table_IO import \
-    load_transposition_table_from_pickle, load_transposition_table_from_json, save_transposition_table_to_json
 
 
 class Player(abc.ABC):

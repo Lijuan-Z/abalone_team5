@@ -4,9 +4,6 @@ import random
 from statespace.statespace import genall_groupmove_resultboard
 import hashlib
 
-from statespace.transposition_table_IO import load_transposition_table_from_pickle, save_transposition_table_to_pickle, \
-    load_transposition_table_from_json, save_transposition_table_to_json
-
 # A dictionary of unique 64-bit integer hashes representing each position paired with each color marble.
 hashed_positions = {
     (11, 0): 13694894272781220920,
