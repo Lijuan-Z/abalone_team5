@@ -12,6 +12,7 @@ class AIDaemon(Process):
         super(AIDaemon, self).__init__()
         self.daemon = True
         self.frontend_conn = frontend_conn
+        self._best_path = []
         self._transposition_table_white = load_transposition_table_from_json('transposition_table_white.json')
         self._transposition_table_black = load_transposition_table_from_json('transposition_table_black.json')
         self._first_move_history = load_from_pickle('first_move_history.pkl')
@@ -29,6 +30,7 @@ class AIDaemon(Process):
                 while True:
                     move, self._transposition_table_black, elapsed_time = iterative_deepening_alpha_beta_search(
                         eval_callback=strategy,
+                        path=self._best_path[1:],
                         transposition_table=self._transposition_table_black,
                         **game_state
                     )
@@ -40,8 +42,9 @@ class AIDaemon(Process):
                         break
 
             elif game_state['player'] == 0:
-                move, self._transposition_table_black, elapsed_time = iterative_deepening_alpha_beta_search(
+                move, self._best_path, self._transposition_table_black, elapsed_time = iterative_deepening_alpha_beta_search(
                     eval_callback=strategy,
+                    path=self._best_path[1:],
                     transposition_table=self._transposition_table_black,
                     **game_state
                 )
@@ -49,8 +52,9 @@ class AIDaemon(Process):
                 # Uncomment line below if you want the t_table to be saved
                 # save_transposition_table_to_json(self._transposition_table_black, 'transposition_table_black.json')
             else:
-                move, self._transposition_table_white, elapsed_time = iterative_deepening_alpha_beta_search(
+                move, self._best_path, self._transposition_table_white, elapsed_time = iterative_deepening_alpha_beta_search(
                     eval_callback=strategy,
+                    path=self._best_path[1:],
                     transposition_table=self._transposition_table_white,
                     **game_state
                 )
