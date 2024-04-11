@@ -211,7 +211,7 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     time_limit_seconds = time_limit / 1000.0  # Convert time_limit to seconds for comparison
 
     careful_thresh_seconds = time_limit_seconds * 0.05 # if an iteration is started past this time, it will be a careful search
-    full_cutoff_thresh_seconds = time_limit_seconds - 0.04
+    full_cutoff_thresh_seconds = time_limit_seconds - 0.1
 
     # The loop will end before the time limit if the maximum depth (based on turns remaining) is reached.
     while depth <= total_turns_remaining:
