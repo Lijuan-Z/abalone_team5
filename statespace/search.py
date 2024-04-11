@@ -1,3 +1,5 @@
+import threading
+import time
 from datetime import datetime
 import random
 
@@ -152,7 +154,6 @@ first_moves_dict = {
     (2251738777944622381, 3): (((12, 0), (23, 0), (34, 0)), 11)
 }
 
-
 def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remaining, eval_callback,
                                           transposition_table,
                                           is_first_move=False, t_table_filename="transposition_table.pkl"):
@@ -193,23 +194,70 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     best_move_search_time = 0
     time_limit_seconds = time_limit / 1000.0  # Convert time_limit to seconds for comparison
 
+    careful_thresh_seconds = time_limit_seconds * 0.05 # if an iteration is started past this time, it will be a careful search
+    full_cutoff_thresh_seconds = time_limit_seconds - 0.04
+
     # The loop will end before the time limit if the maximum depth (based on turns remaining) is reached.
     while depth <= total_turns_remaining:
         elapsed_time = (datetime.now() - start_time).total_seconds()
-        if elapsed_time >= time_limit_seconds * 0.1:
-            depth -= 1
-            break
-        temp_move, _ = alpha_beta_search_transposition(board, board, float('-inf'), float('inf'), depth, player, player,
-                                                       time_limit_seconds - elapsed_time, total_turns_remaining,
-                                                       eval_callback, transposition_table)
+
+        temp_move = None
+
+        if elapsed_time > careful_thresh_seconds:
+            print("CAREFUL THRESH REACHED:")
+
+            stop_flag = threading.Event()
+
+            kwargs = dict(init_board=board, ply_board=board,
+                          alpha=float('-inf'), beta=float('inf'),
+                          depth=depth, max_player=player, cur_ply_player=player,
+                          time_limit=time_limit_seconds - elapsed_time,
+                          total_turns_remaining=total_turns_remaining,
+                          eval_callback=eval_callback,
+                          transposition_table=transposition_table,
+                          end_of_time_flag=stop_flag)
+
+            search_thread = CarefulABThread(
+                target=careful_alpha_beta_search_transposition, kwargs=kwargs
+            )
+
+            careful_search_time = full_cutoff_thresh_seconds - elapsed_time
+            if careful_search_time >= 0.1:
+                search_thread.start()
+                print(f"{elapsed_time}s, Attempting careful search for an additional {careful_search_time} seconds")
+                print(f"beginning careful search for {careful_search_time} seconds")
+                time.sleep(careful_search_time)
+                stop_flag.set()
+                temp_move, _ = search_thread.join()
+            else:
+                print(f"search time requested for {careful_search_time}s. no point :( ending search")
+
+
+        elif elapsed_time <= careful_thresh_seconds:
+            print("RECKLESS:")
+            print("ELAPSED TIME:", elapsed_time)
+            temp_move, _ = reckless_alpha_beta_search_transposition(
+                init_board=board, ply_board=board,
+                alpha=float('-inf'), beta=float('inf'),
+                depth=depth, max_player=player, cur_ply_player=player,
+                time_limit=time_limit_seconds - elapsed_time,
+                total_turns_remaining=total_turns_remaining,
+                eval_callback=eval_callback,
+                transposition_table=transposition_table)
+
         elapsed_time = (datetime.now() - start_time).total_seconds()
-        if elapsed_time > time_limit_seconds:
-            depth -= 1
-            break
+
         if temp_move is not None:
             best_move = temp_move
             best_move_search_time = elapsed_time
             depth += 1
+        else:
+            depth -= 1
+            break
+
+        if elapsed_time > time_limit_seconds:
+            depth -= 1
+            break
     print("\n=======FINISHED========")
     print(f"Best Move Search Time: {best_move_search_time * 1000:.2f}ms/{time_limit:.2f}ms")  # Display in milliseconds
     print(f"Total Elapsed Time: {elapsed_time * 1000:.2f}ms/{time_limit:.2f}ms ")
@@ -250,8 +298,94 @@ def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_r
     save_transposition_table_to_pickle(transposition_table, t_table_filename)
     return best_move, transposition_table
 
+class CarefulABThread(threading.Thread):
 
-def alpha_beta_search_transposition(init_board, ply_board, alpha, beta, depth, max_player, cur_ply_player, time_limit,
+    def __init__(self, group=None, target=None, name=None,
+                 args=(), kwargs={}, Verbose=None):
+        threading.Thread.__init__(self, group, target, name, args, kwargs)
+        self._return = None
+
+    def run(self):
+        if self._target is not None:
+            self._return = self._target(*self._args, **self._kwargs)
+
+    def join(self, *args):
+        threading.Thread.join(self, *args)
+        return self._return
+
+def careful_alpha_beta_search_transposition(init_board, ply_board, alpha, beta, depth, max_player, cur_ply_player, time_limit,
+                                            total_turns_remaining, eval_callback, transposition_table, end_of_time_flag):
+    """
+    Determines which function should be called as the starting point of the alpha-beta search, based on the
+    player value.
+
+    Parameters:
+        board: a dict representation of the marbles on the board
+        depth: the current depth limit for the search (ie. how many levels deep before the state is evaluated)
+        time_limit: the total allotted time for this move to be determined. Should be accurate to 1/100ths of a second
+        max_player: a value, 0(black) or 1(white), indicating whose turn it is in the game
+        cur_ply_player: a value, 0(black) or 1(white), indicating whose turn it is in the current ply
+        turns_remaining: the total remaining turns for the current player
+
+    Returns:
+        (best_move, best_value): A tuple containing the best move for a player and that move's value as determined
+        by the evaluation function
+    """
+
+    if depth == 0 or total_turns_remaining == 0 or num_player_marbles(cur_ply_player, ply_board) == 8:
+        board_hash = hash_board_state(ply_board)
+        if transposition_table.get(board_hash) is None:
+            transposition_table[board_hash] = eval_callback(init_board=init_board, ply_board=ply_board,
+                                                            total_turns_remaining=total_turns_remaining,
+                                                            max_player=max_player,
+                                                            time_limit=time_limit)
+        return None, transposition_table[board_hash]
+    if cur_ply_player == max_player:
+        best_move = None
+        best_value = float('-inf')
+        x = genall_groupmove_resultboard(ply_board, cur_ply_player)
+        sorted_x = sorted(x, key=lambda item: len(item[0][0]), reverse=True)
+        for move, result_board in sorted_x:
+            if end_of_time_flag.is_set():
+                return None, None
+            _, value = careful_alpha_beta_search_transposition(init_board, result_board, alpha, beta, depth - 1, max_player,
+                                                       1 - cur_ply_player, time_limit, total_turns_remaining - 1,
+                                                       eval_callback, transposition_table, end_of_time_flag)
+            if value is None:
+                return None, None
+
+            if value > best_value:
+                best_value = value
+                best_move = move
+            if value >= beta:
+                break
+            alpha = max(alpha, value)
+        return best_move, best_value
+    else:
+        best_move = None
+        best_value = float('inf')
+        x = genall_groupmove_resultboard(ply_board, cur_ply_player)
+        sorted_x = sorted(x, key=lambda item: len(item[0][0]), reverse=True)
+        for move, result_board in sorted_x:
+            if end_of_time_flag.is_set():
+                return None, None
+
+            _, value = careful_alpha_beta_search_transposition(init_board, result_board, alpha, beta, depth - 1, max_player,
+                                                       1 - cur_ply_player, time_limit, total_turns_remaining - 1,
+                                                       eval_callback, transposition_table, end_of_time_flag)
+            if value is None:
+                return None, None
+
+            if value < best_value:
+                best_value = value
+                best_move = move
+            if value <= alpha:
+                break
+            beta = min(beta, value)
+        return best_move, best_value
+
+
+def reckless_alpha_beta_search_transposition(init_board, ply_board, alpha, beta, depth, max_player, cur_ply_player, time_limit,
                                     total_turns_remaining, eval_callback, transposition_table):
     """
     Determines which function should be called as the starting point of the alpha-beta search, based on the
@@ -284,7 +418,7 @@ def alpha_beta_search_transposition(init_board, ply_board, alpha, beta, depth, m
         x = genall_groupmove_resultboard(ply_board, cur_ply_player)
         sorted_x = sorted(x, key=lambda item: len(item[0][0]), reverse=True)
         for move, result_board in sorted_x:
-            _, value = alpha_beta_search_transposition(init_board, result_board, alpha, beta, depth - 1, max_player,
+            _, value = reckless_alpha_beta_search_transposition(init_board, result_board, alpha, beta, depth - 1, max_player,
                                                        1 - cur_ply_player, time_limit, total_turns_remaining - 1,
                                                        eval_callback, transposition_table)
             if value > best_value:
@@ -300,7 +434,7 @@ def alpha_beta_search_transposition(init_board, ply_board, alpha, beta, depth, m
         x = genall_groupmove_resultboard(ply_board, cur_ply_player)
         sorted_x = sorted(x, key=lambda item: len(item[0][0]), reverse=True)
         for move, result_board in sorted_x:
-            _, value = alpha_beta_search_transposition(init_board, result_board, alpha, beta, depth - 1, max_player,
+            _, value = reckless_alpha_beta_search_transposition(init_board, result_board, alpha, beta, depth - 1, max_player,
                                                        1 - cur_ply_player, time_limit, total_turns_remaining - 1,
                                                        eval_callback, transposition_table)
             if value < best_value:
