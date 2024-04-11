@@ -8,8 +8,15 @@ def save_transposition_table_to_pickle(table, filename):
 
 
 def save_transposition_table_to_json(table, filename):
-    with open(filename, 'w') as file:
-        json.dump(table, file)
+    try:
+        with open(filename, 'w') as file:
+            json.dump(table, file)
+    except TypeError as e:
+        print(e)
+        print(f"Could not serialize the transposition table to {filename}.")
+    except FileNotFoundError as e:
+        print(e)
+        print(f"File {filename} not found. Could not save the transposition table.")
 
 
 def load_transposition_table_from_pickle(filename):
