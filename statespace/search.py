@@ -4,8 +4,6 @@ from datetime import datetime
 from statespace.statespace import genall_groupmove_resultboard
 import hashlib
 
-from statespace.transposition_table_IO import save_transposition_table_to_pickle
-
 # A dictionary of unique 64-bit integer hashes representing each position paired with each color marble.
 hashed_positions = {
     (11, 0): 13694894272781220920,
@@ -266,7 +264,6 @@ def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_r
         print(f"Path: {cur_path}")
         cur_depth += 1
 
-    save_transposition_table_to_pickle(transposition_table, t_table_filename)
     return best_move, cur_path, transposition_table
 
 
