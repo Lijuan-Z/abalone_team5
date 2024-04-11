@@ -28,7 +28,7 @@ class AIDaemon(Process):
             strategy = cam_heuristic.eval_state
             if game_state['player'] == 0 and game_state['is_first_move']:
                 while True:
-                    move, self._transposition_table_black, elapsed_time = iterative_deepening_alpha_beta_search(
+                    move, self._best_path, self._transposition_table_black, elapsed_time = iterative_deepening_alpha_beta_search(
                         eval_callback=strategy,
                         path=self._best_path[1:],
                         transposition_table=self._transposition_table_black,
