@@ -29,7 +29,7 @@ class AIDaemon(Process):
                     **game_state
                 )
                 self.frontend_conn.send((move, elapsed_time))
-
+                # Uncomment line below if you want the t_table to be saved
                 # save_transposition_table_to_json(self._transposition_table_black, 'transposition_table_black.json')
             else:
                 move, self._transposition_table_white, elapsed_time = iterative_deepening_alpha_beta_search(
@@ -38,4 +38,5 @@ class AIDaemon(Process):
                     **game_state
                 )
                 self.frontend_conn.send((move, elapsed_time))
+                # Uncomment line below if you want the t_table to be saved
                 # save_transposition_table_to_json(self._transposition_table_white, 'transposition_table_white.json')
