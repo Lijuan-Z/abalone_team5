@@ -275,7 +275,8 @@ def alpha_beta_search_transposition(init_board, ply_board, alpha, beta, total_de
     best_move_index = None
     best_gm_rb = None
     continue_search = True
-    groupmove_resultboard = genall_groupmove_resultboard(ply_board, cur_ply_player)
+    x = genall_groupmove_resultboard(ply_board, cur_ply_player)
+    groupmove_resultboard = sorted(x, key=lambda item: len(item[0][0]), reverse=True)
     if path is not None:
         try:
             best_gm_rb = groupmove_resultboard[path[total_depth - depth]]
