@@ -154,7 +154,7 @@ first_moves_dict = {
 
 
 def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remaining, eval_callback,
-                                          transposition_table,
+                                          transposition_table, path,
                                           is_first_move=False, t_table_filename="transposition_table.json"):
     """
     Makes calls to alpha_beta_search, incrementing the depth each loop.
@@ -183,6 +183,8 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     depth = 1
     total_turns_remaining = turns_remaining * 2 - player
     best_move = None
+    best_index = None
+    cur_path = path
     elapsed_time = 0
     best_move_search_time = 0
     time_limit_seconds = time_limit / 1000.0  # Convert time_limit to seconds for comparison
@@ -195,21 +197,25 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
             break
         temp_move, _, _ = alpha_beta_search_transposition(board, board, float('-inf'), float('inf'), depth, player, player,
                                                        time_limit_seconds - elapsed_time, total_turns_remaining,
-                                                       eval_callback, transposition_table)
+                                                       eval_callback, transposition_table, cur_path)
         elapsed_time = (datetime.now() - start_time).total_seconds()
         if elapsed_time > time_limit_seconds:
             depth -= 1
             break
         if temp_move is not None:
             best_move = temp_move
+            best_index = temp_index
             best_move_search_time = elapsed_time
             depth += 1
+        if cur_path[0] != best_index:
+            cur_path = [best_index]
     print("\n=======FINISHED========")
     print(f"Best Move Search Time: {best_move_search_time * 1000:.2f}ms/{time_limit:.2f}ms")  # Display in milliseconds
     print(f"Total Elapsed Time: {elapsed_time * 1000:.2f}ms/{time_limit:.2f}ms ")
     print(f"Depth Reached: {depth}")
+    print(f"Path: {cur_path}")
     print(f"Best Move: {best_move}")
-    return best_move, transposition_table, elapsed_time
+    return best_move, cur_path, transposition_table, elapsed_time
 
 
 def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_remaining, eval_callback, ab_callback,

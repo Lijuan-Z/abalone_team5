@@ -2,7 +2,7 @@
 from heuristics import cam_heuristic
 from statespace.search import game_over, alpha_beta_search_transposition
 from statespace.search import \
-    iterative_deepening_alpha_beta_search_by_depth as id_abs_bd
+    iterative_deepening_alpha_beta_search as id_abs
 from statespace.statespace import apply_move
 from statespace.transposition_table_IO import \
     load_transposition_table_from_pickle
@@ -65,20 +65,22 @@ def print_board(board, black_marble="🦖", white_marble="🐒", empty_space="�
 if __name__ == '__main__':
     board_state = starting_boards["sample_1"]
     cur_player = 1
-    depth = 6
-    turns_remaining = [6, 6]
+    time_limit = 10000
+    turns_remaining = [5, 5]
     path = []
     transposition_tables = [{}, {}]
 
     while not game_over(board_state, turns_remaining[cur_player], cur_player):
         cur_player = 1 - cur_player
 
-        move, path, _ = id_abs_bd(board=board_state,
-                         player=cur_player,
-                         depth=depth,
-                         turns_remaining=turns_remaining[cur_player],
-                         eval_callback=cam_heuristic.eval_state,
-                         path=path[1:], ab_callback=alpha_beta_search_transposition,transposition_table=transposition_tables[cur_player])
+        move, path, _, _ = id_abs(board=board_state,
+                               player=cur_player,
+                               time_limit=time_limit,
+                               turns_remaining=turns_remaining[cur_player],
+                               eval_callback=cam_heuristic.eval_state,
+                               path=path[1:],
+                               transposition_table=transposition_tables[
+                                   cur_player])
 
         apply_move(board_state, move)
         print_board(board_state)
