@@ -10,7 +10,7 @@ from statespace.marblecoords import is_out_of_bounds
 from statespace.search import iterative_deepening_alpha_beta_search
 from statespace.statespace import apply_move
 from statespace.transposition_table_IO import \
-    load_transposition_table_from_pickle, load_transposition_table_from_json
+    load_transposition_table_from_pickle, load_transposition_table_from_json, save_transposition_table_to_json
 
 
 class Player(abc.ABC):
@@ -56,7 +56,6 @@ class Player(abc.ABC):
     def start_turn_timer(self, game):
         self._turn_timer_stop = False
         game.parent.after(10, self.do_timer_tick, game)
-
 
     def bind_top_info_callback(self, update_top_info_callback):
         self._update_top_info_callback = update_top_info_callback
@@ -135,7 +134,6 @@ class HumanPlayer(Player):
         pass
 
 
-
 class AIPlayer(Player):
     def __init__(self, turn_time, backend_conn, **kwargs):
         super().__init__(turn_time=float("inf"), **kwargs)
@@ -147,20 +145,7 @@ class AIPlayer(Player):
 
     def special_init(self):
         """Initialization specific to the players called at logical state init"""
-
-        # transposition_table_file_name = "./transposition_table.pkl"
-        # self._transposition_table = {}
-        # try:
-        #     self._transposition_table = load_transposition_table_from_pickle(
-        #         transposition_table_file_name)
-        #     print("loaded transposition_table_from_pickle")
-        # except FileNotFoundError:
-        #     print("no table found: ./transposition_table.pkl")
-        #     self._transposition_table = {}
-
-        transposition_table_file_name = "./transposition_table.json"
-        self._transposition_table = load_transposition_table_from_json(
-            transposition_table_file_name)
+        pass
 
     def start_turn(self, game):
         def after_search_callback(next_move, elapsed_time):
@@ -190,7 +175,8 @@ class AIPlayer(Player):
             for log_item in self._recommendation_history:
                 print("recommendation_history: ", str(log_item))
 
-        search_thread = threading.Thread(target=self.ai_search_result, kwargs={"game": game, "after_search_callback": after_search_callback})
+        search_thread = threading.Thread(target=self.ai_search_result,
+                                         kwargs={"game": game, "after_search_callback": after_search_callback})
         self.start_turn_timer(game)
         search_thread.start()
 
@@ -210,11 +196,8 @@ class AIPlayer(Player):
         # return self._calculation_time_last_turn
         return self._turn_time_taken
 
-
-
     def ai_search_result(self, game, after_search_callback):
         input_player_turn = 0 if self.color == Color.BLACK.value else 1
-
 
         # need change time to milliseconds?
         input_time_limit = self.turn_time_max
@@ -224,14 +207,11 @@ class AIPlayer(Player):
             'player': input_player_turn,
             'time_limit': input_time_limit * 10,  # Adjust time unit
             'turns_remaining': self.turns_left,
-            'transposition_table': self._transposition_table,
             'is_first_move': self.is_first_move
         }
         self.backend_conn.send(request)
 
-
         move, elapsed_time = self.backend_conn.recv()
-
         after_search_callback(move, elapsed_time)
 
     def move_to_action(self, move):
