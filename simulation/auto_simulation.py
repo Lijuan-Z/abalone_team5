@@ -10,14 +10,16 @@ from statespace.statespace import apply_move
 from statespace.search import game_over
 from heuristics import lisa_heuristic, cam_heuristic, kate_heuristic, \
     justin_heuristic
+from statespace.search import alpha_beta_search_transposition, alpha_beta_search_control
 import pandas as pd
 
 from statespace.transposition_table_IO import load_transposition_table_from_json, save_transposition_table_to_json
 
-heuristic_list = [cam_heuristic, justin_heuristic, kate_heuristic, lisa_heuristic]
-turn_limits = [50]
-time_limits = [100]
-board_layouts = ["standard", "belgian_daisy", "german_daisy"]
+heuristic_list = [cam_heuristic, justin_heuristic]
+search_strategy_list = [alpha_beta_search_transposition, alpha_beta_search_control]
+turn_limits = [40]
+time_limits = [5000]
+board_layouts = ["standard"]
 
 class AutoSim(Process):
     starting_boards = {
@@ -41,7 +43,8 @@ class AutoSim(Process):
     }
 
     def __init__(self, turn_limit_per_player: int, time_limit_per_move: int, board_layout: str, black_player_heuristic,
-                 white_player_heuristic, wins_counter, results_list):
+                 white_player_heuristic, wins_counter, results_list,
+                 black_player_search_strategy, white_player_search_strategy):
         super().__init__()
         self.board_state = copy.deepcopy(self.starting_boards[board_layout])
         self.turn_limit_per_player = turn_limit_per_player
@@ -64,24 +67,36 @@ class AutoSim(Process):
         self.transposition_tables = [
             load_transposition_table_from_json(f"{self.black_player_name}_black.json"),
             load_transposition_table_from_json(f"{self.white_player_name}_white.json")]
+        self.search_strategies = [black_player_search_strategy, white_player_search_strategy]
         self.wins_counter = wins_counter
         self.results_list = results_list
 
 
     def run(self):
         start_time = datetime.now()
-        print(f"Simulating {self.black_player_name} vs. {self.white_player_name}, {self.board_layout}")
-        logger = create_logger(f"{self.black_player_name}_vs_{self.white_player_name}_{self.board_layout}_{self.turn_limit_per_player}_turns_{self.time_limit_per_move}ms.log")
-        logger.info(f"Simulating {self.black_player_name} vs. {self.white_player_name}, {self.board_layout}")
+        print(f"Simulating {self.black_player_name} using "
+              f"{self.search_strategies[0].__name__} vs. {self.white_player_name} using"
+              f" {self.search_strategies[1].__name__}, {self.board_layout}")
+        logger = create_logger(f"{self.black_player_name}_"
+                               f"{self.search_strategies[0].__name__}_vs_"
+                               f"{self.white_player_name}_"
+                               f"{self.search_strategies[1].__name__}"
+                               f"_{self.board_layout}_"
+                               f"{self.turn_limit_per_player}_turns_{self.time_limit_per_move}ms.log")
+        logger.info(f"Simulating {self.black_player_name} using "
+                    f"{self.search_strategies[0]} vs. {self.white_player_name} using "
+                    f"{self.search_strategies[1]}, {self.board_layout}\n")
 
         player_turn = 1  # Black starts
         while not game_over(self.board_state, self.turns_remaining[player_turn], player_turn):
             player_turn = 1 - player_turn
             if self.first_move is None:
-                self.first_move = idab(self.board_state,
+                self.first_move,self.transposition_tables[player_turn], _ = idab(
+                    self.board_state,
                                        player_turn,
                                        self.time_limit_per_move,
                                        self.turns_remaining[player_turn],
+                                       ab_callback=self.search_strategies[player_turn],
                                        transposition_table=self.transposition_tables[player_turn],
                                        logger=logger,
                                        eval_callback=self.black_player_heuristic if player_turn == 0 else self.white_player_heuristic,
@@ -95,6 +110,7 @@ class AutoSim(Process):
                                                                 player_turn,
                                                                 self.time_limit_per_move,
                                                                 self.turns_remaining[player_turn],
+                                                                ab_callback=self.search_strategies[player_turn],
                                                                 transposition_table=self.transposition_tables[
                                                                     player_turn],
                                                                 logger=logger,
@@ -125,6 +141,8 @@ class AutoSim(Process):
         results = {
             "Black Player": self.black_player_name,
             "White Player": self.white_player_name,
+            "Black Player Search Strategy": self.search_strategies[0].__name__,
+            "White Player Search Strategy": self.search_strategies[1].__name__,
             "Starting Board Layout": self.board_layout,
             "First Move": self.first_move,
             "Time Limit": f"{self.time_limit_per_move}ms",
@@ -138,8 +156,8 @@ class AutoSim(Process):
         self.results_list.append(results)
         print(f"Finished: {results}")
         logger.info(results)
-        save_transposition_table_to_json(self.transposition_tables[0], f"{self.black_player_name}_black.json")
-        save_transposition_table_to_json(self.transposition_tables[1], f"{self.white_player_name}_white.json")
+        # save_transposition_table_to_json(self.transposition_tables[0], f"{self.black_player_name}_black.json")
+        # save_transposition_table_to_json(self.transposition_tables[1], f"{self.white_player_name}_white.json")
 
 
 def run_simulations(simulation_kwargs_list):
@@ -202,7 +220,9 @@ def write_results_to_excel(results, base_filename="game_results.xlsx"):
 if __name__ == '__main__':
     # Generate the Cartesian product of all simulation arguments
     # this is such a dope function.
-    simulation_args_list = list(product(turn_limits, time_limits, board_layouts, heuristic_list, heuristic_list))
+    simulation_args_list = list(product(turn_limits, time_limits, board_layouts,
+                                        heuristic_list, heuristic_list,
+                                        search_strategy_list, search_strategy_list))
 
     # Filter out simulations where the black and white heuristics would be the same
     simulation_args_list = [args for args in simulation_args_list if args[3] != args[4]]
@@ -213,7 +233,9 @@ if __name__ == '__main__':
             'time_limit_per_move': args[1],
             'board_layout': args[2],
             'black_player_heuristic': args[3],
-            'white_player_heuristic': args[4]
+            'white_player_heuristic': args[4],
+            'black_player_search_strategy': args[5],
+            'white_player_search_strategy': args[6]
         }
         for args in simulation_args_list
     ]
@@ -223,5 +245,3 @@ if __name__ == '__main__':
     for key, value in wins_counter.items():
         print(f"{key}: {value} wins")
     write_results_to_excel(results)
-    for key, value in wins_counter.items():
-        print(f"{key}: {value} wins")
