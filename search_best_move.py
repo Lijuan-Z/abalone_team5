@@ -1,9 +1,11 @@
 """Currently a testing file for the best-move search algorithm."""
 from heuristics import cam_heuristic
-from statespace.search import game_over
+from statespace.search import game_over, alpha_beta_search_transposition
 from statespace.search import \
     iterative_deepening_alpha_beta_search_by_depth as id_abs_bd
 from statespace.statespace import apply_move
+from statespace.transposition_table_IO import \
+    load_transposition_table_from_pickle
 
 starting_boards = {
     'standard': {11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 21: 0, 22: 0,
@@ -63,19 +65,20 @@ def print_board(board, black_marble="🦖", white_marble="🐒", empty_space="�
 if __name__ == '__main__':
     board_state = starting_boards["standard"]
     cur_player = 1
-    depth = 6
-    turns_remaining = [10, 10]
+    depth = 5
+    turns_remaining = [5, 5]
     path = []
+    transposition_table = {}
 
     while not game_over(board_state, turns_remaining[cur_player], cur_player):
         cur_player = 1 - cur_player
 
-        move, path = id_abs_bd(board=board_state,
+        move, path, _ = id_abs_bd(board=board_state,
                          player=cur_player,
                          depth=depth,
                          turns_remaining=turns_remaining[cur_player],
                          eval_callback=cam_heuristic.eval_state,
-                         path=path[1:])
+                         path=path[1:], ab_callback=alpha_beta_search_transposition, transposition_table=transposition_table)
 
         apply_move(board_state, move)
         print_board(board_state)

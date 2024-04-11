@@ -41,11 +41,11 @@ after making your changes, you can create an executable.
 
 ### Windows, Debian/Ubuntu
 
-> pyinstaller --onefile game_app.py
+> pyinstaller --onefile src/abalone.py
 
 <br></br>
 The executable will be placed in
-dist/
+src/dist/
 
 \*will overwrite any previous builds in the directory
 
@@ -55,7 +55,7 @@ dist/
 2. navigate to the executables directory
 > dist/
 
-3. Execute `game_app.exe`
+3. Execute `abalone.exe`
 
 4. On the configuration page, set up the game parameters according to your preferences. Once configured, press the "Start Game" button to proceed to the game board.
 
