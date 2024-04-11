@@ -4,8 +4,7 @@ from datetime import datetime
 from statespace.statespace import genall_groupmove_resultboard
 import hashlib
 
-from statespace.transposition_table_IO import load_transposition_table_from_pickle, save_transposition_table_to_pickle, \
-    load_transposition_table_from_json, save_transposition_table_to_json
+from statespace.transposition_table_IO import save_transposition_table_to_pickle
 
 # A dictionary of unique 64-bit integer hashes representing each position paired with each color marble.
 hashed_positions = {
@@ -216,18 +215,12 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
 def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_remaining, eval_callback, ab_callback,
                                                    transposition_table, path,
                                                    is_first_move=False,
-                                                   t_table_filename="transposition_table.pkl"):
+                                                   t_table_filename="transposition_table.json"):
 
     if is_first_move and player == 0:
         first_move = first_moves_dict[(hash_board_state(board), random.randint(1, 3))]
         print(f"First Move: {first_move}")
         return first_move, transposition_table
-
-    if transposition_table is None:
-        try:
-            transposition_table = load_transposition_table_from_pickle(t_table_filename)
-        except FileNotFoundError:
-            transposition_table = {}
 
     start_time = datetime.now()
     cur_depth = 1
