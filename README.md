@@ -41,7 +41,7 @@ after making your changes, you can create an executable.
 
 ### Windows, Debian/Ubuntu
 
-> pyinstaller --onefile src/abalone.py
+> pyinstaller --onefile src/refactor_abalone.py
 
 <br></br>
 The executable will be placed in
@@ -55,7 +55,7 @@ src/dist/
 2. navigate to the executables directory
 > dist/
 
-3. Execute `abalone.exe`
+3. Execute `refactor_abalone.exe`
 
 4. On the configuration page, set up the game parameters according to your preferences. Once configured, press the "Start Game" button to proceed to the game board.
 
