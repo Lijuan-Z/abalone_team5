@@ -175,8 +175,7 @@ first_moves_dict = {
 
 
 def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remaining, eval_callback,
-                                          transposition_table, path,
-                                          is_first_move=False, t_table_filename="transposition_table.json"):
+                                          transposition_table, is_first_move=False, t_table_filename="transposition_table.json"):
     """
     Makes calls to alpha_beta_search, incrementing the depth each loop.
 
@@ -198,14 +197,14 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     if is_first_move and player == 0:
         first_move = first_moves_dict[(hash_board_state(board), random.randint(1, 10))]
         print(f"First Move: {first_move}")
-        return first_move, path, transposition_table, 0
+        return first_move, transposition_table, 0
 
     start_time = datetime.now()
     depth = 1
     total_turns_remaining = turns_remaining * 2 - player
     best_move = None
     best_index = None
-    cur_path = path
+    cur_path = []
     elapsed_time = 0
     best_move_search_time = 0
     time_limit_seconds = time_limit / 1000.0  # Convert time_limit to seconds for comparison
@@ -292,7 +291,7 @@ def iterative_deepening_alpha_beta_search(board, player, time_limit, turns_remai
     print(f"Depth Reached: {depth}")
     print(f"Path: {cur_path}")
     print(f"Best Move: {best_move}")
-    return best_move, cur_path, transposition_table, elapsed_time
+    return best_move, transposition_table, elapsed_time
 
 
 def iterative_deepening_alpha_beta_search_by_depth(board, player, depth, turns_remaining, eval_callback, ab_callback,
